@@ -1,0 +1,1 @@
+int bms_entry();
