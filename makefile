@@ -65,8 +65,8 @@ Core/Src/system_stm32f4xx.c
 C_SOURCES += $(USER_SOURCES)
 
 # ASM sources
-ASM_SOURCES =  \
-startup_stm32f405xx.s
+ASM_SOURCES = startup_stm32f401xe.s
+# ASM_SOURCES = startup_stm32f405xx.s
 
 
 #######################################
@@ -109,9 +109,13 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS = 
 
 # C defines
-C_DEFS =  \
--DUSE_HAL_DRIVER \
--DSTM32F405xx
+C_DEFS = \
+-D USE_HAL_DRIVER \
+-D STM32F401xE
+
+# C_DEFS = \
+# -D USE_HAL_DRIVER \
+# -D STM32F405xx
 
 
 # AS includes
@@ -119,11 +123,11 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--ICore/Inc \
--IDrivers/STM32F4xx_HAL_Driver/Inc \
--IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
--IDrivers/CMSIS/Include
+-I Core/Inc \
+-I Drivers/STM32F4xx_HAL_Driver/Inc \
+-I Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+-I Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+-I Drivers/CMSIS/Include
 
 C_INCLUDES += $(USER_INCLUDES)
 
@@ -145,7 +149,8 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F405RGTx_FLASH.ld
+LDSCRIPT = STM32F401RETx_FLASH.ld
+# LDSCRIPT = STM32F405RGTx_FLASH.ld
 
 # libraries
 LIBS = -lc -lm -lnosys 
