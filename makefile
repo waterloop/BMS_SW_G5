@@ -3,7 +3,7 @@
 ##########################################################################################################################
 
 # ------------------------------------------------
-# Generic Makefile (based on gcc)
+# Generic makefile (based on gcc)
 #
 # ChangeLog :
 #	2017-02-10 - Several enhancements + project update mode
@@ -171,13 +171,13 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
+$(BUILD_DIR)/%.o: %.c makefile | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.s makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
 
@@ -195,7 +195,10 @@ $(BUILD_DIR):
 #######################################
 clean:
 	rm -rf $(BUILD_DIR)
-  
+
+flash:
+	st-flash write $(BUILD_DIR)/main.bin 0x08000000 
+
 #######################################
 # dependencies
 #######################################
