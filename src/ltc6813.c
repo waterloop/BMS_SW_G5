@@ -27,20 +27,20 @@ const uint16_t _CRC15_LUT[256] = {
 	0x585a, 0x8ba7, 0x4e3e, 0x450c, 0x8095
 };
 
-Ltc6813 Ltc6813_init(uint32_t timeout) {
+Ltc6813 Ltc6813_init() {
 	extern SPI_HandleTypeDef hspi2;
 
 	Ltc6813 slave_device = {};
 	slave_device._spi_interface = hspi2;
-	slave_device.timeout = timeout;
+	slave_device.timeout = 10000;
 
 	return slave_device;
 }
 
-void _Ltc6813_write_spi(Ltc6813* self, uint8_t* cmd, uint8_t cmd_len) {
+void Ltc6813_write_spi(Ltc6813* self, uint8_t* cmd, uint8_t cmd_len) {
 	HAL_SPI_Transmit(&self->_spi_interface, cmd, cmd_len, self->timeout);
 }
-void _Ltc6813_read_spi(Ltc6813* self, uint8_t* output_buffer, uint8_t output_len) {
+void Ltc6813_read_spi(Ltc6813* self, uint8_t* output_buffer, uint8_t output_len) {
 	HAL_SPI_Receive(&self->_spi_interface, output_buffer, output_len, self->timeout);
 }
 
