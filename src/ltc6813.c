@@ -35,11 +35,13 @@ Buffer Buffer_init() {
 	buffer.len = 0;
 	return buffer;
 }
+
 void Buffer_append(Buffer* self, uint8_t val) {
 	uint8_t indx = self->len;
 	self->data[indx] = val;
 	self->len += 1;
 }
+
 uint8_t Buffer_index(Buffer* self, uint8_t indx) {
 	if (indx >= self->len) { Error_Handler(); }
 	return self->data[indx];
@@ -47,6 +49,18 @@ uint8_t Buffer_index(Buffer* self, uint8_t indx) {
 void Buffer_set_indx(Buffer* self, uint8_t indx, uint8_t val) {
 	if (indx >= self->len) { Error_Handler(); }
 	self->data[indx] = val;
+}
+
+void Buffer_add_pec(Buffer* self) {
+	uint16_t remainder = 16;
+	uint16_t addr = 0;
+	for (uint8_t i = 0; i < self->len; i++) {
+		addr = ( (remainder >> 7)^Buffer_index(self, i) ) & 0xff;
+		remainder = (remainder << 8)^_CRC15_LUT[addr];
+	}
+	uint16_t pec = remainder*2;
+	Buffer_append(self, (pec >> 8) && 0xff);
+	Buffer_append(self, pec & 0xff);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,13 +80,16 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	slave_device.timeout = 10000;
 	return slave_device;
 }
+
 void Ltc6813_wakeup_sleep(Ltc6813* self) {
-	self->_cs_gpio_port->ODR ^= ~(1u << self->_cs_pin_num);
+	HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 0);
 	HAL_Delay(1);
-	self->_cs_gpio_port->ODR |= (1u << self->_cs_pin_num);
+	HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 1);
 	HAL_Delay(1);
 }
 void Ltc6813_wakeup_idle(Ltc6813* self) {
+	HAL_GPIO_WritePin(self->_cs_gpio_port, (1 << self->_cs_pin_num), 0);
+
 	// send a short burst of logical highs to wakeup the device
 	Buffer dummy_cmd = Buffer_init();
 	Buffer_append(&dummy_cmd, 0xff);
@@ -82,7 +99,10 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 	// block until the LTC6813 sends it's response to the wakeup signal
 	// reference: page 51 of the datasheet
 	Ltc6813_read_spi(self, &dummy_cmd);
+
+	HAL_GPIO_WritePin(self->_cs_gpio_port, (1 << self->_cs_pin_num), 1);
 }
+
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
 	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
 }
