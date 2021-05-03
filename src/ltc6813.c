@@ -1,5 +1,6 @@
 #include "main.h"
 #include "ltc6813.h"
+#include "stdint.h"
 
 const uint16_t _CRC15_LUT[256] = {
 	0x0,0xc599, 0xceab, 0xb32, 0xd8cf, 0x1d56, 0x1664, 0xd3fd, 0xf407, 0x319e, 0x3aac,
@@ -27,21 +28,65 @@ const uint16_t _CRC15_LUT[256] = {
 	0x585a, 0x8ba7, 0x4e3e, 0x450c, 0x8095
 };
 
-Ltc6813 Ltc6813_init() {
-	extern SPI_HandleTypeDef hspi2;
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Buffer methods
+Buffer Buffer_init() {
+	Buffer buffer = {};
+	buffer.len = 0;
+	return buffer;
+}
+void Buffer_append(Buffer* self, uint8_t val) {
+	uint8_t indx = self->len;
+	self->data[indx] = val;
+	self->len += 1;
+}
+uint8_t Buffer_index(Buffer* self, uint8_t indx) {
+	if (indx >= self->len) { Error_Handler(); }
+	return self->data[indx];
+}
+void Buffer_set_indx(Buffer* self, uint8_t indx, uint8_t val) {
+	if (indx >= self->len) { Error_Handler(); }
+	self->data[indx] = val;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ltc6813 methods
+Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t cs_pin_num) {
 	Ltc6813 slave_device = {};
-	slave_device._spi_interface = hspi2;
-	slave_device.timeout = 10000;
+	slave_device._spi_interface = spi;
 
+	// config CS pin as GPIO output
+	cs_gpio_port->MODER &= ~(0b11u << (cs_pin_num*2));
+	cs_gpio_port->MODER |= (0b01u << (cs_pin_num*2));
+
+	slave_device._cs_gpio_port = cs_gpio_port;
+	slave_device._cs_pin_num = cs_pin_num;
+
+	slave_device.timeout = 10000;
 	return slave_device;
 }
-
-void Ltc6813_write_spi(Ltc6813* self, uint8_t* cmd, uint8_t cmd_len) {
-	HAL_SPI_Transmit(&self->_spi_interface, cmd, cmd_len, self->timeout);
+void Ltc6813_wakeup_sleep(Ltc6813* self) {
+	self->_cs_gpio_port->ODR ^= ~(1u << self->_cs_pin_num);
+	HAL_Delay(1);
+	self->_cs_gpio_port->ODR |= (1u << self->_cs_pin_num);
+	HAL_Delay(1);
 }
-void Ltc6813_read_spi(Ltc6813* self, uint8_t* output_buffer, uint8_t output_len) {
-	HAL_SPI_Receive(&self->_spi_interface, output_buffer, output_len, self->timeout);
+void Ltc6813_wakeup_idle(Ltc6813* self) {
+	// send a short burst of logical highs to wakeup the device
+	Buffer dummy_cmd = Buffer_init();
+	Buffer_append(&dummy_cmd, 0xff);
+
+	Ltc6813_write_spi(self, &dummy_cmd);
+
+	// block until the LTC6813 sends it's response to the wakeup signal
+	// reference: page 51 of the datasheet
+	Ltc6813_read_spi(self, &dummy_cmd);
 }
-
-
+void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
+	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
+}
+void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer) {		// blocks execution until buffer is populated
+	HAL_SPI_Receive(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
