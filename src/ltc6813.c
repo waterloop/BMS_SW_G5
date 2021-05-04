@@ -74,6 +74,8 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	cs_gpio_port->MODER &= ~(0b11u << (cs_pin_num*2));
 	cs_gpio_port->MODER |= (0b01u << (cs_pin_num*2));
 
+	HAL_GPIO_WritePin(cs_gpio_port, (1u << cs_pin_num), 1);		// Set CS high (active low)
+
 	slave_device._cs_gpio_port = cs_gpio_port;
 	slave_device._cs_pin_num = cs_pin_num;
 
@@ -81,29 +83,22 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	return slave_device;
 }
 
+// WAKEUP FUNCTIONS:
+// setting CS low will send a long isoSPI pulse (reference: page 18 of LTC6820 datasheet)
 void Ltc6813_wakeup_sleep(Ltc6813* self) {
 	HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 0);
-	HAL_Delay(1);
+	delay_us(410);		// according to datasheet, t_wake = 400us
 	HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 1);
-	HAL_Delay(1);
+	delay_us(30);
 }
 void Ltc6813_wakeup_idle(Ltc6813* self) {
 	HAL_GPIO_WritePin(self->_cs_gpio_port, (1 << self->_cs_pin_num), 0);
-
-	// send a short burst of logical highs to wakeup the device
-	Buffer dummy_cmd = Buffer_init();
-	Buffer_append(&dummy_cmd, 0xff);
-
-	Ltc6813_write_spi(self, &dummy_cmd);
-
-	// block until the LTC6813 sends it's response to the wakeup signal
-	// reference: page 51 of the datasheet
-	Ltc6813_read_spi(self, &dummy_cmd);
-
+	delay_us(20);		// according to datasheet, t_wake = 10us
 	HAL_GPIO_WritePin(self->_cs_gpio_port, (1 << self->_cs_pin_num), 1);
 }
 
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
+	Ltc6813_wakeup_idle(self);
 	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
 }
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer) {		// blocks execution until buffer is populated

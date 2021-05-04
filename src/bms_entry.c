@@ -1,6 +1,7 @@
 #include "bms_entry.h"
 #include "peripherals.h"
 #include "ltc6813.h"
+#include "timer_utils.h"
 #include "stdint.h"
 #include "stdio.h"
 #include "string.h"
@@ -10,23 +11,43 @@ void uart1_print(char* char_arr) {
 }
 
 void blinky_loop() {
-	// test code, blinks an LED on pin PB10
-	GPIOB->MODER &= ~(0b11u << (10*2));
-	GPIOB->MODER |= (0b01u << (10*2));
+	// test code, blinks an LED on PC3
+	GPIOC->MODER &= ~(0b11u << (3*2));
+	GPIOC->MODER |= (0b01u << (3*2));
 
 	while (1) {
-		GPIOB->ODR ^= (1 << 10);
+		GPIOC->ODR ^= (1u << 3);
 		HAL_Delay(1000);
 	}
 }
 
+void delay_us_test() {
+	// bit-bangs a 1 MHz square wave on PC3
+	GPIOC->MODER &= ~(0b11u << (3*2));
+	GPIOC->MODER |= (0b01u << (3*2));
+
+	GPIOC->OSPEEDR &= ~(0b11u << (3*2));
+	GPIOC->OSPEEDR |= (0b11u << (3*2));
+
+	uart1_print("asdfasdf\n");
+	while (1) {
+		GPIOC->ODR ^= (1u << 3);
+		delay_us(1);
+	}
+}
+
 int bms_entry() {	
+	start_timers();
+	// blinky_loop();
+	// delay_us_test();
+
 	Ltc6813 slave_device = Ltc6813_init(hspi2, GPIOC, 3);
 
 	Buffer pkt = Buffer_init();
-	Buffer_append(&pkt, 0b000u);
-	Buffer_append(&pkt, 0b00000100u);
-	Buffer_add_pec(&pkt);
+	Buffer_append(&pkt, 0b10101010u);
+	// Buffer_append(&pkt, 0b000u);
+	// Buffer_append(&pkt, 0b00000100u);
+	// Buffer_add_pec(&pkt);
 
 	Buffer response_pkt = Buffer_init();
 	response_pkt.len = 8;
@@ -41,7 +62,7 @@ int bms_entry() {
 	Ltc6813_wakeup_sleep(&slave_device);
 
 	while (1) {
-		Ltc6813_wakeup_idle(&slave_device);
+		// Ltc6813_wakeup_idle(&slave_device);
 		Ltc6813_write_spi(&slave_device, &pkt);
 
 		// Ltc6813_read_spi(&slave_device, &response_pkt);
@@ -52,7 +73,7 @@ int bms_entry() {
 		// }
 		// uart1_print("\n");
 
-		HAL_Delay(5);
+		// HAL_Delay(5);
 	}
 
 	return 0;

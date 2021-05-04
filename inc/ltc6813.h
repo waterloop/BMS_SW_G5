@@ -1,3 +1,6 @@
+#ifndef __LTC6813
+#define __LTC6813
+
 #include "main.h"
 #include "stdint.h"
 
@@ -44,4 +47,4 @@ void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+#endif
