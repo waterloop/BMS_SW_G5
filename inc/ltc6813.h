@@ -39,6 +39,9 @@ typedef struct {
 //          meaning previous configurations will be broken...
 Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t cs_pin_num);
 
+void Ltc6813_cs_low(Ltc6813* self);
+void Ltc6813_cs_high(Ltc6813* self);
+
 void Ltc6813_wakeup_sleep(Ltc6813* self);
 void Ltc6813_wakeup_idle(Ltc6813* self);
 

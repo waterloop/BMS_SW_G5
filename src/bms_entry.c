@@ -29,7 +29,6 @@ void delay_us_test() {
 	GPIOC->OSPEEDR &= ~(0b11u << (3*2));
 	GPIOC->OSPEEDR |= (0b11u << (3*2));
 
-	uart1_print("asdfasdf\n");
 	while (1) {
 		GPIOC->ODR ^= (1u << 3);
 		delay_us(1);
@@ -37,33 +36,35 @@ void delay_us_test() {
 }
 
 int bms_entry() {	
+	uart1_print("start...");
+
 	start_timers();
 	// blinky_loop();
 	// delay_us_test();
 
 	Ltc6813 slave_device = Ltc6813_init(hspi2, GPIOC, 3);
 
-	Buffer pkt = Buffer_init();
-	Buffer_append(&pkt, 0b10101010u);
+	// Buffer pkt = Buffer_init();
+	// // Buffer_append(&pkt, 0b10101010u);
 	// Buffer_append(&pkt, 0b000u);
 	// Buffer_append(&pkt, 0b00000100u);
 	// Buffer_add_pec(&pkt);
 
-	Buffer response_pkt = Buffer_init();
-	response_pkt.len = 8;
+	// Buffer response_pkt = Buffer_init();
+	// response_pkt.len = 8;
 
-	char str[500];
-	for (uint8_t i = 0; i < pkt.len; i++) {
-		sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(&pkt, i));
-		uart1_print(str);
-	}
-	uart1_print("\n");
+	// char str[500];
+	// for (uint8_t i = 0; i < pkt.len; i++) {
+	// 	sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(&pkt, i));
+	// 	uart1_print(str);
+	// }
+	// uart1_print("\n");
 
-	Ltc6813_wakeup_sleep(&slave_device);
+	// Ltc6813_wakeup_sleep(&slave_device);
 
 	while (1) {
-		// Ltc6813_wakeup_idle(&slave_device);
-		Ltc6813_write_spi(&slave_device, &pkt);
+		Ltc6813_wakeup_idle(&slave_device);
+		// Ltc6813_write_spi(&slave_device, &pkt);
 
 		// Ltc6813_read_spi(&slave_device, &response_pkt);
 
@@ -72,6 +73,8 @@ int bms_entry() {
 		// 	uart1_print(str);
 		// }
 		// uart1_print("\n");
+
+		delay_us(50);
 
 		// HAL_Delay(5);
 	}
