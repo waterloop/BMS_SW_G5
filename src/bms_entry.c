@@ -67,12 +67,15 @@ int bms_entry() {
 
 		delay_us(5);
 
+		Ltc6813_cs_low(&slave_device);
 		Ltc6813_write_spi(&slave_device, &pkt);
 
 		delay_us(50);
 
 
 		Ltc6813_read_spi(&slave_device, &response_pkt);
+
+		Ltc6813_cs_high(&slave_device);
 
 		for (uint8_t i = 0; i < response_pkt.len; i++) {
 			sprintf(str, "byte %d: %d\n", i, Buffer_index(&response_pkt, i));
