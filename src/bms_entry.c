@@ -45,10 +45,16 @@ int bms_entry() {
 	Ltc6813 slave_device = Ltc6813_init(hspi2, GPIOB, 12);
 
 	Buffer pkt = Buffer_init();
-	// Buffer_append(&pkt, 0b10101010u);
+	
+	// RDCFGA, just trying to get data back by reading the default configuration register values
+	// idk why I didn't think of this before I'm actually trolling
 	Buffer_append(&pkt, 0b000u);
-	Buffer_append(&pkt, 0b00000100u);
-	Buffer_add_pec(&pkt);
+	Buffer_append(&pkt, 0b00000010u);
+
+	// RDCVA command 
+	// Buffer_append(&pkt, 0b000u);
+	// Buffer_append(&pkt, 0b00000100u);
+	// Buffer_add_pec(&pkt);
 
 	Buffer response_pkt = Buffer_init();
 	response_pkt.len = 8;
@@ -70,8 +76,8 @@ int bms_entry() {
 		Ltc6813_cs_low(&slave_device);
 		Ltc6813_write_spi(&slave_device, &pkt);
 
-		delay_us(50);
-
+		delay_us(5);
+		// HAL_Delay(6);
 
 		Ltc6813_read_spi(&slave_device, &response_pkt);
 
@@ -85,7 +91,7 @@ int bms_entry() {
 
 		
 
-		HAL_Delay(50);
+		HAL_Delay(500);
 	}
 
 	return 0;

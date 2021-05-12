@@ -3,6 +3,22 @@
 #include "timer_utils.h"
 #include "stdint.h"
 
+/*
+IMPORTANT TIMING PARAMETERS:
+	- system core:
+		- t_sleep = 1.8s (min) to 2.2s (max)
+			- time for the chip's watchdog to kick in and transition the core to SLEEP state
+		- t_wake = 400us (max)
+			- time for the chip's core to transition from the SLEEP state to the STANDBY state
+		- t_refup = 2.7ms (min) to 4.4ms (max)
+			- time for the chip's core to transition DIRECTLY from the STANDBY state to the MEASURE state
+	isoSPI Phy:
+		- t_ready = 10us (max)
+			- time for the chip's isoSPI tranceiver to transition to its READY state after differential activity is detected
+		- t_idle = 4.3ms (min) to 6.7ms (max)
+			- time for the chip's isoSPI tranceiver to transition into its IDLE state
+*/
+
 const uint16_t _CRC15_LUT[256] = {
 	0x0,0xc599, 0xceab, 0xb32, 0xd8cf, 0x1d56, 0x1664, 0xd3fd, 0xf407, 0x319e, 0x3aac,
 	0xff35, 0x2cc8, 0xe951, 0xe263, 0x27fa, 0xad97, 0x680e, 0x633c, 0xa6a5, 0x7558, 0xb0c1,
@@ -104,6 +120,11 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
 	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
 }
+
+void Ltc6813_await_adc_completion(Ltc6813* self) {
+	
+}
+
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer) {		// blocks execution until buffer is populated
 	HAL_SPI_Receive(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
 }
