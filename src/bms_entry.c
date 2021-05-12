@@ -57,7 +57,7 @@ int bms_entry() {
 	// Buffer_add_pec(&pkt);
 
 	Buffer response_pkt = Buffer_init();
-	response_pkt.len = 8;
+	response_pkt.len = 8*6;
 
 	char str[500];
 	for (uint8_t i = 0; i < pkt.len; i++) {
