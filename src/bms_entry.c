@@ -79,12 +79,12 @@ int bms_entry() {
 	Ltc6813_wakeup_sleep(&slave_device);
 
 	while (1) {
-		if (Buffer_index(&pkt, 2) == 0b11111000u) {
-			Buffer_set_index(&pkt, 2, 0b11110000u);
-		}
-		else {
-			Buffer_set_index(&pkt, 2, 0b11111000u);
-		}
+		// if (Buffer_index(&pkt, 2) == 0b11111000u) {
+		// 	Buffer_set_index(&pkt, 2, 0b11110000u);
+		// }
+		// else {
+		// 	Buffer_set_index(&pkt, 2, 0b11111000u);
+		// }
 
 		Ltc6813_wakeup_idle(&slave_device);
 
