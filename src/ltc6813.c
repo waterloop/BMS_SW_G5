@@ -91,10 +91,10 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	cs_gpio_port->MODER &= ~(0b11u << (cs_pin_num*2));
 	cs_gpio_port->MODER |= (0b01u << (cs_pin_num*2));
 
-	Ltc6813_cs_high(&slave_device);
-
 	slave_device._cs_gpio_port = cs_gpio_port;
 	slave_device._cs_pin_num = cs_pin_num;
+
+	Ltc6813_cs_high(&slave_device);
 
 	slave_device.timeout = 10000;
 	return slave_device;
@@ -131,9 +131,13 @@ void Ltc6813_await_adc_completion(Ltc6813* self) {
 
 
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
+	Ltc6813_cs_low(self);
 	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
+	Ltc6813_cs_high(self);
 }
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer) {		// blocks execution until buffer is populated
+	Ltc6813_cs_low(self);
 	HAL_SPI_Receive(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
+	Ltc6813_cs_high(self);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
