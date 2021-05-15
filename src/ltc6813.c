@@ -94,10 +94,23 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	slave_device._cs_gpio_port = cs_gpio_port;
 	slave_device._cs_pin_num = cs_pin_num;
 
-	Ltc6813_cs_high(&slave_device);
-
 	slave_device.timeout = 10000;
+
+	Ltc6813_cs_high(&slave_device);
+	_Ltc6813_init_registers(&slave_device);
+
 	return slave_device;
+}
+
+void _Ltc6813_init_registers(Ltc6813* self) {
+	Buffer pkt = Buffer_init();
+	Buffer_append(&pkt, 0b00000100u);
+	Buffer_append(&pkt, 0u);
+	Buffer_append(&pkt, 0u);
+	Buffer_append(&pkt, 0u);
+	Buffer_append(&pkt, 0u);
+	Buffer_append(&pkt, 0u);
+	Ltc6813_write_spi(self, &pkt);
 }
 
 void Ltc6813_cs_low(Ltc6813* self) { HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 0); }
@@ -116,19 +129,6 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 	delay_us(20);		// according to datasheet, t_wake = 10us
 	Ltc6813_cs_high(self);
 }
-
-void Ltc6813_read_cmd(Ltc6813* self,  uint16_t command_code, Buffer* read_buffer) {
-	
-}
-void Ltc6813_write_cmd(Ltc6813* self, uint16_t command_code, Buffer* write_buffer) {
-	
-}
-
-
-void Ltc6813_await_adc_completion(Ltc6813* self) {
-	
-}
-
 
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
 	Ltc6813_cs_low(self);

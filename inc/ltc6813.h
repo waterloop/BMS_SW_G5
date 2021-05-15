@@ -45,10 +45,7 @@ void Ltc6813_cs_high(Ltc6813* self);
 void Ltc6813_wakeup_sleep(Ltc6813* self);
 void Ltc6813_wakeup_idle(Ltc6813* self);
 
-void Ltc6813_read_cmd(Ltc6813* self, uint16_t command_code, Buffer* read_buffer);
-void Ltc6813_write_cmd(Ltc6813* self, uint16_t command_code, Buffer* write_buffer);
-
-void Ltc6813_await_adc_completion(Ltc6813* self);
+void _Ltc6813_init_registers(Ltc6813* self);
 
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer);
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
