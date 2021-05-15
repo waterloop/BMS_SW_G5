@@ -45,11 +45,19 @@ int bms_entry() {
 	Ltc6813 slave_device = Ltc6813_init(hspi2, GPIOB, 12);
 
 	Buffer pkt = Buffer_init();
-	
+
+	// WRCFGA
+	Buffer_append(&pkt, 0b000u);
+	Buffer_append(&pkt, 0b00000001u);
+	for (uint8_t i = 0; i < 40; i++) {
+		Buffer_append(&pkt, 0u);
+	}
+	Buffer_set_index(&pkt, 2, 0b11111000);
+
 	// RDCFGA, just trying to get data back by reading the default configuration register values
 	// idk why I didn't think of this before I'm actually trolling
-	Buffer_append(&pkt, 0b000u);
-	Buffer_append(&pkt, 0b00000010u);
+	// Buffer_append(&pkt, 0b000u);
+	// Buffer_append(&pkt, 0b00000010u);
 
 	// RDCVA command 
 	// Buffer_append(&pkt, 0b000u);
@@ -69,6 +77,13 @@ int bms_entry() {
 	Ltc6813_wakeup_sleep(&slave_device);
 
 	while (1) {
+		if (Buffer_index(&pkt, 2) == 0b11111000) {
+			Buffer_set_index(&pkt, 2, 0b11110000);
+		}
+		else {
+			Buffer_set_index(&pkt, 2, 0b11111000);
+		}
+
 		Ltc6813_wakeup_idle(&slave_device);
 
 		delay_us(5);

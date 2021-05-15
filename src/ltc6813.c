@@ -63,7 +63,7 @@ uint8_t Buffer_index(Buffer* self, uint8_t indx) {
 	if (indx >= self->len) { Error_Handler(); }
 	return self->data[indx];
 }
-void Buffer_set_indx(Buffer* self, uint8_t indx, uint8_t val) {
+void Buffer_set_index(Buffer* self, uint8_t indx, uint8_t val) {
 	if (indx >= self->len) { Error_Handler(); }
 	self->data[indx] = val;
 }
@@ -117,14 +117,22 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 	Ltc6813_cs_high(self);
 }
 
-void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
-	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
+void Ltc6813_read_cmd(Ltc6813* self,  uint16_t command_code, Buffer* read_buffer) {
+	
 }
+void Ltc6813_write_cmd(Ltc6813* self, uint16_t command_code, Buffer* write_buffer) {
+	
+}
+
 
 void Ltc6813_await_adc_completion(Ltc6813* self) {
 	
 }
 
+
+void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer) {
+	HAL_SPI_Transmit(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
+}
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer) {		// blocks execution until buffer is populated
 	HAL_SPI_Receive(&self->_spi_interface, buffer->data, buffer->len, self->timeout);
 }

@@ -20,7 +20,7 @@ Buffer Buffer_init();
 void Buffer_append(Buffer* self, uint8_t val);
 
 uint8_t Buffer_index(Buffer* self, uint8_t indx);
-void Buffer_set_indx(Buffer* self, uint8_t indx, uint8_t val);
+void Buffer_set_index(Buffer* self, uint8_t indx, uint8_t val);
 
 void Buffer_add_pec(Buffer* self);	// calculates the PEC for the buffer and appends it to the end
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,8 +45,37 @@ void Ltc6813_cs_high(Ltc6813* self);
 void Ltc6813_wakeup_sleep(Ltc6813* self);
 void Ltc6813_wakeup_idle(Ltc6813* self);
 
+void Ltc6813_read_cmd(Ltc6813* self, uint16_t command_code, Buffer* read_buffer);
+void Ltc6813_write_cmd(Ltc6813* self, uint16_t command_code, Buffer* write_buffer);
+
+void Ltc6813_await_adc_completion(Ltc6813* self);
+
 void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer);
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ltc6813 Command Code Defines
+
+// #ifndef __LTC6813_COMMAND_CODES
+
+// #define WRCFGA		0b00000000001u
+// #define WRCFGB		0b00000100100u
+
+// #define RDCFGA		0b00000000010u
+// #define RDCFGB		0b00000100110u
+
+// #define RDCVA		0b00000000100u
+// #define RDCVB		0b00000000100u
+// #define RDCVC		0b00000000110u
+// #define RDCVC		0b00000001000u
+// #define RDCVD		0b00000001010u
+// #define RDCVE		0b00000001001u
+// #define RDCVF		0b00000001011u
+
+// #endif
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
