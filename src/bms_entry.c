@@ -53,6 +53,7 @@ int bms_entry() {
 		Buffer_append(&pkt, 0u);
 	}
 	Buffer_set_index(&pkt, 2, 0b11111000);
+	Buffer_add_pec(&pkt);
 
 	// RDCFGA, just trying to get data back by reading the default configuration register values
 	// idk why I didn't think of this before I'm actually trolling
