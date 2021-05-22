@@ -15,6 +15,8 @@
 ######################################
 TARGET = main
 
+DEVICE_DIRNAME = STM32F405RGTx
+# DEVICE_DIRNAME = STM32F401RETx
 
 ######################################
 # building variables
@@ -35,38 +37,38 @@ BUILD_DIR = build
 # source
 ######################################
 # C sources
-USER_INCLUDES := -I ./inc
-USER_SOURCES := $(shell find ./src -name "*.c")
+# USER_INCLUDES := -I ./inc
+USER_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.c")
 
 C_SOURCES =  \
-Core/Src/main.c \
-Core/Src/stm32f4xx_it.c \
-Core/Src/stm32f4xx_hal_msp.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-Core/Src/system_stm32f4xx.c  
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
+$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
+# $(DEVICE_DIRNAME)/Core/Src/system_stm32f4xx.c \
+# $(DEVICE_DIRNAME)/Core/Src/main.c \
+# $(DEVICE_DIRNAME)/Core/Src/stm32f4xx_it.c \
+# $(DEVICE_DIRNAME)/Core/Src/stm32f4xx_hal_msp.c \
 
 C_SOURCES += $(USER_SOURCES)
 
 # ASM sources
-ASM_SOURCES = startup_stm32f401xe.s
-# ASM_SOURCES = startup_stm32f405xx.s
+# ASM_SOURCES = $(DEVICE_DIRNAME)/Startup/startup_stm32f401xe.s
+ASM_SOURCES = $(DEVICE_DIRNAME)/Core/Startup/startup_stm32f405rgtx.s
 
 
 #######################################
@@ -109,13 +111,13 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS = 
 
 # C defines
-C_DEFS = \
--D USE_HAL_DRIVER \
--D STM32F401xE
-
 # C_DEFS = \
 # -D USE_HAL_DRIVER \
-# -D STM32F405xx
+# -D STM32F401xE
+
+C_DEFS = \
+-D USE_HAL_DRIVER \
+-D STM32F405xx
 
 
 # AS includes
@@ -123,11 +125,11 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--I Core/Inc \
--I Drivers/STM32F4xx_HAL_Driver/Inc \
--I Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--I Drivers/CMSIS/Device/ST/STM32F4xx/Include \
--I Drivers/CMSIS/Include
+-I $(DEVICE_DIRNAME)/Core/Inc \
+-I $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc \
+-I $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+-I $(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+-I $(DEVICE_DIRNAME)/Drivers/CMSIS/Include
 
 C_INCLUDES += $(USER_INCLUDES)
 
@@ -149,8 +151,8 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F401RETx_FLASH.ld
-# LDSCRIPT = STM32F405RGTx_FLASH.ld
+# LDSCRIPT = $(DEVICE_DIRNAME)/STM32F401RETX_FLASH.ld
+LDSCRIPT = $(DEVICE_DIRNAME)/STM32F405RGTX_FLASH.ld
 
 # libraries
 LIBS = -lc -lm -lnosys 

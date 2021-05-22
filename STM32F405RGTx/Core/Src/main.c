@@ -105,7 +105,7 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Infinite loop */
-return bms_entry();
+  return bms_entry();
 }
 
 /**
