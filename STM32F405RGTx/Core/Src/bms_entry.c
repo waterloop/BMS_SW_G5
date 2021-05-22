@@ -77,7 +77,6 @@ int bms_entry() {
 	uart1_print("\n");
 
 	Ltc6813_wakeup_sleep(&slave_device);
-	_Ltc6813_init_registers(&slave_device);
 	HAL_Delay(1000);
 
 	while (1) {
