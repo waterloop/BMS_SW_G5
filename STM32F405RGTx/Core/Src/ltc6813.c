@@ -2,6 +2,7 @@
 #include "ltc6813.h"
 #include "timer_utils.h"
 #include "stdint.h"
+#include "peripherals.h"
 
 /*
 IMPORTANT TIMING PARAMETERS:
@@ -79,6 +80,10 @@ void Buffer_add_pec(Buffer* self) {
 	Buffer_append(self, (pec >> 8) & 0xff);
 	Buffer_append(self, pec & 0xff);
 }
+
+void Buffer_clear(Buffer* self) {
+	self -> len = 0;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,6 +120,24 @@ void Ltc6813_wakeup_sleep(Ltc6813* self) {
 void Ltc6813_wakeup_idle(Ltc6813* self) {
 	Ltc6813_cs_low(self);
 	delay_us(20);		// according to datasheet, t_wake = 10us
+	Ltc6813_cs_high(self);
+}
+
+// READ COMMAND FUNCTIONS:
+// commands to send read commands and receive data back (page 60 of LTC6813 datasheet)
+void Ltc6813_read_cfga(Ltc6813* self, Buffer* send_pkt, Buffer* receive_pkt) {
+	Buffer_clear(send_pkt);
+
+	Buffer_append(send_pkt, 0b000u);
+	Buffer_append(send_pkt, 0b00000010u);
+
+	Buffer_add_pec(send_pkt);
+
+	receive_pkt -> len = 8*6;
+
+	Ltc6813_cs_low(self);
+	HAL_SPI_Transmit(&hspi2, send_pkt -> data, send_pkt -> len, self -> timeout);
+	HAL_SPI_Receive(&hspi2, receive_pkt -> data, receive_pkt -> len, self -> timeout);
 	Ltc6813_cs_high(self);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////

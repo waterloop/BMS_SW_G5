@@ -57,9 +57,9 @@ int bms_entry() {
 
 	// RDCFGA, just trying to get data back by reading the default configuration register values
 	// idk why I didn't think of this before I'm actually trolling
-	Buffer_append(&pkt, 0b000u);
-	Buffer_append(&pkt, 0b00000010u);
-	Buffer_add_pec(&pkt);
+//	Buffer_append(&pkt, 0b000u);
+//	Buffer_append(&pkt, 0b00000010u);
+//	Buffer_add_pec(&pkt);
 
 	// RDCVA command 
 	// Buffer_append(&pkt, 0b000u);
@@ -67,7 +67,7 @@ int bms_entry() {
 	// Buffer_add_pec(&pkt);
 
 	Buffer response_pkt = Buffer_init();
-	response_pkt.len = 8*6;
+//	response_pkt.len = 8*6;
 
 	char str[500];
 	for (uint8_t i = 0; i < pkt.len; i++) {
@@ -88,10 +88,14 @@ int bms_entry() {
 		// }
 
 		Ltc6813_wakeup_sleep(&slave_device);
-		Ltc6813_cs_low(&slave_device);
-		HAL_SPI_Transmit(&hspi2, pkt.data, pkt.len, slave_device.timeout);
-		HAL_SPI_Receive(&hspi2, response_pkt.data, response_pkt.len, slave_device.timeout);
-		Ltc6813_cs_high(&slave_device);
+		Ltc6813_read_cfga(&slave_device, &pkt, &response_pkt);
+
+		for (uint8_t i = 0; i < response_pkt.len; i++) {
+			sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(&response_pkt, i));
+			uart1_print(str);
+		}
+		uart1_print("\n");
+
 		/*Ltc6813_write_spi(&slave_device, &pkt);
 
 		Ltc6813_read_spi(&slave_device, &response_pkt);*/
