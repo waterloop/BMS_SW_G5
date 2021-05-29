@@ -106,6 +106,9 @@ int bms_entry() {
 		}
 		uart1_print("\n"); */
 
+		Buffer_clear(&pkt);
+		Buffer_clear(&response_pkt);
+
 		HAL_Delay(500);
 	}
 
