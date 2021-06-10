@@ -93,7 +93,10 @@ void Buffer_print(Buffer* self) {
 }
 
 void Buffer_clear(Buffer* self) {
-	self -> len = 0;
+	while (self->len > 0) {
+		Buffer_set_index(self, self->len - 1, 0);
+		self->len = self->len - 1;
+	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
