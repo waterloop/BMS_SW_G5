@@ -24,6 +24,7 @@ void Buffer_set_index(Buffer* self, uint8_t indx, uint8_t val);
 
 void Buffer_add_pec(Buffer* self);	// calculates the PEC for the buffer and appends it to the end
 
+void Buffer_print(Buffer* self);
 void Buffer_clear(Buffer* self);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 

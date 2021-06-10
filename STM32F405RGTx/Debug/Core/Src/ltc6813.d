@@ -29,8 +29,8 @@ Core/Src/ltc6813.o: ../Core/Src/ltc6813.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/ltc6813.h ../Core/Inc/main.h ../Core/Inc/timer_utils.h \
- ../Core/Inc/peripherals.h
+ ../Core/Inc/bms_entry.h ../Core/Inc/globals.h ../Core/Inc/ltc6813.h \
+ ../Core/Inc/main.h ../Core/Inc/timer_utils.h ../Core/Inc/peripherals.h
 
 ../Core/Inc/main.h:
 
@@ -93,6 +93,10 @@ Core/Src/ltc6813.o: ../Core/Src/ltc6813.c ../Core/Inc/main.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+
+../Core/Inc/bms_entry.h:
+
+../Core/Inc/globals.h:
 
 ../Core/Inc/ltc6813.h:
 

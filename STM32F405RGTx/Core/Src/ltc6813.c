@@ -1,7 +1,9 @@
 #include "main.h"
+#include "bms_entry.h"
 #include "ltc6813.h"
 #include "timer_utils.h"
 #include "stdint.h"
+#include "stdio.h"
 #include "peripherals.h"
 
 /*
@@ -81,6 +83,15 @@ void Buffer_add_pec(Buffer* self) {
 	Buffer_append(self, pec & 0xff);
 }
 
+void Buffer_print(Buffer* self) {
+	char str[500];
+	for (uint8_t i = 0; i < self->len; i++) {
+		sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(self, i));
+		uart1_print(str);
+	}
+	uart1_print("\n");
+}
+
 void Buffer_clear(Buffer* self) {
 	self -> len = 0;
 }
@@ -133,11 +144,11 @@ void Ltc6813_read_cfga(Ltc6813* self, Buffer* send_pkt, Buffer* receive_pkt) {
 
 	Buffer_add_pec(send_pkt);
 
-	receive_pkt -> len = 8*6;
+	receive_pkt->len = 8*6;
 
 	Ltc6813_cs_low(self);
-	HAL_SPI_Transmit(&hspi2, send_pkt -> data, send_pkt -> len, self -> timeout);
-	HAL_SPI_Receive(&hspi2, receive_pkt -> data, receive_pkt -> len, self -> timeout);
+	HAL_SPI_Transmit(&hspi2, send_pkt->data, send_pkt->len, self -> timeout);
+	HAL_SPI_Receive(&hspi2, receive_pkt->data, receive_pkt->len, self->timeout);
 	Ltc6813_cs_high(self);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////

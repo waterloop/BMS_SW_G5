@@ -69,12 +69,7 @@ int bms_entry() {
 	Buffer response_pkt = Buffer_init();
 //	response_pkt.len = 8*6;
 
-	char str[500];
-	for (uint8_t i = 0; i < pkt.len; i++) {
-		sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(&pkt, i));
-		uart1_print(str);
-	}
-	uart1_print("\n");
+	Buffer_print(&pkt);
 
 	Ltc6813_wakeup_sleep(&slave_device);
 	HAL_Delay(1000);
@@ -90,11 +85,7 @@ int bms_entry() {
 		Ltc6813_wakeup_sleep(&slave_device);
 		Ltc6813_read_cfga(&slave_device, &pkt, &response_pkt);
 
-		for (uint8_t i = 0; i < response_pkt.len; i++) {
-			sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(&response_pkt, i));
-			uart1_print(str);
-		}
-		uart1_print("\n");
+		Buffer_print(&response_pkt);
 
 		/*Ltc6813_write_spi(&slave_device, &pkt);
 
