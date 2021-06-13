@@ -58,29 +58,24 @@ void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer);
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
 //void Ltc6813_write_read_spi(Ltc6813* self, Buffer* buffer);
 
+void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd);
+
 uint8_t Ltc6813_read_cfga(Ltc6813* self);
+uint8_t Ltc6813_read_cfgb(Ltc6813* self);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ltc6813 Command Code Defines
 
-// #ifndef __LTC6813_COMMAND_CODES
+ #ifndef __LTC6813_COMMAND_CODES
 
-// #define WRCFGA		0b00000000001u
-// #define WRCFGB		0b00000100100u
+#define WRCFGA 		0b00000000001u
+#define WRCFGB 		0b00000100100u
 
-// #define RDCFGA		0b00000000010u
-// #define RDCFGB		0b00000100110u
+ #define RDCFGA		0b00000000010u
+ #define RDCFGB		0b00000100110u
 
-// #define RDCVA		0b00000000100u
-// #define RDCVB		0b00000000100u
-// #define RDCVC		0b00000000110u
-// #define RDCVC		0b00000001000u
-// #define RDCVD		0b00000001010u
-// #define RDCVE		0b00000001001u
-// #define RDCVF		0b00000001011u
-
-// #endif
+ #endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

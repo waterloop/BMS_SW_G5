@@ -11,4 +11,6 @@ ltc6813.c:140:6:Ltc6813_cs_low	16	static
 ltc6813.c:141:6:Ltc6813_cs_high	16	static
 ltc6813.c:145:6:Ltc6813_wakeup_sleep	16	static
 ltc6813.c:151:6:Ltc6813_wakeup_idle	16	static
-ltc6813.c:159:9:Ltc6813_read_cfga	24	static
+ltc6813.c:159:6:Ltc6813_send_cmd	16	static
+ltc6813.c:170:9:Ltc6813_read_cfga	24	static
+ltc6813.c:188:9:Ltc6813_read_cfgb	24	static

@@ -156,26 +156,49 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 
 // READ COMMAND FUNCTIONS:
 // commands to send read commands and receive data back (page 60 of LTC6813 datasheet)
-uint8_t Ltc6813_read_cfga(Ltc6813* self) {
+void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 	Buffer_clear(&self->cmd_bfr);
-	Buffer_clear(&self->cfga_bfr);
 
-	Buffer_append(&self->cmd_bfr, 0b000u);
-	Buffer_append(&self->cmd_bfr, 0b00000010u);
+	Buffer_append(&self->cmd_bfr, (cmd >> 8) & 0xff);
+	Buffer_append(&self->cmd_bfr, cmd & 0xff);
 
 	Buffer_add_pec(&self->cmd_bfr);
+
+	HAL_SPI_Transmit(&hspi2, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
+}
+
+uint8_t Ltc6813_read_cfga(Ltc6813* self) {
+	Buffer_clear(&self->cfga_bfr);
 
 	self->cfga_bfr.len = 8;
 
 	Ltc6813_cs_low(self);
 
-	HAL_SPI_Transmit(&hspi2, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
+	Ltc6813_send_cmd(self, RDCFGA);
 	HAL_SPI_Receive(&hspi2, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
 
 	Ltc6813_cs_high(self);
 
 	uint8_t pec_success = Buffer_check_pec(&self->cfga_bfr);
 	self->cfga_bfr.len = 6;
+
+	return pec_success;
+}
+
+uint8_t Ltc6813_read_cfgb(Ltc6813* self) {
+	Buffer_clear(&self->cfgb_bfr);
+
+	self->cfgb_bfr.len = 8;
+
+	Ltc6813_cs_low(self);
+
+	Ltc6813_send_cmd(self, RDCFGB);
+	HAL_SPI_Receive(&hspi2, self->cfgb_bfr.data, self->cfgb_bfr.len, self->timeout);
+
+	Ltc6813_cs_high(self);
+
+	uint8_t pec_success = Buffer_check_pec(&self->cfgb_bfr);
+	self->cfgb_bfr.len = 6;
 
 	return pec_success;
 }

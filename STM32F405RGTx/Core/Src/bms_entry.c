@@ -53,24 +53,22 @@ int bms_entry() {
 	// Buffer_set_index(&pkt, 2, 0b11111000u);
 	// Buffer_add_pec(&pkt);
 
-	// RDCFGA, just trying to get data back by reading the default configuration register values
-	// idk why I didn't think of this before I'm actually trolling
-//	Buffer_append(&pkt, 0b000u);
-//	Buffer_append(&pkt, 0b00000010u);
-//	Buffer_add_pec(&pkt);
-
 	// RDCVA command 
 	// Buffer_append(&pkt, 0b000u);
 	// Buffer_append(&pkt, 0b00000100u);
 	// Buffer_add_pec(&pkt);
 
 	Ltc6813_wakeup_sleep(&slave_device);
+	uint8_t success;
 	HAL_Delay(1000);
 
 	while (1) {
 
 		Ltc6813_wakeup_sleep(&slave_device);
-		uint8_t success = Ltc6813_read_cfga(&slave_device);
+
+		uart1_print("CFG A");
+
+		success = Ltc6813_read_cfga(&slave_device);
 
 		if (success) {
 			uart1_print("PEC SUCCESS");
@@ -79,6 +77,18 @@ int bms_entry() {
 		}
 
 		Buffer_print(&(slave_device.cfga_bfr));
+
+		uart1_print("CFG B");
+
+		success = Ltc6813_read_cfgb(&slave_device);
+
+		if (success) {
+			uart1_print("PEC SUCCESS");
+		} else {
+			uart1_print("PEC FAIL");
+		}
+
+		Buffer_print(&(slave_device.cfgb_bfr));
 
 		HAL_Delay(500);
 	}
