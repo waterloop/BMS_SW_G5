@@ -83,6 +83,18 @@ void Buffer_add_pec(Buffer* self) {
 	Buffer_append(self, pec & 0xff);
 }
 
+uint8_t Buffer_check_pec(Buffer* self) {
+	uint16_t remainder = 16;
+	uint16_t addr = 0;
+	for (uint8_t i = 0; i < self->len - 2; i++) {
+		addr = ( (remainder >> 7)^Buffer_index(self, i) ) & 0xff;
+		remainder = (remainder << 8)^_CRC15_LUT[addr];
+	}
+	uint16_t calc_pec = remainder*2;
+	uint16_t act_pec = ((uint16_t)Buffer_index(self, self->len - 2) << 8) | Buffer_index(self, self->len - 1);
+	return calc_pec == act_pec;
+}
+
 void Buffer_print(Buffer* self) {
 	char str[500];
 	for (uint8_t i = 0; i < self->len; i++) {
@@ -113,6 +125,11 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	slave_device._cs_gpio_port = cs_gpio_port;
 	slave_device._cs_pin_num = cs_pin_num;
 
+	slave_device.cmd_bfr = Buffer_init();
+
+	slave_device.cfga_bfr = Buffer_init();
+	slave_device.cfgb_bfr = Buffer_init();
+
 	slave_device.timeout = 10000;
 
 	Ltc6813_cs_high(&slave_device);
@@ -139,19 +156,27 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 
 // READ COMMAND FUNCTIONS:
 // commands to send read commands and receive data back (page 60 of LTC6813 datasheet)
-void Ltc6813_read_cfga(Ltc6813* self, Buffer* send_pkt, Buffer* receive_pkt) {
-	Buffer_clear(send_pkt);
+uint8_t Ltc6813_read_cfga(Ltc6813* self) {
+	Buffer_clear(&self->cmd_bfr);
+	Buffer_clear(&self->cfga_bfr);
 
-	Buffer_append(send_pkt, 0b000u);
-	Buffer_append(send_pkt, 0b00000010u);
+	Buffer_append(&self->cmd_bfr, 0b000u);
+	Buffer_append(&self->cmd_bfr, 0b00000010u);
 
-	Buffer_add_pec(send_pkt);
+	Buffer_add_pec(&self->cmd_bfr);
 
-	receive_pkt->len = 8*6;
+	self->cfga_bfr.len = 8;
 
 	Ltc6813_cs_low(self);
-	HAL_SPI_Transmit(&hspi2, send_pkt->data, send_pkt->len, self -> timeout);
-	HAL_SPI_Receive(&hspi2, receive_pkt->data, receive_pkt->len, self->timeout);
+
+	HAL_SPI_Transmit(&hspi2, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
+	HAL_SPI_Receive(&hspi2, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
+
 	Ltc6813_cs_high(self);
+
+	uint8_t pec_success = Buffer_check_pec(&self->cfga_bfr);
+	self->cfga_bfr.len = 6;
+
+	return pec_success;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////

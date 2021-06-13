@@ -23,6 +23,7 @@ uint8_t Buffer_index(Buffer* self, uint8_t indx);
 void Buffer_set_index(Buffer* self, uint8_t indx, uint8_t val);
 
 void Buffer_add_pec(Buffer* self);	// calculates the PEC for the buffer and appends it to the end
+uint8_t Buffer_check_pec(Buffer* self);
 
 void Buffer_print(Buffer* self);
 void Buffer_clear(Buffer* self);
@@ -34,6 +35,11 @@ typedef struct {
 	SPI_HandleTypeDef _spi_interface;
 	GPIO_TypeDef* _cs_gpio_port;
 	uint8_t _cs_pin_num;
+
+	Buffer cmd_bfr;
+
+	Buffer cfga_bfr;
+	Buffer cfgb_bfr;
 
 	uint32_t timeout;
 } Ltc6813;
@@ -52,7 +58,7 @@ void Ltc6813_write_spi(Ltc6813* self, Buffer* buffer);
 void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
 //void Ltc6813_write_read_spi(Ltc6813* self, Buffer* buffer);
 
-void Ltc6813_read_cfga(Ltc6813* self, Buffer* send_pkt, Buffer* receive_pkt);
+uint8_t Ltc6813_read_cfga(Ltc6813* self);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

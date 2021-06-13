@@ -44,8 +44,6 @@ int bms_entry() {
 
 	Ltc6813 slave_device = Ltc6813_init(hspi2, GPIOB, 12);
 
-	Buffer pkt = Buffer_init();
-
 	// WRCFGA
 	// Buffer_append(&pkt, 0b000u);
 	// Buffer_append(&pkt, 0b00000001u);
@@ -66,39 +64,21 @@ int bms_entry() {
 	// Buffer_append(&pkt, 0b00000100u);
 	// Buffer_add_pec(&pkt);
 
-	Buffer response_pkt = Buffer_init();
-//	response_pkt.len = 8*6;
-
-	Buffer_print(&pkt);
-
 	Ltc6813_wakeup_sleep(&slave_device);
 	HAL_Delay(1000);
 
 	while (1) {
-		// if (Buffer_index(&pkt, 2) == 0b11111000u) {
-		// 	Buffer_set_index(&pkt, 2, 0b11110000u);
-		// }
-		// else {
-		// 	Buffer_set_index(&pkt, 2, 0b11111000u);
-		// }
 
 		Ltc6813_wakeup_sleep(&slave_device);
-		Ltc6813_read_cfga(&slave_device, &pkt, &response_pkt);
+		uint8_t success = Ltc6813_read_cfga(&slave_device);
 
-		Buffer_print(&response_pkt);
-
-		/*Ltc6813_write_spi(&slave_device, &pkt);
-
-		Ltc6813_read_spi(&slave_device, &response_pkt);*/
-
-		/*for (uint8_t i = 0; i < response_pkt.len; i++) {
-			sprintf(str, "byte %d: %d\n", i, Buffer_index(&response_pkt, i));
-			uart1_print(str);
+		if (success) {
+			uart1_print("PEC SUCCESS");
+		} else {
+			uart1_print("PEC FAIL");
 		}
-		uart1_print("\n"); */
 
-		Buffer_clear(&pkt);
-		Buffer_clear(&response_pkt);
+		Buffer_print(&(slave_device.cfga_bfr));
 
 		HAL_Delay(500);
 	}
