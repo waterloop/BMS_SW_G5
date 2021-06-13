@@ -59,6 +59,15 @@ $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
 $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/list.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/queue.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/timers.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 # $(DEVICE_DIRNAME)/Core/Src/system_stm32f4xx.c \
 # $(DEVICE_DIRNAME)/Core/Src/main.c \
 # $(DEVICE_DIRNAME)/Core/Src/stm32f4xx_it.c \
@@ -125,11 +134,22 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--I $(DEVICE_DIRNAME)/Core/Inc \
--I $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc \
--I $(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--I $(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
--I $(DEVICE_DIRNAME)/Drivers/CMSIS/Include
+-I ./$(DEVICE_DIRNAME)/Core/Inc \
+-I ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc \
+-I ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+-I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/include \
+-I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \
+-I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+-I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+-I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include \
+-I ./$(DEVICE_DIRNAME)/Core/Inc \
+-I ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc \
+-I ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+-I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/include \
+-I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \
+-I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+-I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+-I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include
 
 C_INCLUDES += $(USER_INCLUDES)
 
