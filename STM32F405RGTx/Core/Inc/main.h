@@ -50,6 +50,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -58,24 +60,34 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define RED_Pin GPIO_PIN_0
-#define RED_GPIO_Port GPIOA
-#define LED_CTRL_Pin GPIO_PIN_0
-#define LED_CTRL_GPIO_Port GPIOB
-#define Reset_Pin GPIO_PIN_6
-#define Reset_GPIO_Port GPIOC
-#define Charge_Pin GPIO_PIN_7
-#define Charge_GPIO_Port GPIOC
-#define Stop_Pin GPIO_PIN_8
-#define Stop_GPIO_Port GPIOC
-#define Start_Pin GPIO_PIN_9
-#define Start_GPIO_Port GPIOC
-#define Contactor_Pin GPIO_PIN_8
-#define Contactor_GPIO_Port GPIOA
-#define BLUE_Pin GPIO_PIN_5
-#define BLUE_GPIO_Port GPIOB
-#define GREEN_Pin GPIO_PIN_7
-#define GREEN_GPIO_Port GPIOB
+#define ADC1_IN10_CURRENT_SENSE_Pin GPIO_PIN_0
+#define ADC1_IN10_CURRENT_SENSE_GPIO_Port GPIOC
+#define ADC1_IN11_VBATT_Pin GPIO_PIN_1
+#define ADC1_IN11_VBATT_GPIO_Port GPIOC
+#define ADC1_IN12_MC_CAP_Pin GPIO_PIN_2
+#define ADC1_IN12_MC_CAP_GPIO_Port GPIOC
+#define ADC1_IN13_CONTACTOR_Pin GPIO_PIN_3
+#define ADC1_IN13_CONTACTOR_GPIO_Port GPIOC
+#define ADC1_IN1_BUCK_TEMP_Pin GPIO_PIN_1
+#define ADC1_IN1_BUCK_TEMP_GPIO_Port GPIOA
+#define CS_Pin GPIO_PIN_4
+#define CS_GPIO_Port GPIOA
+#define CS2_Pin GPIO_PIN_4
+#define CS2_GPIO_Port GPIOC
+#define CONTACTOR_Pin GPIO_PIN_1
+#define CONTACTOR_GPIO_Port GPIOB
+#define PRECHARGE_Pin GPIO_PIN_2
+#define PRECHARGE_GPIO_Port GPIOB
+#define EXT_LED_Pin GPIO_PIN_10
+#define EXT_LED_GPIO_Port GPIOB
+#define TIM3_CH1_IMD_IN_Pin GPIO_PIN_6
+#define TIM3_CH1_IMD_IN_GPIO_Port GPIOC
+#define TIM1_CH1_BLUE_Pin GPIO_PIN_8
+#define TIM1_CH1_BLUE_GPIO_Port GPIOA
+#define TIM1_CH2_GREEN_Pin GPIO_PIN_9
+#define TIM1_CH2_GREEN_GPIO_Port GPIOA
+#define TIM1_CH3_RED_Pin GPIO_PIN_10
+#define TIM1_CH3_RED_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

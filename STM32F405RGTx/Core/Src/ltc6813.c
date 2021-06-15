@@ -4,7 +4,6 @@
 #include "timer_utils.h"
 #include "stdint.h"
 #include "stdio.h"
-#include "peripherals.h"
 
 /*
 IMPORTANT TIMING PARAMETERS:
@@ -164,7 +163,7 @@ void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 
 	Buffer_add_pec(&self->cmd_bfr);
 
-	HAL_SPI_Transmit(&hspi2, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
+	HAL_SPI_Transmit(&self->_spi_interface, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
 }
 
 uint8_t Ltc6813_read_cfga(Ltc6813* self) {
@@ -175,7 +174,7 @@ uint8_t Ltc6813_read_cfga(Ltc6813* self) {
 	Ltc6813_cs_low(self);
 
 	Ltc6813_send_cmd(self, RDCFGA);
-	HAL_SPI_Receive(&hspi2, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
+	HAL_SPI_Receive(&self->_spi_interface, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
 
 	Ltc6813_cs_high(self);
 
@@ -193,7 +192,7 @@ uint8_t Ltc6813_read_cfgb(Ltc6813* self) {
 	Ltc6813_cs_low(self);
 
 	Ltc6813_send_cmd(self, RDCFGB);
-	HAL_SPI_Receive(&hspi2, self->cfgb_bfr.data, self->cfgb_bfr.len, self->timeout);
+	HAL_SPI_Receive(&self->_spi_interface, self->cfgb_bfr.data, self->cfgb_bfr.len, self->timeout);
 
 	Ltc6813_cs_high(self);
 

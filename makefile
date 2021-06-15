@@ -40,25 +40,9 @@ BUILD_DIR = build
 # USER_INCLUDES := -I ./inc
 USER_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.c")
 
+HAL_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver -name "*.c")
+
 C_SOURCES =  \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
-$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/list.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/queue.c \
@@ -68,11 +52,8 @@ $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
-# $(DEVICE_DIRNAME)/Core/Src/system_stm32f4xx.c \
-# $(DEVICE_DIRNAME)/Core/Src/main.c \
-# $(DEVICE_DIRNAME)/Core/Src/stm32f4xx_it.c \
-# $(DEVICE_DIRNAME)/Core/Src/stm32f4xx_hal_msp.c \
 
+C_SOURCES += $(HAL_SOURCES)
 C_SOURCES += $(USER_SOURCES)
 
 # ASM sources
