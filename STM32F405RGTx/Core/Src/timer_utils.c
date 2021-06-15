@@ -1,6 +1,6 @@
+#include <stdint.h>
 #include "peripherals.h"
 #include "timer_utils.h"
-#include "stdint.h"
 
 void start_timers() {
 	HAL_TIM_Base_Start(&htim2);

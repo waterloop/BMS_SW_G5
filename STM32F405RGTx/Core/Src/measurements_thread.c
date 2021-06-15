@@ -1,7 +1,6 @@
+#include <stdio.h>
+#include <stdint.h>
 #include "cmsis_os.h"
-#include "stdint.h"
-#include "stdio.h"
-#include "string.h"
 
 #include "bms_entry.h"
 #include "peripherals.h"

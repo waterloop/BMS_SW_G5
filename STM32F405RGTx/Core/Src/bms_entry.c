@@ -1,3 +1,4 @@
+#include <string.h>
 #include "cmsis_os.h"
 
 #include "peripherals.h"

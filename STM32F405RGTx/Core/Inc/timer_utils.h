@@ -1,8 +1,8 @@
 #ifndef __TIMER_UTILS
 #define __TIMER_UTILS
 
+#include <stdint.h>
 #include "main.h"
-#include "stdint.h"
 
 void start_timers();
 

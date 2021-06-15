@@ -1,8 +1,8 @@
 #ifndef __LTC6813
 #define __LTC6813
 
+#include <stdint.h>
 #include "main.h"
-#include "stdint.h"
 
 #ifndef LTC6813_BUFFER_SIZE
 #define LTC6813_BUFFER_SIZE 	100 // bytes
