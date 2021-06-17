@@ -13,7 +13,7 @@ const osThreadAttr_t ext_led_blink_thread_attrs = {
 
 void ext_led_blink_thread(void* arg) {
 	while (1) {
-		HAL_GPIO_TogglePin(EXT_LED_GPIO_Port, EXT_LED_Pin);
+		HAL_GPIO_TogglePin(GPIOB, CONTACTOR_Pin);
 		osDelay(1000);
 	}
 }

@@ -1,0 +1,2 @@
+bms_tests.c:3:6:blinky_loop	8	static
+bms_tests.c:14:6:delay_us_test	8	static

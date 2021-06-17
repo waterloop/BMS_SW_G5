@@ -1,4 +1,2 @@
-bms_entry.c:9:6:uart1_print	16	static
-bms_entry.c:13:6:blinky_loop	8	static
-bms_entry.c:24:6:delay_us_test	8	static
-bms_entry.c:38:5:bms_entry	512	static
+bms_entry.c:14:6:__io_putchar	16	static
+bms_entry.c:18:5:bms_entry	8	static
