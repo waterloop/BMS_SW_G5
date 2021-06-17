@@ -23,7 +23,7 @@ int bms_entry() {
 	osKernelInitialize();
 
 	printf("starting RTOS threads...\r\n");
-	// osThreadNew(ext_led_blink_thread_fn, NULL, &ext_led_blink_thread_attrs);
+	osThreadNew(ext_led_blink_thread_fn, NULL, &ext_led_blink_thread_attrs);
 	// osThreadNew(rtos_heartbeat_logger_thread_fn, NULL, &rtos_heartbeat_logger_thread_attrs);
 	osThreadNew(measurements_thread_fn, NULL, &measurements_thread_attrs);
 

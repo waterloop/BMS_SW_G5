@@ -1,1 +1,1 @@
-rtos_hearbeat_logger_thread.c:13:6:rtos_heartbeat_logger_thread	16	static
+rtos_hearbeat_logger_thread.c:14:6:rtos_heartbeat_logger_thread_fn	16	static
