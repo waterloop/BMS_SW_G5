@@ -98,9 +98,9 @@ void Buffer_print(Buffer* self) {
 	char str[500];
 	for (uint8_t i = 0; i < self->len; i++) {
 		sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(self, i));
-		uart1_print(str);
+		printf(str);
 	}
-	uart1_print("\n");
+	printf("\n");
 }
 
 void Buffer_clear(Buffer* self) {
