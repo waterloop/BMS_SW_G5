@@ -1,3 +1,5 @@
+#include "timer_utils.h"
+
 void blinky_loop() {
 	// test code, blinks an LED on PC3
 	GPIOC->MODER &= ~(0b11u << (3*2));

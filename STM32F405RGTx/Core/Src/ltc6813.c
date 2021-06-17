@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "main.h"
-#include "bms_entry.h"
+
 #include "ltc6813.h"
 #include "timer_utils.h"
 

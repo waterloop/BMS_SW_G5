@@ -114,10 +114,8 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
   return bms_entry();
+  /* USER CODE END 2 */
 }
 
 /**
