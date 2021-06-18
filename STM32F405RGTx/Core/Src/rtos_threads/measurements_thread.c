@@ -8,7 +8,7 @@
 
 const osThreadAttr_t measurements_thread_attrs = {
 	.name = "measurements_thread",
-	.priority = (osPriority_t)osPriorityAboveNormal
+	.priority = (osPriority_t)osPriorityRealtime
 };
 
 void measurements_thread_fn(void* arg) {
