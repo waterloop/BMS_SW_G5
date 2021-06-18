@@ -97,10 +97,10 @@ uint8_t Buffer_check_pec(Buffer* self) {
 void Buffer_print(Buffer* self) {
 	char str[500];
 	for (uint8_t i = 0; i < self->len; i++) {
-		sprintf(str, "pkt byte %d: %d\n", i, Buffer_index(self, i));
+		sprintf(str, "pkt byte %d: %d\r\n", i, Buffer_index(self, i));
 		printf(str);
 	}
-	printf("\n");
+	printf("\r\n");
 }
 
 void Buffer_clear(Buffer* self) {

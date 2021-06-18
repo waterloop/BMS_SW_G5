@@ -23,14 +23,14 @@ int bms_entry() {
 	osKernelInitialize();
 
 	printf("starting RTOS threads...\r\n");
-	osThreadNew(ext_led_blink_thread_fn, NULL, &ext_led_blink_thread_attrs);
-	osThreadNew(rtos_heartbeat_logger_thread_fn, NULL, &rtos_heartbeat_logger_thread_attrs);
+	// osThreadNew(ext_led_blink_thread_fn, NULL, &ext_led_blink_thread_attrs);
+	// osThreadNew(rtos_heartbeat_logger_thread_fn, NULL, &rtos_heartbeat_logger_thread_attrs);
 	osThreadNew(measurements_thread_fn, NULL, &measurements_thread_attrs);
 
 	printf("starting RTOS scheduler...\r\n");
 	osKernelStart();
 
-	// should never reach this point, since we have handed control of execution over to the RTOS
+	// should never reach this point, since we have handed execution over to the RTOS
 	Error_Handler();
 
 	return 0;

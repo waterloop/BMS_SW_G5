@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "cmsis_os.h"
 
+#include "cmsis_os.h"
 #include "main.h"
 #include "peripherals.h"
 #include "threads.h"
