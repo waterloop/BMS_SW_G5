@@ -23,7 +23,7 @@ void measurements_thread_fn(void* arg) {
 	while (1) {
 		Ltc6813_wakeup_sleep(&slave_device);
 
-		//printf("CFG A\r\n");
+		printf("CFG A\r\n");
 
 		success = Ltc6813_read_cfga(&slave_device);
 
@@ -35,7 +35,7 @@ void measurements_thread_fn(void* arg) {
 
 		Buffer_print(&(slave_device.cfga_bfr));
 		Ltc6813_wakeup_sleep(&slave_device);
-		//printf("CFG B\r\n");
+		printf("CFG B\r\n");
 
 		success = Ltc6813_read_cfgb(&slave_device);
 
