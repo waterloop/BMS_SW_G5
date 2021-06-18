@@ -21,26 +21,26 @@ void measurements_thread_fn(void* arg) {
 	while (1) {
 		Ltc6813_wakeup_sleep(&slave_device);
 
-		printf("CFG A");
+		printf("CFG A\r\n");
 
 		success = Ltc6813_read_cfga(&slave_device);
 
 		if (success) {
-			printf("PEC SUCCESS");
+			printf("PEC SUCCESS\r\n");
 		} else {
-			printf("PEC FAIL");
+			printf("PEC FAIL\r\n");
 		}
 
 		Buffer_print(&(slave_device.cfga_bfr));
 
-		printf("CFG B");
+		printf("CFG B\r\n");
 
 		success = Ltc6813_read_cfgb(&slave_device);
 
 		if (success) {
-			printf("PEC SUCCESS");
+			printf("PEC SUCCESS\r\n");
 		} else {
-			printf("PEC FAIL");
+			printf("PEC FAIL\r\n");
 		}
 
 		Buffer_print(&(slave_device.cfgb_bfr));
