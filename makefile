@@ -199,6 +199,9 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR)
 
+analyze:
+	$(PREFIX)objdump -t $(BUILD_DIR)/$(TARGET).elf
+
 flash:
 	st-flash write $(BUILD_DIR)/main.bin 0x08000000 
 
