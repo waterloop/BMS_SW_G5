@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "peripherals.h"
+#include "main.h"
 #include "timer_utils.h"
 
 void start_timers() {
