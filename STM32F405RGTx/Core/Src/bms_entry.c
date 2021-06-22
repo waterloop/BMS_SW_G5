@@ -10,10 +10,17 @@
 #include "bms_tests.h"
 #endif
 
-// override __io_putchar from the STL to enable UART printing
+// redirect stdin and stdout to UART1
 void __io_putchar(uint8_t ch) {
-	HAL_UART_Transmit(&huart1, &ch, 1, 500);
+	HAL_UART_Transmit(&huart1, &ch, 1, 0xffff);
 }
+uint8_t __io_getchar() {
+	uint8_t ch;
+	HAL_UART_Receive(&huart1, &ch, 1, 0xffff);
+	HAL_UART_Transmit(&huart1, &ch, 1, 0xffff);
+	return ch;
+}
+
 
 int bms_entry() {	
 	printf("starting timers...\r\n");
