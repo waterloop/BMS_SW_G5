@@ -6,9 +6,9 @@
 #include "ltc6813.h"
 #include "threads.h"
 
-#define ADC_NUM_CONVERSIONS		5
-#define ADC_OVERSAMPLING_COEFF	64
-#define ADC_TO_VOLTAGE_COEFF	(3.3/(1 << 12))
+#define ADC_NUM_CONVERSIONS			5
+#define ADC_OVERSAMPLING_COEFF		64
+#define ADC_TO_VOLTAGE_COEFF		(3.3/(1 << 12))
 
 uint16_t ADC_buffer[ADC_NUM_CONVERSIONS*ADC_OVERSAMPLING_COEFF];
 
@@ -36,8 +36,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 }
 
 void measurements_thread_fn(void* arg) {
-	
-
 	while (1) {
 		// MISC ADC READINGS
 		printf("starting misc ADC readings...\r\n");

@@ -31,9 +31,11 @@ def main():
 				f.write(", ")
 
 			if ((COL_SIZE - 1) - i) % COL_SIZE == 0:
-				f.write("\n\t")
+				f.write("\n")
+				if (i != (len(lut) - 1)):
+					f.write("\t")
 
-		f.write("\n};")
+		f.write("};")
 
 if __name__ == "__main__":
 	main()
