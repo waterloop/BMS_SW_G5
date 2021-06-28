@@ -247,8 +247,6 @@ uint8_t Ltc6813_read_cfgb(Ltc6813* self) {
 	return Ltc6813_read_reg(self, RDCFGB);
 }
 
-
-// READ REGISTER COMMAND TAKES COMMAND AND RETURNS BUFFER
 void Ltc6813_write_cfga(Ltc6813* self) {
 
 	Buffer_add_pec(&(self->cfga_bfr));
