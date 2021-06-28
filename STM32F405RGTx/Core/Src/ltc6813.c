@@ -263,6 +263,9 @@ void Ltc6813_write_cfga(Ltc6813* self) {
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
+	// Enter REFUP by waiting t(refup). Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
+	osDelay(5);
+
 	Ltc6813_cs_low(self);
 
 	Ltc6813_send_cmd(self, mode);
