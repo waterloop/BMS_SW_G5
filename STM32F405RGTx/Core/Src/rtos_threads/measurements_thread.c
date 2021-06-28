@@ -34,10 +34,21 @@ void measurements_thread_fn(void* arg) {
 		}
 
 		Buffer_print(&(slave_device.cfga_bfr));
-		Ltc6813_wakeup_sleep(&slave_device);
-		printf("CFG B\r\n");
 
-		success = Ltc6813_read_cfgb(&slave_device);
+		Ltc6813_wakeup_sleep(&slave_device);
+
+		printf("WRITE REFON 1\r\n");
+
+		uint8_t CFGAR0 = Buffer_index(&(slave_device.cfga_bfr), 0);
+		CFGAR0 |= 0b00000100u;
+
+		Buffer_set_index(&(slave_device.cfga_bfr), 0, CFGAR0);
+
+		Ltc6813_write_cfga(&slave_device);
+
+		printf("CFG A\r\n");
+
+		success = Ltc6813_read_cfga(&slave_device);
 
 		if (success) {
 			printf("PEC SUCCESS\r\n");
@@ -45,9 +56,24 @@ void measurements_thread_fn(void* arg) {
 			printf("PEC FAIL\r\n");
 		}
 
-		Buffer_print(&(slave_device.cfgb_bfr));
+		Buffer_print(&(slave_device.cfga_bfr));
 
-		osDelay(500);
+		printf("START ADC CONV\r\n");
+
+		success = Ltc6813_read_adc(&slave_device, NORMAL_ADC);
+
+		printf("FINISH ADC CONV\r\n");
+
+		if (success) {
+			printf("PEC SUCCESS\r\n");
+		} else {
+			printf("PEC FAIL\r\n");
+		}
+
+		Ltc6813_print_voltages(&slave_device);
+
+
+		osDelay(1000);
 	}
 }
 

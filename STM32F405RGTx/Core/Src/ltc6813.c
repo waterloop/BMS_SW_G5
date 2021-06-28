@@ -153,6 +153,28 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 	Ltc6813_cs_high(self);
 }
 
+void Ltc6813_print_voltages(Ltc6813* self) {
+
+	printf("PRINTING CVA\r\n");
+	Buffer_print(&(self->cva_bfr));
+
+	printf("PRINTING CVB\r\n");
+	Buffer_print(&(self->cvb_bfr));
+
+	printf("PRINTING CVC\r\n");
+	Buffer_print(&(self->cvc_bfr));
+
+	printf("PRINTING CVD\r\n");
+	Buffer_print(&(self->cvd_bfr));
+
+	printf("PRINTING CVE\r\n");
+	Buffer_print(&(self->cve_bfr));
+
+	printf("PRINTING CVF\r\n");
+	Buffer_print(&(self->cvf_bfr));
+
+}
+
 // READ COMMAND FUNCTIONS:
 // commands to send read commands and receive data back (page 60 of LTC6813 datasheet)
 void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
@@ -166,39 +188,110 @@ void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 	HAL_SPI_Transmit(&self->_spi_interface, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
 }
 
-uint8_t Ltc6813_read_cfga(Ltc6813* self) {
-	Buffer_clear(&self->cfga_bfr);
+uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 
-	self->cfga_bfr.len = 8;
+	Buffer* reg_buf;
+
+	switch (reg_cmd) {
+		case RDCFGA:
+			reg_buf = &(self->cfga_bfr);
+			break;
+		case RDCFGB:
+			reg_buf = &(self->cfgb_bfr);
+			break;
+		case RDCVA:
+			reg_buf = &(self->cva_bfr);
+			break;
+		case RDCVB:
+			reg_buf = &(self->cvb_bfr);
+			break;
+		case RDCVC:
+			reg_buf = &(self->cvc_bfr);
+			break;
+		case RDCVD:
+			reg_buf = &(self->cvd_bfr);
+			break;
+		case RDCVE:
+			reg_buf = &(self->cve_bfr);
+			break;
+		case RDCVF:
+			reg_buf = &(self->cvf_bfr);
+			break;
+		default:
+			break;
+	}
+
+	Buffer_clear(reg_buf);
+
+	reg_buf->len = 8;
 
 	Ltc6813_cs_low(self);
 
-	Ltc6813_send_cmd(self, RDCFGA);
-	HAL_SPI_Receive(&self->_spi_interface, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
+	Ltc6813_send_cmd(self, reg_cmd);
+	HAL_SPI_Receive(&self->_spi_interface, reg_buf->data, reg_buf->len, self->timeout);
 
 	Ltc6813_cs_high(self);
 
-	uint8_t pec_success = Buffer_check_pec(&self->cfga_bfr);
-	self->cfga_bfr.len = 6;
+	uint8_t pec_success = Buffer_check_pec(reg_buf);
+	reg_buf->len = 6;
 
 	return pec_success;
+
+}
+
+uint8_t Ltc6813_read_cfga(Ltc6813* self) {
+	return Ltc6813_read_reg(self, RDCFGA);
 }
 
 uint8_t Ltc6813_read_cfgb(Ltc6813* self) {
-	Buffer_clear(&self->cfgb_bfr);
+	return Ltc6813_read_reg(self, RDCFGB);
+}
 
-	self->cfgb_bfr.len = 8;
+
+// READ REGISTER COMMAND TAKES COMMAND AND RETURNS BUFFER
+void Ltc6813_write_cfga(Ltc6813* self) {
+
+	Buffer_add_pec(&(self->cfga_bfr));
 
 	Ltc6813_cs_low(self);
 
-	Ltc6813_send_cmd(self, RDCFGB);
-	HAL_SPI_Receive(&self->_spi_interface, self->cfgb_bfr.data, self->cfgb_bfr.len, self->timeout);
+	Ltc6813_send_cmd(self, WRCFGA);
+	HAL_SPI_Transmit(&self->_spi_interface, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
 
 	Ltc6813_cs_high(self);
 
-	uint8_t pec_success = Buffer_check_pec(&self->cfgb_bfr);
-	self->cfgb_bfr.len = 6;
-
-	return pec_success;
+	self->cfga_bfr.len = 6;
 }
+
+uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
+
+	Ltc6813_cs_low(self);
+
+	Ltc6813_send_cmd(self, mode);
+
+	uint32_t delay = FILTERED_ADC_DELAY;
+
+	if (mode == FAST_ADC) {
+		delay = FAST_ADC_DELAY;
+	} else if (mode == NORMAL_ADC) {
+		delay = NORMAL_ADC_DELAY;
+	} else if (mode == FILTERED_ADC) {
+		delay = FILTERED_ADC_DELAY;
+	}
+
+	osDelay(delay);
+
+	uint8_t success = 1;
+
+	success &= Ltc6813_read_reg(self, RDCVA);
+	success &= Ltc6813_read_reg(self, RDCVB);
+	success &= Ltc6813_read_reg(self, RDCVC);
+	success &= Ltc6813_read_reg(self, RDCVD);
+	success &= Ltc6813_read_reg(self, RDCVE);
+	success &= Ltc6813_read_reg(self, RDCVF);
+
+	return success;
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
