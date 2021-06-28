@@ -129,6 +129,13 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 	slave_device.cfga_bfr = Buffer_init();
 	slave_device.cfgb_bfr = Buffer_init();
 
+	slave_device.cva_bfr = Buffer_init();
+	slave_device.cvb_bfr = Buffer_init();
+	slave_device.cvc_bfr = Buffer_init();
+	slave_device.cvd_bfr = Buffer_init();
+	slave_device.cve_bfr = Buffer_init();
+	slave_device.cvf_bfr = Buffer_init();
+
 	slave_device.timeout = 10000;
 
 	Ltc6813_cs_high(&slave_device);
