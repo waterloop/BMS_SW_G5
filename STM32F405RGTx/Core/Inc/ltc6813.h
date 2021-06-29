@@ -5,7 +5,7 @@
 #include "main.h"
 
 #ifndef LTC6813_BUFFER_SIZE
-#define LTC6813_BUFFER_SIZE 	100 // bytes
+#define LTC6813_BUFFER_SIZE 	10 // bytes
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

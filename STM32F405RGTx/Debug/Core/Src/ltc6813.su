@@ -1,4 +1,4 @@
-ltc6813.c:52:8:Buffer_init	120	static
+ltc6813.c:52:8:Buffer_init	32	static
 ltc6813.c:58:6:Buffer_append	24	static
 ltc6813.c:64:9:Buffer_index	16	static
 ltc6813.c:68:6:Buffer_set_index	16	static
@@ -6,7 +6,7 @@ ltc6813.c:73:6:Buffer_add_pec	32	static
 ltc6813.c:85:9:Buffer_check_pec	40	static
 ltc6813.c:97:6:Buffer_print	528	static
 ltc6813.c:106:6:Buffer_clear	16	static
-ltc6813.c:116:9:Ltc6813_init	1136	static
+ltc6813.c:116:9:Ltc6813_init	232	static
 ltc6813.c:146:6:Ltc6813_cs_low	16	static
 ltc6813.c:147:6:Ltc6813_cs_high	16	static
 ltc6813.c:151:6:Ltc6813_wakeup_sleep	16	static
