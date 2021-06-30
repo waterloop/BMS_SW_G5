@@ -746,7 +746,7 @@ State_t InitializeEvent(void) {
 
 State_t IdleEvent(void) {
 	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	if (HAL_GPIO_ReadPin(Start_GPIO_Port, Start_Pin)) {
 		return Precharging;
 	} else if (HAL_GPIO_ReadPin(Charge_GPIO_Port, Charge_Pin)) {
@@ -764,7 +764,7 @@ State_t PrechargingEvent(void) {
 }
 
 State_t RunEvent(void) {
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 1);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
 	if (HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin)) {
 		return Stop;
 	} else {
@@ -773,7 +773,7 @@ State_t RunEvent(void) {
 }
 
 State_t StopEvent(void) {
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
 		return Idle;
 	} else {
@@ -791,7 +791,7 @@ State_t SleepEvent(void) {
 }
 
 State_t NormalDangerFaultEvent(void) {
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
 		return Idle;
 	} else {
@@ -800,12 +800,12 @@ State_t NormalDangerFaultEvent(void) {
 }
 
 State_t SevereDangerFaultEvent(void) {
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	return SevereDangerFault;
 }
 
 State_t ChargingEvent(void) {
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 1);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
 	if (BatteryPack.voltage > 51600) {
 		return Charged;
 	} else {
@@ -814,7 +814,7 @@ State_t ChargingEvent(void) {
 }
 
 State_t ChargedEvent(void) {
-	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
 		return Idle;
 	} else {
@@ -846,7 +846,7 @@ void StartDefaultTask(void *argument)
 	  	BatteryPack.temperature = 30; // Should change to a function that grabs data
 	  	char dataM[100];
 	  	sprintf(dataM, "Voltage: %dmV,  Current: %dmA,  Temperature: %d˚C\r\n", BatteryPack.voltage, BatteryPack.current, BatteryPack.temperature);
-	  	HAL_UART_Transmit(&huart4, (uint8_t*)dataM, strlen(dataM), 500);
+	  	HAL_UART_Transmit(&huart1, (uint8_t*)dataM, strlen(dataM), 500);
 	  	if (BatteryPack.voltage > SevereDangerVoltage || BatteryPack.current > SevereDangerCurrent || BatteryPack.temperature > SevereDangerTemperature) {
 	  		CurrentState = SevereDangerFault;
 	  	} else if (BatteryPack.voltage > NormalDangerVoltage || BatteryPack.current > NormalDangerCurrent || BatteryPack.temperature > NormalDangerTemperature) {

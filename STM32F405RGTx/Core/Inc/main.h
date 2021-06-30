@@ -38,6 +38,45 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+/* Operation Mode and Definitions */
+// #define LED_ENABLED
+#define TESTING_MODE
+#define numCells 14
+
+/* Private types */
+typedef enum {
+  Initialize,
+  Idle,
+  Precharging,
+  Run,
+  Stop,
+  Sleep,
+  NormalDangerFault,
+  SevereDangerFault,
+  Charging,
+  Charged,
+  Balancing
+} State_t;
+
+typedef struct {
+	uint16_t voltage;
+	uint8_t temperature;
+} Cell;
+
+typedef struct Battery {
+	uint16_t voltage;
+	uint16_t current;
+	uint8_t temperature;
+	Cell cells[numCells];
+} Battery;
+
+typedef State_t (*pfEvent)(void);
+
+typedef struct {
+	State_t State;
+	pfEvent Event;
+} StateMachine;
+
 
 /* USER CODE END ET */
 
@@ -66,6 +105,20 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+State_t InitializeEvent(void);
+State_t IdleEvent(void);
+State_t PrechargingEvent(void);
+State_t RunEvent(void);
+State_t StopEvent(void);
+State_t SleepEvent(void);
+State_t NormalDangerFaultEvent(void);
+State_t SevereDangerFaultEvent(void);
+State_t ChargingEvent(void);
+State_t ChargedEvent(void);
+State_t BalancingEvent(void);
+
+void BatteryInit(void);
+
 
 /* USER CODE END EFP */
 
@@ -97,7 +150,12 @@ void Error_Handler(void);
 #define Stop_Pin GPIO_PIN_4
 #define Stop_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
-
+#define SevereDangerVoltage 55000
+#define NormalDangerVoltage 53000
+#define SevereDangerCurrent 30000
+#define NormalDangerCurrent 25000
+#define SevereDangerTemperature 60
+#define NormalDangerTemperature 50
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
