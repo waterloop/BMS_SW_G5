@@ -88,6 +88,14 @@ void Error_Handler(void);
 #define TIM1_CH2_GREEN_GPIO_Port GPIOA
 #define TIM1_CH3_RED_Pin GPIO_PIN_10
 #define TIM1_CH3_RED_GPIO_Port GPIOA
+#define Start_Pin GPIO_PIN_12
+#define Start_GPIO_Port GPIOC
+#define Charge_Pin GPIO_PIN_2
+#define Charge_GPIO_Port GPIOD
+#define Reset_Pin GPIO_PIN_3
+#define Reset_GPIO_Port GPIOB
+#define Stop_Pin GPIO_PIN_4
+#define Stop_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -24,6 +24,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bms_entry.h"
+#include <stdio.h>
+#include <string.h>
+#include "led.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +64,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for Measurements */
+osThreadId_t MeasurementsHandle;
+const osThreadAttr_t Measurements_attributes = {
+  .name = "Measurements",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -77,6 +87,7 @@ static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_CAN1_Init(void);
 void StartDefaultTask(void *argument);
+void StartMeasurments(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -84,6 +95,53 @@ void StartDefaultTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* Initializing a structure variable for the battery pack */
+Battery BatteryPack;
+
+void BatteryInit(void) {
+	BatteryPack.voltage = 0;
+	BatteryPack.current = 0;
+	BatteryPack.temperature = 0;
+	for (int i = 0; i < numCells; i++) {
+		Cell cell = {
+			.voltage = 0,
+			.temperature = 0
+		};
+		BatteryPack.cells[i] = cell;
+	}
+}
+
+/* This is created to display the state name in serial terminal. */
+const char *StateNames[] = {
+  "Initialize",
+  "Idle",
+  "Precharging",
+  "Run",
+  "Stop",
+  "Sleep",
+  "NormalDangerFault",
+  "SevereDangerFault",
+  "Charging",
+  "Charged",
+  "Balancing"
+};
+
+State_t CurrentState = Initialize;
+State_t OldState = Sleep;
+
+StateMachine SM[11] = {
+    {Initialize, InitializeEvent},
+	{Idle, IdleEvent},
+	{Precharging, PrechargingEvent},
+	{Run, RunEvent},
+	{Stop, StopEvent},
+	{Sleep, SleepEvent},
+	{NormalDangerFault, NormalDangerFaultEvent},
+	{SevereDangerFault, SevereDangerFaultEvent},
+	{Charging, ChargingEvent},
+	{Charged, ChargedEvent},
+	{Balancing, BalancingEvent}
+};
 
 /* USER CODE END 0 */
 
@@ -125,6 +183,7 @@ int main(void)
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
   return bms_entry();
+  BatteryInit();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -149,6 +208,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of Measurements */
+  MeasurementsHandle = osThreadNew(StartMeasurments, NULL, &Measurements_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -627,15 +689,20 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, CS2_Pin|Start_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin|Reset_Pin
+                          |Stop_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Charge_GPIO_Port, Charge_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : CS_Pin */
   GPIO_InitStruct.Pin = CS_Pin;
@@ -644,24 +711,120 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(CS_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : CS2_Pin */
-  GPIO_InitStruct.Pin = CS2_Pin;
+  /*Configure GPIO pins : CS2_Pin Start_Pin */
+  GPIO_InitStruct.Pin = CS2_Pin|Start_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(CS2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CONTACTOR_Pin PRECHARGE_Pin EXT_LED_Pin */
-  GPIO_InitStruct.Pin = CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin;
+  /*Configure GPIO pins : CONTACTOR_Pin PRECHARGE_Pin EXT_LED_Pin Reset_Pin
+                           Stop_Pin */
+  GPIO_InitStruct.Pin = CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin|Reset_Pin
+                          |Stop_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : Charge_Pin */
+  GPIO_InitStruct.Pin = Charge_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Charge_GPIO_Port, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
+/* Defining the conditions necessary for state transitions */
 
+State_t InitializeEvent(void) {
+	osDelay(3000); // This is added to show it enters the initialize state for 3 seconds during testing
+	return Idle;
+}
+
+State_t IdleEvent(void) {
+	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	if (HAL_GPIO_ReadPin(Start_GPIO_Port, Start_Pin)) {
+		return Precharging;
+	} else if (HAL_GPIO_ReadPin(Charge_GPIO_Port, Charge_Pin)) {
+		return Charging;
+	} else if (HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin)) {
+		return Sleep;
+	} else {
+		return Idle;
+	}
+}
+
+State_t PrechargingEvent(void) {
+	osDelay(3000);
+	return Run;
+}
+
+State_t RunEvent(void) {
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 1);
+	if (HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin)) {
+		return Stop;
+	} else {
+		return Run;
+	}
+}
+
+State_t StopEvent(void) {
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
+		return Idle;
+	} else {
+		return Stop;
+	}
+}
+
+State_t SleepEvent(void) {
+	osThreadSuspend(MeasurementsHandle); // Pauses measurements
+	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
+		return Idle;
+	} else {
+		return Sleep;
+	}
+}
+
+State_t NormalDangerFaultEvent(void) {
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
+		return Idle;
+	} else {
+		return NormalDangerFault;
+	}
+}
+
+State_t SevereDangerFaultEvent(void) {
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	return SevereDangerFault;
+}
+
+State_t ChargingEvent(void) {
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 1);
+	if (BatteryPack.voltage > 51600) {
+		return Charged;
+	} else {
+		return Charging;
+	}
+}
+
+State_t ChargedEvent(void) {
+	HAL_GPIO_WritePin(Contactor_GPIO_Port, Contactor_Pin, 0);
+	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
+		return Idle;
+	} else {
+		return Charged;
+	}
+}
+
+State_t BalancingEvent(void) {
+	return Balancing;
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -677,9 +840,39 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  /* Measure Battery Pack voltage, current, temperature every 200 milliseconds */
+	  	BatteryPack.voltage = 51800; // Should change to a function that grabs data
+	  	BatteryPack.current = 20000; // Should change to a function that grabs data
+	  	BatteryPack.temperature = 30; // Should change to a function that grabs data
+	  	char dataM[100];
+	  	sprintf(dataM, "Voltage: %dmV,  Current: %dmA,  Temperature: %d˚C\r\n", BatteryPack.voltage, BatteryPack.current, BatteryPack.temperature);
+	  	HAL_UART_Transmit(&huart4, (uint8_t*)dataM, strlen(dataM), 500);
+	  	if (BatteryPack.voltage > SevereDangerVoltage || BatteryPack.current > SevereDangerCurrent || BatteryPack.temperature > SevereDangerTemperature) {
+	  		CurrentState = SevereDangerFault;
+	  	} else if (BatteryPack.voltage > NormalDangerVoltage || BatteryPack.current > NormalDangerCurrent || BatteryPack.temperature > NormalDangerTemperature) {
+	  		CurrentState = NormalDangerFault;
+	  	}
+	      osDelay(200);
+	    }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartMeasurments */
+/**
+* @brief Function implementing the Measurments thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartMeasurments */
+void StartMeasurments(void *argument)
+{
+  /* USER CODE BEGIN StartMeasurments */
+  /* Infinite loop */
+  for(;;)
+  {
     osDelay(1);
   }
-  /* USER CODE END 5 */
+  /* USER CODE END StartMeasurments */
 }
 
  /**

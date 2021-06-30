@@ -43,7 +43,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/bms_entry.h ../Core/Inc/globals.h
+ ../Core/Inc/bms_entry.h ../Core/Inc/globals.h ../Core/Inc/led.h \
+ ../Core/Inc/main.h
 
 ../Core/Inc/main.h:
 
@@ -138,3 +139,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/bms_entry.h:
 
 ../Core/Inc/globals.h:
+
+../Core/Inc/led.h:
+
+../Core/Inc/main.h:
