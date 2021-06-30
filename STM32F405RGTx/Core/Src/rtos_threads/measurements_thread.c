@@ -35,11 +35,11 @@ void _adc_decimation() {
 		}
 		float voltage = (sum/ADC_DECIMATION_COEFF)*ADC_TO_VOLTAGE_COEFF;
 
-		if (i == 0) { global_bms_data.contactor_voltage = voltage; }
-		else if (i == 1) { global_bms_data.mc_cap_voltage = voltage; }
+		if (i == 0) { global_bms_data.buck_temp = voltage; }
+		else if (i == 1) { global_bms_data.battery.current = voltage; }
 		else if (i == 2) { global_bms_data.battery.voltage = voltage; }
-		else if (i == 3) { global_bms_data.battery.current = voltage; }
-		else if (i == 4) { global_bms_data.buck_temp = voltage; }
+		else if (i == 3) { global_bms_data.mc_cap_voltage = voltage; }
+		else if (i == 4) { global_bms_data.contactor_voltage = voltage; }
 	}
 }
 
