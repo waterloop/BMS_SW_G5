@@ -157,7 +157,7 @@ void Ltc6813_wakeup_sleep(Ltc6813* self) {
 void Ltc6813_wakeup_idle(Ltc6813* self) {
 	Ltc6813_cs_low(self);
 	delay_us(20);		// according to datasheet, t_wake = 10us
-	HAL_SPI_Receive(&self->_spi_interface, 0xff, 1, self->timeout)
+	HAL_SPI_Receive(&self->_spi_interface, 0xff, 1, self->timeout);
 	Ltc6813_cs_high(self);
 }
 
@@ -203,6 +203,7 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 	switch (reg_cmd) {
 		case RDCFGA:
 			reg_buf = &(self->cfga_bfr);
+			printf("PRINTING CFGA\r\n");
 			break;
 		case RDCFGB:
 			reg_buf = &(self->cfgb_bfr);
