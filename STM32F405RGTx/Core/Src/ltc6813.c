@@ -274,10 +274,13 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
 	Ltc6813_cs_low(self);
 
+	printf("REFERENCES POWERING UP\r\n");
 	Ltc6813_send_cmd(self, mode);
 
 	// Enter REFUP by waiting t(refup). Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
 	osDelay(5);
+
+	printf("REFERENCES POWERED\r\n");
 
 	uint32_t delay = FILTERED_ADC_DELAY;
 
@@ -289,16 +292,24 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 		delay = FILTERED_ADC_DELAY;
 	}
 
+	printf("EXPECTED ADC DELAY: %d\r\n", delay);
+
 	osDelay(delay);
 
 	uint8_t success = 1;
 
 	success &= Ltc6813_read_reg(self, RDCVA);
+	printf("PEC CVA: %d\r\n", success);
 	success &= Ltc6813_read_reg(self, RDCVB);
+	printf("PEC CVB: %d\r\n", success);
 	success &= Ltc6813_read_reg(self, RDCVC);
+	printf("PEC CVC: %d\r\n", success);
 	success &= Ltc6813_read_reg(self, RDCVD);
+	printf("PEC CVD: %d\r\n", success);
 	success &= Ltc6813_read_reg(self, RDCVE);
+	printf("PEC CVE: %d\r\n", success);
 	success &= Ltc6813_read_reg(self, RDCVF);
+	printf("PEC CVF: %d\r\n", success);
 
 	return success;
 
