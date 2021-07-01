@@ -44,21 +44,23 @@ void measurements_thread_fn(void* arg) {
 //
 //		Ltc6813_write_cfga(&slave_device);
 
-//		Ltc6813_wakeup_sleep(&slave_device);
-//
-//		printf("START ADC CONV\r\n");
-//
-//		success = Ltc6813_read_adc(&slave_device, NORMAL_ADC);
-//
-//		printf("FINISH ADC CONV\r\n");
-//
-//		if (success) {
-//			printf("PEC SUCCESS\r\n");
-//		} else {
-//			printf("PEC FAIL\r\n");
-//		}
-//
-//		Ltc6813_print_voltages(&slave_device);
+		osDelay(1000);
+
+		Ltc6813_wakeup_sleep(&slave_device);
+
+		printf("START ADC CONV\r\n");
+
+		success = Ltc6813_read_adc(&slave_device, NORMAL_ADC);
+
+		printf("FINISH ADC CONV\r\n");
+
+		if (success) {
+			printf("PEC SUCCESS\r\n");
+		} else {
+			printf("PEC FAIL\r\n");
+		}
+
+		Ltc6813_print_voltages(&slave_device);
 
 
 		osDelay(1000);
