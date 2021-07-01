@@ -97,6 +97,8 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode);
 #define RDCVE	0b00000001001u
 #define RDCVF	0b00000001011u
 
+#define PLADC 	0b11100010100u
+
 #endif
 
 

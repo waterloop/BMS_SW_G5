@@ -13,8 +13,8 @@ ltc6813.c:151:6:Ltc6813_wakeup_sleep	16	static
 ltc6813.c:157:6:Ltc6813_wakeup_idle	16	static
 ltc6813.c:163:6:Ltc6813_print_voltages	16	static
 ltc6813.c:187:6:Ltc6813_send_cmd	16	static
-ltc6813.c:198:9:Ltc6813_read_reg	24	static
-ltc6813.c:249:9:Ltc6813_read_cfga	16	static
-ltc6813.c:253:9:Ltc6813_read_cfgb	16	static
-ltc6813.c:257:6:Ltc6813_write_cfga	16	static
-ltc6813.c:271:9:Ltc6813_read_adc	24	static
+ltc6813.c:200:9:Ltc6813_read_reg	24	static
+ltc6813.c:251:9:Ltc6813_read_cfga	16	static
+ltc6813.c:255:9:Ltc6813_read_cfgb	16	static
+ltc6813.c:259:6:Ltc6813_write_cfga	16	static
+ltc6813.c:273:9:Ltc6813_read_adc	24	static

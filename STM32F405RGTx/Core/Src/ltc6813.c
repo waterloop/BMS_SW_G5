@@ -157,6 +157,7 @@ void Ltc6813_wakeup_sleep(Ltc6813* self) {
 void Ltc6813_wakeup_idle(Ltc6813* self) {
 	Ltc6813_cs_low(self);
 	delay_us(20);		// according to datasheet, t_wake = 10us
+	HAL_SPI_Receive(&self->_spi_interface, 0xff, 1, self->timeout)
 	Ltc6813_cs_high(self);
 }
 
@@ -270,12 +271,12 @@ void Ltc6813_write_cfga(Ltc6813* self) {
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
-	// Enter REFUP by waiting t(refup). Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
-	osDelay(5);
-
 	Ltc6813_cs_low(self);
 
 	Ltc6813_send_cmd(self, mode);
+
+	// Enter REFUP by waiting t(refup). Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
+	osDelay(5);
 
 	uint32_t delay = FILTERED_ADC_DELAY;
 
