@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "main.h"
 
+#include "cmsis_os.h"
 #include "ltc6813.h"
 #include "timer_utils.h"
 
