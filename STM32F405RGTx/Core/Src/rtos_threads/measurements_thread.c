@@ -52,11 +52,13 @@ void measurements_thread_fn(void* arg) {
 			printf("Error: HAL_ADC_Start_DMA failed with status code %d\r\n", status);
 		}
 		osKernelUnlock();
-		// wait for signal from HAL_ADC_ConvCpltCallback and give execution over to over threads
+		// wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
 		osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);		// 0U for no timeout
 		_adc_decimation();
 
 		// LTC6813 COMMANDS
+		osKernelLock();
+
 		Ltc6813_wakeup_sleep(&ltc6813);
 
 		printf("CFG A\r\n");
@@ -70,6 +72,8 @@ void measurements_thread_fn(void* arg) {
 		if ( Ltc6813_read_cfgb(&ltc6813) ) { printf("PEC SUCCESS\r\n"); }
 		else { printf("PEC FAIL\r\n"); }
 		Buffer_print( &(ltc6813.cfgb_bfr) );
+
+		osKernelUnlock();
 
 		osDelay(200);
 	}
