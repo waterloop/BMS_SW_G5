@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "cmsis_os.h"
 #include "ltc6813.h"
 #include "timer_utils.h"
 
@@ -198,13 +197,11 @@ void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 }
 
 uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
-
 	Buffer* reg_buf;
 
 	switch (reg_cmd) {
 		case RDCFGA:
 			reg_buf = &(self->cfga_bfr);
-			printf("PRINTING CFGA\r\n");
 			break;
 		case RDCFGB:
 			reg_buf = &(self->cfgb_bfr);
@@ -248,37 +245,38 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 	return pec_success;
 
 }
-
-uint8_t Ltc6813_read_cfga(Ltc6813* self) {
-	return Ltc6813_read_reg(self, RDCFGA);
-}
-
-uint8_t Ltc6813_read_cfgb(Ltc6813* self) {
-	return Ltc6813_read_reg(self, RDCFGB);
-}
-
-void Ltc6813_write_cfga(Ltc6813* self) {
-
-	Buffer_add_pec(&(self->cfga_bfr));
-
+void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
+	Buffer* reg_buff;
+	if (reg_cmd == WRCFGA) {
+		reg_buff = &self->cfga_bfr;
+	}
+	else if (reg_cmd == WRCFGB) {
+		reg_buff = &self->cfgb_bfr;
+	}
+	else {
+		printf("Error: command code %d is not implemented yet...", reg_cmd);
+		Error_Handler();
+	}
+	Buffer_add_pec(reg_buff);
 	Ltc6813_cs_low(self);
-
-	Ltc6813_send_cmd(self, WRCFGA);
-	HAL_SPI_Transmit(&self->_spi_interface, self->cfga_bfr.data, self->cfga_bfr.len, self->timeout);
-
+	Ltc6813_send_cmd(self, reg_cmd);
+	HAL_SPI_Transmit(&self->_spi_interface, reg_buff->data, reg_buff->len, self->timeout);
 	Ltc6813_cs_high(self);
-
-	self->cfga_bfr.len = 6;
+	reg_buff->len = 6;
 }
+
+uint8_t Ltc6813_read_cfga(Ltc6813* self) { return Ltc6813_read_reg(self, RDCFGA); }
+uint8_t Ltc6813_read_cfgb(Ltc6813* self) { return Ltc6813_read_reg(self, RDCFGB); }
+void Ltc6813_write_cfga(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGA); }
+void Ltc6813_write_cfgb(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGB); }
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
-
 	Ltc6813_cs_low(self);
 
 	printf("REFERENCES POWERING UP\r\n");
 	Ltc6813_send_cmd(self, mode);
 
-	// Enter REFUP by waiting t(refup). Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
+	// Wait for references to power up. Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
 	osDelay(5);
 
 	printf("REFERENCES POWERED\r\n");
@@ -292,8 +290,6 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 	} else if (mode == FILTERED_ADC) {
 		delay = FILTERED_ADC_DELAY;
 	}
-
-	printf("EXPECTED ADC DELAY: %d\r\n", delay);
 
 	osDelay(delay);
 
@@ -316,4 +312,33 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
 }
 
+uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask) {
+	// CFGAR4 contains DCC[8:1]
+	uint8_t cfgar4 = cell_mask & 0b11111111U
+	Buffer_set_index(&self->cfga_bfr, 4U, cfgar4);
+
+	// CFGAR5 contains DCC[12:9] in the 4 LSBs
+	uint8_t cfgar5 = Buffer_index(&self->cfga_bfr, 5U);
+	cfgar5 &= ~(0b1111U);
+	cfgar5 |= (cell_mask >> 8U) & 0b1111U;
+	Buffer_set_index(&self->cfga_bfr, 5U, cfgar5);
+
+	// CFGBR0 contains DCC[16:13] in the 4 MSBs
+	uint8_t cfgbr0 = Buffer_index(&self->cfgb_bfr, 0U);
+	cfgbr0 &= ~(0b1111U << 4U);
+	cfgbr0 |= (cell_mask >> 12U) & 0b1111U;
+	Buffer_set_index(&self->cfgb_bfr, 0U, cfgbr0);
+
+	// CFGBR1 contains DCC[18:17] in the 2 LSBs
+	uint8_t cfgbr1 = Buffer_index(&self->cfgb_bfr, 1U);
+	cfgbr1 &= ~(0b11U);
+	cfgbr1 |= (cell_mask >> 16U) & 0b11U;
+	Buffer_set_index(&self->cfgb_bfr, 1U, cfgbr1);
+
+	// write back to the device
+	uint8_t status = 1U;
+	status &= Ltc6813_write_cfga(self);
+	status &= Ltc6813_write_cfgb(self);
+	return status;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////

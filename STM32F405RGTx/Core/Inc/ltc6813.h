@@ -70,18 +70,28 @@ void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
 void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd);
 
 uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd);
+void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd);
 
 uint8_t Ltc6813_read_cfga(Ltc6813* self);
 uint8_t Ltc6813_read_cfgb(Ltc6813* self);
-
 void Ltc6813_write_cfga(Ltc6813* self);
+void Ltc6813_write_cfgb(Ltc6813* self);
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode);
+
+/*
+cell_mask is a mask of 32 bits where the i-th bit represents whether or not a cell should be discharged
+	- 1 -> balance cell, 0 -> don't balance cell.
+	- only the first 18 LSBs are used, the remaining 14 are don't cares
+
+ex. cell_mask = 0bXXXXXXXXXXXXXX000010000100001001
+		==> cells 0, 3, 8, and 13 are being discharged, the rest are not
+*/
+uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ltc6813 Command Code Defines
-
 #ifndef __LTC6813_COMMAND_CODES
 
 #define WRCFGA 		0b00000000001u
