@@ -32,8 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ltc6813.h"
-#include "bms_entry.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -44,19 +43,7 @@ extern "C" {
 #define numCells 14
 
 /* Private types */
-typedef enum {
-  Initialize,
-  Idle,
-  Precharging,
-  Run,
-  Stop,
-  Sleep,
-  NormalDangerFault,
-  SevereDangerFault,
-  Charging,
-  Charged,
-  Balancing
-} State_t;
+
 
 typedef struct {
 	uint16_t voltage;
@@ -70,28 +57,12 @@ typedef struct Battery {
 	Cell cells[numCells];
 } Battery;
 
-typedef State_t (*pfEvent)(void);
-
-typedef struct {
-	State_t State;
-	pfEvent Event;
-} StateMachine;
-
 
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-extern ADC_HandleTypeDef hadc1;
-extern CAN_HandleTypeDef hcan1;
-extern SPI_HandleTypeDef hspi1;
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern UART_HandleTypeDef huart1;
 
-extern Ltc6813 ltc6813;
-extern BMS global_bms_data;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -105,17 +76,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-State_t InitializeEvent(void);
-State_t IdleEvent(void);
-State_t PrechargingEvent(void);
-State_t RunEvent(void);
-State_t StopEvent(void);
-State_t SleepEvent(void);
-State_t NormalDangerFaultEvent(void);
-State_t SevereDangerFaultEvent(void);
-State_t ChargingEvent(void);
-State_t ChargedEvent(void);
-State_t BalancingEvent(void);
+
 
 void BatteryInit(void);
 
@@ -123,6 +84,16 @@ void BatteryInit(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ADC1_IN10_CURRENT_SENSE_Pin GPIO_PIN_0
+#define ADC1_IN10_CURRENT_SENSE_GPIO_Port GPIOC
+#define ADC1_IN11_VBATT_Pin GPIO_PIN_1
+#define ADC1_IN11_VBATT_GPIO_Port GPIOC
+#define ADC1_IN12_MC_CAP_Pin GPIO_PIN_2
+#define ADC1_IN12_MC_CAP_GPIO_Port GPIOC
+#define ADC1_IN13_CONTACTOR_Pin GPIO_PIN_3
+#define ADC1_IN13_CONTACTOR_GPIO_Port GPIOC
+#define ADC1_IN1_BUCK_TEMP_Pin GPIO_PIN_1
+#define ADC1_IN1_BUCK_TEMP_GPIO_Port GPIOA
 #define CS_Pin GPIO_PIN_4
 #define CS_GPIO_Port GPIOA
 #define CS2_Pin GPIO_PIN_4
@@ -141,14 +112,6 @@ void BatteryInit(void);
 #define TIM1_CH2_GREEN_GPIO_Port GPIOA
 #define TIM1_CH3_RED_Pin GPIO_PIN_10
 #define TIM1_CH3_RED_GPIO_Port GPIOA
-#define Start_Pin GPIO_PIN_12
-#define Start_GPIO_Port GPIOC
-#define Charge_Pin GPIO_PIN_2
-#define Charge_GPIO_Port GPIOD
-#define Reset_Pin GPIO_PIN_3
-#define Reset_GPIO_Port GPIOB
-#define Stop_Pin GPIO_PIN_4
-#define Stop_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 #define SevereDangerVoltage 55000
 #define NormalDangerVoltage 53000
