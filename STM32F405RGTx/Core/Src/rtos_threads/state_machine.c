@@ -71,51 +71,50 @@ State_t IdleEvent(void) {
 }
 
 State_t PrechargingEvent(void) {
+	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1);
 	osDelay(3000);
 	return Run;
 }
 
 State_t RunEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
-	// Replace pin with UART Recieve
-//	if (HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin)) {
-//		return Stop;
-//	} else {
-//		return Run;
-//	}
+	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0);
+	// Replace pin with UART Receive
+	if (UART1_rxBuffer == "Stop") {
+		return Stop;
+	} else {
+		return Run;
+	}
 }
 
 State_t StopEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	// Replace pin with UART Recieve
-//	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-//		return Idle;
-//	} else {
-//		return Stop;
-//	}
-	return;
+	// Replace pin with UART Receive
+	if (UART1_rxBuffer == "Rset") {
+		return Idle;
+	} else {
+		return Stop;
+	}
 }
 
 State_t SleepEvent(void) {
 	osThreadSuspend(MeasurementsHandle); // Pauses measurements
-	// Replace pin with UART Recieve
-//	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-//		return Idle;
-//	} else {
-//		return Sleep;
-//	}
-	return;
+	// Replace pin with UART Receive
+	if (UART1_rxBuffer == "Rset") {
+		return Idle;
+	} else {
+		return Sleep;
+	}
 }
 
 State_t NormalDangerFaultEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	// Replace pin with UART Recieve
-//	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-//		return Idle;
-//	} else {
-//		return NormalDangerFault;
-//	}
-	return;
+	// Replace pin with UART Receive
+	if (UART1_rxBuffer == "Rset") {
+		return Idle;
+} else {
+		return NormalDangerFault;
+	}
 }
 
 State_t SevereDangerFaultEvent(void) {
@@ -134,13 +133,12 @@ State_t ChargingEvent(void) {
 
 State_t ChargedEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	// Replace pin with UART Recieve
-//	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-//		return Idle;
-//	} else {
-//		return Charged;
-//	}
-	return;
+	// Replace pin with UART Receive
+	if (UART1_rxBuffer == "Rset") {
+		return Idle;
+} else {
+		return Charged;
+	}
 }
 
 State_t BalancingEvent(void) {
@@ -150,7 +148,7 @@ State_t BalancingEvent(void) {
 
 /* USER CODE BEGIN Header_StartMeasurments */
 /**
-* @brief Function implementing the Measurments thread.
+* @brief Function implementing the Measurements thread.
 * @param argument: Not used
 * @retval None
 */

@@ -1,5 +1,4 @@
-Core/Src/rtos_threads/ext_led_blink_thread.o: \
- ../Core/Src/rtos_threads/ext_led_blink_thread.c \
+Core/Src/rtos_threads/fsm_thread.o: ../Core/Src/rtos_threads/fsm_thread.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \

@@ -45,7 +45,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
 
 CAN_HandleTypeDef hcan1;
 
@@ -57,13 +56,8 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+uint8_t UART1_rxBuffer[4] = {0};
+
 /* Definitions for Measurements */
 osThreadId_t MeasurementsHandle;
 const osThreadAttr_t Measurements_attributes = {
@@ -78,7 +72,6 @@ const osThreadAttr_t Measurements_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_SPI1_Init(void);
@@ -86,7 +79,6 @@ static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_CAN1_Init(void);
-void StartDefaultTask(void *argument);
 void StartMeasurments(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -110,38 +102,6 @@ void BatteryInit(void) {
 		BatteryPack.cells[i] = cell;
 	}
 }
-
-/* This is created to display the state name in serial terminal. */
-const char *StateNames[] = {
-  "Initialize",
-  "Idle",
-  "Precharging",
-  "Run",
-  "Stop",
-  "Sleep",
-  "NormalDangerFault",
-  "SevereDangerFault",
-  "Charging",
-  "Charged",
-  "Balancing"
-};
-
-State_t CurrentState = Initialize;
-State_t OldState = Sleep;
-
-StateMachine SM[11] = {
-    {Initialize, InitializeEvent},
-	{Idle, IdleEvent},
-	{Precharging, PrechargingEvent},
-	{Run, RunEvent},
-	{Stop, StopEvent},
-	{Sleep, SleepEvent},
-	{NormalDangerFault, NormalDangerFaultEvent},
-	{SevereDangerFault, SevereDangerFaultEvent},
-	{Charging, ChargingEvent},
-	{Charged, ChargedEvent},
-	{Balancing, BalancingEvent}
-};
 
 /* USER CODE END 0 */
 
@@ -173,7 +133,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM2_Init();
   MX_ADC1_Init();
   MX_SPI1_Init();
@@ -300,13 +259,13 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = ENABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 5;
+  hadc1.Init.NbrOfConversion = 1;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -318,38 +277,6 @@ static void MX_ADC1_Init(void)
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_10;
-  sConfig.Rank = 2;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_11;
-  sConfig.Rank = 3;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_12;
-  sConfig.Rank = 4;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_13;
-  sConfig.Rank = 5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -660,22 +587,6 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -689,20 +600,15 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, CS2_Pin|Start_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin|Reset_Pin
-                          |Stop_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Charge_GPIO_Port, Charge_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : CS_Pin */
   GPIO_InitStruct.Pin = CS_Pin;
@@ -711,121 +617,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(CS_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CS2_Pin Start_Pin */
-  GPIO_InitStruct.Pin = CS2_Pin|Start_Pin;
+  /*Configure GPIO pin : CS2_Pin */
+  GPIO_InitStruct.Pin = CS2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(CS2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CONTACTOR_Pin PRECHARGE_Pin EXT_LED_Pin Reset_Pin
-                           Stop_Pin */
-  GPIO_InitStruct.Pin = CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin|Reset_Pin
-                          |Stop_Pin;
+  /*Configure GPIO pins : CONTACTOR_Pin PRECHARGE_Pin EXT_LED_Pin */
+  GPIO_InitStruct.Pin = CONTACTOR_Pin|PRECHARGE_Pin|EXT_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : Charge_Pin */
-  GPIO_InitStruct.Pin = Charge_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(Charge_GPIO_Port, &GPIO_InitStruct);
-
-}
-
-/* USER CODE BEGIN 4 */
-/* Defining the conditions necessary for state transitions */
-
-State_t InitializeEvent(void) {
-	osDelay(3000); // This is added to show it enters the initialize state for 3 seconds during testing
-	return Idle;
-}
-
-State_t IdleEvent(void) {
-	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	if (HAL_GPIO_ReadPin(Start_GPIO_Port, Start_Pin)) {
-		return Precharging;
-	} else if (HAL_GPIO_ReadPin(Charge_GPIO_Port, Charge_Pin)) {
-		return Charging;
-	} else if (HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin)) {
-		return Sleep;
-	} else {
-		return Idle;
-	}
-}
-
-State_t PrechargingEvent(void) {
-	osDelay(3000);
-	return Run;
-}
-
-State_t RunEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
-	if (HAL_GPIO_ReadPin(Stop_GPIO_Port, Stop_Pin)) {
-		return Stop;
-	} else {
-		return Run;
-	}
-}
-
-State_t StopEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-		return Idle;
-	} else {
-		return Stop;
-	}
-}
-
-State_t SleepEvent(void) {
-	osThreadSuspend(MeasurementsHandle); // Pauses measurements
-	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-		return Idle;
-	} else {
-		return Sleep;
-	}
-}
-
-State_t NormalDangerFaultEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-		return Idle;
-	} else {
-		return NormalDangerFault;
-	}
-}
-
-State_t SevereDangerFaultEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	return SevereDangerFault;
-}
-
-State_t ChargingEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
-	if (BatteryPack.voltage > 51600) {
-		return Charged;
-	} else {
-		return Charging;
-	}
-}
-
-State_t ChargedEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	if (HAL_GPIO_ReadPin(Reset_GPIO_Port, Reset_Pin)) {
-		return Idle;
-	} else {
-		return Charged;
-	}
-}
-
-State_t BalancingEvent(void) {
-	return Balancing;
-}
-/* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
