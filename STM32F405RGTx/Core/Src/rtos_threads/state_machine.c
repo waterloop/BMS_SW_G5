@@ -5,12 +5,24 @@
  *      Author: tiffanywang
  */
 
+#include "state_machine.h"
+#include "cmsis_os.h"
+#include "main.h"
 
-const osThreadAttr_t stateMachineTask_attributes = {
-  .name = "stateMachineTask",
+uint8_t UART1_rxBuffer[4] = {0};
+
+
+/* Definitions for Measurements */
+osThreadId_t MeasurementsHandle;
+const osThreadAttr_t Measurements_attributes = {
+  .name = "Measurements",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+
+/* creation of Measurements */
+// MeasurementsHandle = osThreadNew(StartMeasurments, NULL, &Measurements_attributes);
+
 
 /* This is created to display the state name in serial terminal. */
 const char *StateNames[] = {
@@ -124,7 +136,7 @@ State_t SevereDangerFaultEvent(void) {
 
 State_t ChargingEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
-	if (BatteryPack.voltage > 51600) {
+	if (global_bms_data.battery.voltage > 51600) {
 		return Charged;
 	} else {
 		return Charging;
@@ -183,7 +195,7 @@ void StartStateMachine(void *argument)
 	if (OldState != CurrentState) {
 		char dataState[100];
 		sprintf(dataState, "Current State: %s\r\n", StateNames[CurrentState]);
-		HAL_UART_Transmit(&huart2, (uint8_t*)dataState, strlen(dataState), 500);
+		HAL_UART_Transmit(&huart1, (uint8_t*)dataState, strlen(dataState), 500);
 	}
 	OldState = CurrentState;
 	CurrentState = (*SM[CurrentState].Event)();

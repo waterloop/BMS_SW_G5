@@ -32,6 +32,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "ltc6813.h"
+#include "bms_entry.h"
 
 /* USER CODE END Includes */
 
@@ -45,24 +47,21 @@ extern "C" {
 /* Private types */
 
 
-typedef struct {
-	uint16_t voltage;
-	uint8_t temperature;
-} Cell;
-
-typedef struct Battery {
-	uint16_t voltage;
-	uint16_t current;
-	uint8_t temperature;
-	Cell cells[numCells];
-} Battery;
-
-
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern ADC_HandleTypeDef hadc1;
+extern CAN_HandleTypeDef hcan1;
+extern SPI_HandleTypeDef hspi1;
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern UART_HandleTypeDef huart1;
 
+extern Ltc6813 ltc6813;
+extern BMS global_bms_data;
+extern uint8_t UART1_rxBuffer[4];
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

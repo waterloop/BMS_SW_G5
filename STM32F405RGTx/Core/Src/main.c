@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
+#include "state_machine.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,6 +45,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 CAN_HandleTypeDef hcan1;
 
@@ -56,15 +57,6 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 
-uint8_t UART1_rxBuffer[4] = {0};
-
-/* Definitions for Measurements */
-osThreadId_t MeasurementsHandle;
-const osThreadAttr_t Measurements_attributes = {
-  .name = "Measurements",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -72,6 +64,7 @@ const osThreadAttr_t Measurements_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_SPI1_Init(void);
@@ -79,6 +72,7 @@ static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_CAN1_Init(void);
+void StartDefaultTask(void *argument);
 void StartMeasurments(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -88,20 +82,6 @@ void StartMeasurments(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /* Initializing a structure variable for the battery pack */
-Battery BatteryPack;
-
-void BatteryInit(void) {
-	BatteryPack.voltage = 0;
-	BatteryPack.current = 0;
-	BatteryPack.temperature = 0;
-	for (int i = 0; i < numCells; i++) {
-		Cell cell = {
-			.voltage = 0,
-			.temperature = 0
-		};
-		BatteryPack.cells[i] = cell;
-	}
-}
 
 /* USER CODE END 0 */
 
@@ -133,6 +113,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
   MX_ADC1_Init();
   MX_SPI1_Init();
@@ -142,7 +123,6 @@ int main(void)
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
   return bms_entry();
-  BatteryInit();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -165,11 +145,7 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* creation of Measurements */
-  MeasurementsHandle = osThreadNew(StartMeasurments, NULL, &Measurements_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -259,13 +235,13 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 5;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -274,13 +250,36 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_1;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  sConfig.Channel = ADC_CHANNEL_10;
+   sConfig.Rank = 2;
+   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+   {
+     Error_Handler();
+   }
+   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+   */
+   sConfig.Channel = ADC_CHANNEL_11;
+   sConfig.Rank = 3;
+   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+   {
+     Error_Handler();
+   }
+   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+   */
+   sConfig.Channel = ADC_CHANNEL_12;
+   sConfig.Rank = 4;
+   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+   {
+     Error_Handler();
+   }
+   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+   */
+   sConfig.Channel = ADC_CHANNEL_13;
+   sConfig.Rank = 5;
+   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+   {
+     Error_Handler();
+   }
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
@@ -587,6 +586,22 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -631,54 +646,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-	  /* Measure Battery Pack voltage, current, temperature every 200 milliseconds */
-	  	BatteryPack.voltage = 51800; // Should change to a function that grabs data
-	  	BatteryPack.current = 20000; // Should change to a function that grabs data
-	  	BatteryPack.temperature = 30; // Should change to a function that grabs data
-	  	char dataM[100];
-	  	sprintf(dataM, "Voltage: %dmV,  Current: %dmA,  Temperature: %d˚C\r\n", BatteryPack.voltage, BatteryPack.current, BatteryPack.temperature);
-	  	HAL_UART_Transmit(&huart1, (uint8_t*)dataM, strlen(dataM), 500);
-	  	if (BatteryPack.voltage > SevereDangerVoltage || BatteryPack.current > SevereDangerCurrent || BatteryPack.temperature > SevereDangerTemperature) {
-	  		CurrentState = SevereDangerFault;
-	  	} else if (BatteryPack.voltage > NormalDangerVoltage || BatteryPack.current > NormalDangerCurrent || BatteryPack.temperature > NormalDangerTemperature) {
-	  		CurrentState = NormalDangerFault;
-	  	}
-	      osDelay(200);
-	    }
-  /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartMeasurments */
-/**
-* @brief Function implementing the Measurments thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartMeasurments */
-void StartMeasurments(void *argument)
-{
-  /* USER CODE BEGIN StartMeasurments */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartMeasurments */
-}
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
 
  /**
   * @brief  Period elapsed callback in non blocking mode

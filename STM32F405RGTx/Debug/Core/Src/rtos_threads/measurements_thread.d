@@ -33,6 +33,7 @@ Core/Src/rtos_threads/measurements_thread.o: \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/ltc6813.h ../Core/Inc/main.h ../Core/Inc/bms_entry.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
@@ -44,7 +45,7 @@ Core/Src/rtos_threads/measurements_thread.o: \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/ltc6813.h ../Core/Inc/main.h ../Core/Inc/threads.h
+ ../Core/Inc/ltc6813.h ../Core/Inc/threads.h
 
 ../Core/Inc/main.h:
 
@@ -114,6 +115,12 @@ Core/Src/rtos_threads/measurements_thread.o: \
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 
+../Core/Inc/ltc6813.h:
+
+../Core/Inc/main.h:
+
+../Core/Inc/bms_entry.h:
+
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
@@ -137,7 +144,5 @@ Core/Src/rtos_threads/measurements_thread.o: \
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 
 ../Core/Inc/ltc6813.h:
-
-../Core/Inc/main.h:
 
 ../Core/Inc/threads.h:

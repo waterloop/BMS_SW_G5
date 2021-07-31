@@ -31,7 +31,8 @@ Core/Src/bms_tests.o: ../Core/Src/bms_tests.c ../Core/Inc/timer_utils.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/ltc6813.h ../Core/Inc/bms_entry.h
 
 ../Core/Inc/timer_utils.h:
 
@@ -102,3 +103,7 @@ Core/Src/bms_tests.o: ../Core/Src/bms_tests.c ../Core/Inc/timer_utils.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+
+../Core/Inc/ltc6813.h:
+
+../Core/Inc/bms_entry.h:

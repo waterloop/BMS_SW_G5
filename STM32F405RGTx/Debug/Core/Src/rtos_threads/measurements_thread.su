@@ -1,0 +1,3 @@
+measurements_thread.c:21:6:HAL_ADC_ConvCpltCallback	24	static
+measurements_thread.c:30:6:_adc_decimation	24	static
+measurements_thread.c:46:6:measurements_thread_fn	24	static

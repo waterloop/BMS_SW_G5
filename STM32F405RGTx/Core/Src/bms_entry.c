@@ -5,6 +5,7 @@
 #include "timer_utils.h"
 #include "threads.h"
 #include "bms_entry.h"
+#include "state_machine.h"
 
 #if BMS_DEBUG
 #include "bms_tests.h"
@@ -38,6 +39,8 @@ int bms_entry() {
 	ext_led_blink_thread = osThreadNew(ext_led_blink_thread_fn, NULL, &ext_led_blink_thread_attrs);
 	measurements_thread = osThreadNew(measurements_thread_fn, NULL, &measurements_thread_attrs);
 	fsm_thread = osThreadNew(fsm_thread_fn, NULL, &fsm_thread_attrs);
+
+	state_machine_thread = osThreadNew(StartStateMachine, NULL, &fsm_thread_attrs);
 
 	printf("starting RTOS scheduler...\r\n");
 	osKernelStart();

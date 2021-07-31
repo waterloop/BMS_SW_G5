@@ -1,5 +1,5 @@
-Core/Src/rtos_threads/ext_led_blink_thread.o: \
- ../Core/Src/rtos_threads/ext_led_blink_thread.c \
+Core/Src/rtos_threads/state_machine.o: \
+ ../Core/Src/rtos_threads/state_machine.c ../Core/Inc/state_machine.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
@@ -44,8 +44,9 @@ Core/Src/rtos_threads/ext_led_blink_thread.o: \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/ltc6813.h ../Core/Inc/main.h ../Core/Inc/bms_entry.h \
- ../Core/Inc/threads.h
+ ../Core/Inc/ltc6813.h ../Core/Inc/main.h ../Core/Inc/bms_entry.h
+
+../Core/Inc/state_machine.h:
 
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 
@@ -142,5 +143,3 @@ Core/Src/rtos_threads/ext_led_blink_thread.o: \
 ../Core/Inc/main.h:
 
 ../Core/Inc/bms_entry.h:
-
-../Core/Inc/threads.h:

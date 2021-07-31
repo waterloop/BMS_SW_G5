@@ -8,6 +8,8 @@
 #ifndef _STATE_MACHINE_H_
 #define _STATE_MACHINE_H_
 
+#include "cmsis_os.h"
+
 
 /* Definitions for stateMachineTask */
 osThreadId_t stateMachineTaskHandle;
@@ -53,6 +55,8 @@ State_t BalancingEvent(void);
   */
 /* USER CODE END Header_StartStateMachine */
 void StartStateMachine(void *argument);
+
+void StartMeasurements(void *argument);
 
 
 

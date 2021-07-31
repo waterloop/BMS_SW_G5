@@ -32,6 +32,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/ltc6813.h ../Core/Inc/main.h ../Core/Inc/bms_entry.h \
+ ../Core/Inc/state_machine.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
@@ -43,8 +45,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/bms_entry.h ../Core/Inc/globals.h ../Core/Inc/led.h \
- ../Core/Inc/main.h
+ ../Core/Inc/bms_entry.h ../Core/Inc/led.h
 
 ../Core/Inc/main.h:
 
@@ -114,6 +115,14 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 
+../Core/Inc/ltc6813.h:
+
+../Core/Inc/main.h:
+
+../Core/Inc/bms_entry.h:
+
+../Core/Inc/state_machine.h:
+
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
@@ -138,8 +147,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Core/Inc/bms_entry.h:
 
-../Core/Inc/globals.h:
-
 ../Core/Inc/led.h:
-
-../Core/Inc/main.h:

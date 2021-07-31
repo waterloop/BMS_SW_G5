@@ -1,2 +1,3 @@
-bms_entry.c:14:6:__io_putchar	16	static
-bms_entry.c:18:5:bms_entry	8	static
+bms_entry.c:15:6:__io_putchar	16	static
+bms_entry.c:18:9:__io_getchar	16	static
+bms_entry.c:28:5:bms_entry	512	static
