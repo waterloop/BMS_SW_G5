@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#define NOMINAL_CAP		21600
+#define INIT_SOC		100
+
 float prev_current = 0.0;
 
 float getCharge() {
@@ -26,12 +29,9 @@ void coulombCountingEntry(void* arg) {
     	osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);
     
         totalChargeConsumed += getCharge();
-        // this should be timed so totalChargeConsumed is only compounded when a new value is available
         
        	float curr_soc = INIT_SOC - (totalChargeConsumed / NOMINAL_CAP) * 100;
-       	// INIT_SOC is 100, NOMINAL_CAP must be determined. these should use #define
        	
-       	// how can SoC be written back to the bms object?
        	global_bms_object.battery.soc = curr_soc;
              
     }
