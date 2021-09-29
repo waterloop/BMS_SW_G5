@@ -3,7 +3,7 @@
 
 #include "cmsis_os.h"
 
-#define MEASUREMENT_PERIODICITY     10E-3
+#define MEASUREMENT_PERIODICITY     100E-3
 
 osThreadId_t ext_led_blink_thread;
 const osThreadAttr_t ext_led_blink_thread_attrs;

@@ -31,6 +31,7 @@ void coulomb_counting_thread_fn(void* arg) {
 
     while (1) {
     	osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);
+    
         totalChargeConsumed += getCharge();
        	float curr_soc = (INIT_SOC - (totalChargeConsumed / NOMINAL_CAP) )* 100;
 

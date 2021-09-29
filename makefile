@@ -123,14 +123,6 @@ C_INCLUDES =  \
 -I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include \
--I ./$(DEVICE_DIRNAME)/Core/Inc \
--I ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc \
--I ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/include \
--I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \
--I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
--I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
--I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include
 
 C_INCLUDES += $(USER_INCLUDES)
 
@@ -176,13 +168,17 @@ vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.c makefile | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	@echo ""
 
 $(BUILD_DIR)/%.o: %.s makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
+	@echo ""
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	@echo ""
 	$(SZ) $@
+	@echo ""
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
