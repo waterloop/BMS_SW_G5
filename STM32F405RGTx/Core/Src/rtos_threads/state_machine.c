@@ -5,6 +5,8 @@
  *      Author: tiffanywang
  */
 
+#include <stdio.h>
+#include <string.h>
 #include "state_machine.h"
 #include "cmsis_os.h"
 #include "main.h"
@@ -26,17 +28,17 @@ const osThreadAttr_t Measurements_attributes = {
 
 /* This is created to display the state name in serial terminal. */
 const char *StateNames[] = {
-  "Initialize",
-  "Idle",
-  "Precharging",
-  "Run",
-  "Stop",
-  "Sleep",
-  "NormalDangerFault",
-  "SevereDangerFault",
-  "Charging",
-  "Charged",
-  "Balancing"
+	"Initialize",
+	"Idle",
+	"Precharging",
+	"Run",
+	"Stop",
+	"Sleep",
+	"NormalDangerFault",
+	"SevereDangerFault",
+	"Charging",
+	"Charged",
+	"Balancing"
 };
 
 State_t CurrentState = Initialize;
@@ -70,16 +72,15 @@ State_t IdleEvent(void) {
 	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (UART1_rxBuffer == "Strt") {
+	if (strcmp( (char*)UART1_rxBuffer, "Strt" ) == 0) {
 		return Precharging;
-	} else if (UART1_rxBuffer == "Chrg") {
+	} else if (strcmp( (char*)UART1_rxBuffer, "Chrg" ) == 0) {
 		return Charging;
-	} else if (UART1_rxBuffer == "Stop") {
+	} else if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
 		return Sleep;
 	} else {
 		return Idle;
 	}
-	return;
 }
 
 State_t PrechargingEvent(void) {
@@ -92,7 +93,7 @@ State_t RunEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
 	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0);
 	// Replace pin with UART Receive
-	if (UART1_rxBuffer == "Stop") {
+	if (strcmp( (char*)UART1_rxBuffer, "Stop" ) == 0) {
 		return Stop;
 	} else {
 		return Run;
@@ -102,7 +103,7 @@ State_t RunEvent(void) {
 State_t StopEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	// Replace pin with UART Receive
-	if (UART1_rxBuffer == "Rset") {
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
 	} else {
 		return Stop;
@@ -112,7 +113,7 @@ State_t StopEvent(void) {
 State_t SleepEvent(void) {
 	osThreadSuspend(MeasurementsHandle); // Pauses measurements
 	// Replace pin with UART Receive
-	if (UART1_rxBuffer == "Rset") {
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
 	} else {
 		return Sleep;
@@ -122,7 +123,7 @@ State_t SleepEvent(void) {
 State_t NormalDangerFaultEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	// Replace pin with UART Receive
-	if (UART1_rxBuffer == "Rset") {
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
 } else {
 		return NormalDangerFault;
@@ -146,7 +147,7 @@ State_t ChargingEvent(void) {
 State_t ChargedEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	// Replace pin with UART Receive
-	if (UART1_rxBuffer == "Rset") {
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
 } else {
 		return Charged;

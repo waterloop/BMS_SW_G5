@@ -21,4 +21,8 @@ osThreadId_t coulomb_counting_thread;
 const osThreadAttr_t coulomb_counting_thread_attrs;
 void coulomb_counting_thread_fn(void* arg);
 
+osThreadId_t state_machine_thread;
+const osThreadAttr_t state_machine_thread_attrs;
+void StartStateMachine(void* arg);
+
 #endif
