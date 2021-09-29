@@ -1,5 +1,4 @@
-#ifndef __BMS_ENTRY
-#define __BMS_ENTRY
+#pragma once
 
 #define NUM_CELLS	14
 
@@ -24,4 +23,3 @@ typedef struct {
 
 int bms_entry();
 
-#endif

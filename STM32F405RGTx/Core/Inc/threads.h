@@ -1,5 +1,4 @@
-#ifndef __THREADS
-#define __THREADS
+#pragma once
 
 #include "cmsis_os.h"
 
@@ -25,4 +24,3 @@ osThreadId_t debug_log_thread;
 const osThreadAttr_t debug_log_thread_attrs;
 void debug_log_thread_fn(void* arg);
 
-#endif

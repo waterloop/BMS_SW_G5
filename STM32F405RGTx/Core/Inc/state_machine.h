@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * state_machine.h
  *
@@ -5,8 +7,6 @@
  *      Author: tiffanywang
  */
 
-#ifndef _STATE_MACHINE_H_
-#define _STATE_MACHINE_H_
 
 #include "cmsis_os.h"
 
@@ -58,6 +58,3 @@ void StartStateMachine(void *argument);
 
 void StartMeasurements(void *argument);
 
-
-
-#endif /* _STATE_MACHINE_H_ */

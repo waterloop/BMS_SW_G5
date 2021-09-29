@@ -1,5 +1,4 @@
-#ifndef __LTC6813
-#define __LTC6813
+#pragma once
 
 #include <stdint.h>
 #include "main.h"
@@ -128,5 +127,3 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-#endif

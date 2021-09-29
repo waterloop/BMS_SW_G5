@@ -1,5 +1,4 @@
-#ifndef __LUTS
-#define __LUTS
+#pragma once
 
 #include <stdint.h>
 
@@ -7,4 +6,3 @@
 extern uint16_t CRC15_LUT[256];
 extern float ADC_TO_TEMP_LUT[4096];
 
-#endif
