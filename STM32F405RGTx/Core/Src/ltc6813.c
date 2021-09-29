@@ -4,6 +4,7 @@
 
 #include "ltc6813.h"
 #include "timer_utils.h"
+#include "cmsis_os.h"
 
 /*
 IMPORTANT TIMING PARAMETERS:
@@ -157,7 +158,9 @@ void Ltc6813_wakeup_sleep(Ltc6813* self) {
 void Ltc6813_wakeup_idle(Ltc6813* self) {
 	Ltc6813_cs_low(self);
 	delay_us(20);		// according to datasheet, t_wake = 10us
-	HAL_SPI_Receive(&self->_spi_interface, 0xff, 1, self->timeout);
+
+	uint8_t buff[1] = {0xff};
+	HAL_SPI_Receive(&self->_spi_interface, buff, 1, self->timeout);
 	Ltc6813_cs_high(self);
 }
 
@@ -198,7 +201,6 @@ void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 
 uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 	Buffer* reg_buf;
-
 	switch (reg_cmd) {
 		case RDCFGA:
 			reg_buf = &(self->cfga_bfr);
@@ -225,11 +227,11 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 			reg_buf = &(self->cvf_bfr);
 			break;
 		default:
+			reg_buf = NULL;
 			break;
 	}
 
 	Buffer_clear(reg_buf);
-
 	reg_buf->len = 8;
 
 	Ltc6813_cs_low(self);
@@ -254,6 +256,7 @@ void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
 		reg_buff = &self->cfgb_bfr;
 	}
 	else {
+		reg_buff = NULL;
 		printf("Error: command code %d is not implemented yet...", reg_cmd);
 		Error_Handler();
 	}
@@ -314,7 +317,7 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
 uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask) {
 	// CFGAR4 contains DCC[8:1]
-	uint8_t cfgar4 = cell_mask & 0b11111111U
+	uint8_t cfgar4 = cell_mask & 0b11111111U;
 	Buffer_set_index(&self->cfga_bfr, 4U, cfgar4);
 
 	// CFGAR5 contains DCC[12:9] in the 4 LSBs
@@ -337,8 +340,17 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask) {
 
 	// write back to the device
 	uint8_t status = 1U;
-	status &= Ltc6813_write_cfga(self);
-	status &= Ltc6813_write_cfgb(self);
+
+	/*
+	TODO:
+		- eventually, all of the write functions should have return codes,
+		  maybe return a HAL_StatusTypeDef
+	*/
+
+	Ltc6813_write_cfga(self);
+	Ltc6813_write_cfga(self);
+	Ltc6813_write_cfgb(self);
+
 	return status;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
