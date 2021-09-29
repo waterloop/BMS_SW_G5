@@ -4,14 +4,20 @@
 #include "cmsis_os.h"
 #include "main.h"
 #include "threads.h"
+#include "bms_tests.h"
 
-const osThreadAttr_t fsm_thread_attrs = {
-	.name = "state_machine_thread",
-	.priority = (osPriority_t)osPriorityNormal,
+/*
+TODO:
+	- this thread is just used for testing, eventually it should be removed
+*/
+
+const osThreadAttr_t debug_log_thread_attrs = {
+	.name = "debug_log_thread",
+	.priority = (osPriority_t)osPriorityLow,
 	.stack_size = 1024
 };
 
-void fsm_thread_fn(void* arg) {
+void debug_log_thread_fn(void* arg) {
 	{
 		// intentionally make "str" go out of scope
 		char str[10];
@@ -44,3 +50,4 @@ void fsm_thread_fn(void* arg) {
 		osDelay(500);
 	}
 }
+
