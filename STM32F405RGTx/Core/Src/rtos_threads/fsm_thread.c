@@ -12,21 +12,21 @@ const osThreadAttr_t fsm_thread_attrs = {
 };
 
 void fsm_thread_fn(void* arg) {
-	{
-		// intentionally make "str" go out of scope
-		char str[10];
-		printf("press enter to turn on contactor: ");
-		scanf(str);
-		printf("\r\n\r\n");
-	}
-
-	printf("turning on contactor in");
-	printf("\r\n3...");
-	osDelay(1000);
-	printf("\r\n2...");
-	osDelay(1000);
-	printf("\r\n1...");
-	osDelay(1000);
+//	{
+//		// intentionally make "str" go out of scope
+//		char str[10];
+//		printf("press enter to turn on contactor: ");
+//		scanf(str);
+//		printf("\r\n\r\n");
+//	}
+//
+//	printf("turning on contactor in");
+//	printf("\r\n3...");
+//	osDelay(1000);
+//	printf("\r\n2...");
+//	osDelay(1000);
+//	printf("\r\n1...");
+//	osDelay(1000);
 
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
 	printf("\r\ncontactor has been turned on...\r\n\r\n");
