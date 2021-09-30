@@ -9,7 +9,7 @@
 
 const osThreadAttr_t ext_led_blink_thread_attrs = {
 	.name = "ext_led_blink_thread",
-	.priority = (osPriority_t)osPriorityLow,
+	.priority = (osPriority_t)osPriorityBelowNormal,
 	.stack_size = 1024
 };
 
