@@ -28,23 +28,14 @@ void _set_ch_duty_cycle(uint8_t ch, float dc) {
 }
 
 void ext_led_blink_thread_fn(void* arg) {
+	_set_ch_duty_cycle(2, 0);
+	_set_ch_duty_cycle(3, 0);	
+
 	while (1) {
-		_set_ch_duty_cycle(1, 20);
-		_set_ch_duty_cycle(2, 0);
-		_set_ch_duty_cycle(3, 0);
-	
+		_set_ch_duty_cycle(1, 20);	
 		osDelay(500);
 
 		_set_ch_duty_cycle(1, 0);
-		_set_ch_duty_cycle(2, 20);
-		_set_ch_duty_cycle(3, 0);
-
-		osDelay(500);
-
-		_set_ch_duty_cycle(1, 10);
-		_set_ch_duty_cycle(2, 0);
-		_set_ch_duty_cycle(3, 10);
-
 		osDelay(500);
 	}
 }
