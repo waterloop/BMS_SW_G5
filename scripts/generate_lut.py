@@ -16,8 +16,7 @@ COL_SIZE = 8
 LUT_NAME = "ADC_TO_TEMP_LUT"
 LUT_SIZE = 1 << 12
 def LUT_FUNC(x):
-	return 153 + -0.376*x + 7.36E-04*(x**2) + -8.71E-07*(x**3) + \
-	6.09E-10*(x**4) + -2.55E-13*(x**5) + 6.26E-17*(x**6) + -8.29E-21*(x**7) + 4.55E-25*(x**8)
+	return 153 + -0.376*x + 7.36E-04*x**2 + -8.71E-07*x**3 + 6.09E-10*x**4 + -2.55E-13*x**5 + 6.26E-17*x**6 + -8.29E-21*x**7 + 4.55E-25*x**8
 
 def main():
 	lut = [LUT_FUNC(x) for x in range(LUT_SIZE)]
