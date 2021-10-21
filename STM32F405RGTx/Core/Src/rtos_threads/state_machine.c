@@ -3,28 +3,22 @@
  *
  *  Created on: Jul. 11, 2021
  *      Author: tiffanywang
- */
+*/
 
 #include <stdio.h>
 #include <string.h>
 #include "state_machine.h"
+#include "threads.h"
 #include "cmsis_os.h"
 #include "main.h"
 
 uint8_t UART1_rxBuffer[4] = {0};
 
-
-/* Definitions for Measurements */
-osThreadId_t MeasurementsHandle;
-const osThreadAttr_t Measurements_attributes = {
-  .name = "Measurements",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+const osThreadAttr_t state_machine_thread_attrs = {
+	.name = "state_machine_thread",
+	.priority = (osPriority_t)osPriorityNormal,
+	.stack_size = 1024*3
 };
-
-/* creation of Measurements */
-// MeasurementsHandle = osThreadNew(StartMeasurments, NULL, &Measurements_attributes);
-
 
 /* This is created to display the state name in serial terminal. */
 const char *StateNames[] = {
@@ -58,18 +52,13 @@ StateMachine SM[11] = {
 	{Balancing, BalancingEvent}
 };
 
-
-
-/* USER CODE BEGIN 4 */
-/* Defining the conditions necessary for state transitions */
-
 State_t InitializeEvent(void) {
 	osDelay(3000); // This is added to show it enters the initialize state for 3 seconds during testing
 	return Idle;
 }
 
 State_t IdleEvent(void) {
-	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
+	osThreadResume(measurements_thread); // Resumes measurement if the previous state was Sleep
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
 	if (strcmp( (char*)UART1_rxBuffer, "Strt" ) == 0) {
@@ -111,7 +100,7 @@ State_t StopEvent(void) {
 }
 
 State_t SleepEvent(void) {
-	osThreadSuspend(MeasurementsHandle); // Pauses measurements
+	osThreadSuspend(measurements_thread); // Pauses measurements
 	// Replace pin with UART Receive
 	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
@@ -157,39 +146,9 @@ State_t ChargedEvent(void) {
 State_t BalancingEvent(void) {
 	return Balancing;
 }
-/* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartMeasurments */
-/**
-* @brief Function implementing the Measurements thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartMeasurments */
-void StartMeasurments(void *argument)
-{
-  /* USER CODE BEGIN StartMeasurments */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartMeasurments */
-}
-
-
-
-/* USER CODE BEGIN Header_StartStateMachine */
-/**
-* @brief Function implementing the StateMachine thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartStateMachine */
 void StartStateMachine(void *argument)
 {
-  /* USER CODE BEGIN StartStateMachine */
-  /* Infinite loop */
   for(;;)
   {
 	// Print CurrentState in serial terminal if the state changes
@@ -202,7 +161,6 @@ void StartStateMachine(void *argument)
 	CurrentState = (*SM[CurrentState].Event)();
 	osDelay(200);
   }
-  /* USER CODE END StartStateMachine */
 }
 
 

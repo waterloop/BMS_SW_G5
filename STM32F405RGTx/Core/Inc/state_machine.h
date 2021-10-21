@@ -3,37 +3,32 @@
 /*
  * state_machine.h
  *
- *  Created on: Jul. 11, 2021
+ *      Created on: Jul. 11, 2021
  *      Author: tiffanywang
  */
 
 
 #include "cmsis_os.h"
 
-
-/* Definitions for stateMachineTask */
-osThreadId_t stateMachineTaskHandle;
-const osThreadAttr_t stateMachineTask_attributes;
-
 typedef enum {
-  Initialize,
-  Idle,
-  Precharging,
-  Run,
-  Stop,
-  Sleep,
-  NormalDangerFault,
-  SevereDangerFault,
-  Charging,
-  Charged,
-  Balancing
+    Initialize,
+    Idle,
+    Precharging,
+    Run,
+    Stop,
+    Sleep,
+    NormalDangerFault,
+    SevereDangerFault,
+    Charging,
+    Charged,
+    Balancing
 } State_t;
 
 typedef State_t (*pfEvent)(void);
 
 typedef struct {
-	State_t State;
-	pfEvent Event;
+    State_t State;
+    pfEvent Event;
 } StateMachine;
 
 State_t InitializeEvent(void);
@@ -47,14 +42,4 @@ State_t SevereDangerFaultEvent(void);
 State_t ChargingEvent(void);
 State_t ChargedEvent(void);
 State_t BalancingEvent(void);
-
-/**
-  * @brief  Function implementing the StartStateMachine thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartStateMachine */
-void StartStateMachine(void *argument);
-
-void StartMeasurements(void *argument);
 

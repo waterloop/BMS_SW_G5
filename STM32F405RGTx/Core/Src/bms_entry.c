@@ -4,6 +4,7 @@
 #include "main.h"
 #include "timer_utils.h"
 #include "threads.h"
+#include "state_machine.h"
 #include "bms_entry.h"
 
 #if BMS_DEBUG
@@ -23,6 +24,12 @@ uint8_t __io_getchar() {
 
 BMS global_bms_data;
 Ltc6813 ltc6813;
+
+osThreadId_t ext_led_blink_thread;
+osThreadId_t measurements_thread;
+osThreadId_t coulomb_counting_thread;
+osThreadId_t state_machine_thread;
+osThreadId_t debug_log_thread;
 
 int bms_entry() {	
 	printf("starting timers...\r\n");
