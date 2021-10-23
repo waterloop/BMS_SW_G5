@@ -1,2 +1,0 @@
-timer_utils.c:5:6:start_timers	8	static
-timer_utils.c:9:6:delay_us	16	static,ignoring_inline_asm

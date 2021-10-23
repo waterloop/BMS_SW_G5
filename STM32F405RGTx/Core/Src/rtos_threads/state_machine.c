@@ -8,6 +8,7 @@
 #include "state_machine.h"
 #include "cmsis_os.h"
 #include "main.h"
+//#include "wloop_can.h"
 
 uint8_t UART1_rxBuffer[4] = {0};
 
@@ -67,30 +68,53 @@ State_t InitializeEvent(void) {
 }
 
 State_t IdleEvent(void) {
-	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
+//	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
+//	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
+//	//	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
+//	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+//	if (!Queue_empty(&RX_QUEUE)) {
+//		CANFrame rx_frame = CANBus_get_frame(); // convert from 8-bit to state
+//	}
+//	if (rx_frame == "Strt") {
+//		return Precharging;
+//	} else if (rx_frame == "Chrg") {
+//		return Charging;
+//	} else if (rx_frame == "Stop") {
+//		return Sleep;
+//	} else {
+//		return Idle;
+//	}
+//	return;
+
+	osThreadResume(measurements_thread); // Resumes measurement if the previous state was Sleep
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (UART1_rxBuffer == "Strt") {
+
+	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0);
+
+	if (strcmp( (char*)UART1_rxBuffer, "Strt" ) == 0) {
 		return Precharging;
-	} else if (UART1_rxBuffer == "Chrg") {
+	} else if (strcmp( (char*)UART1_rxBuffer, "Chrg" ) == 0) {
 		return Charging;
-	} else if (UART1_rxBuffer == "Stop") {
+	} else if (strcmp( (char*)UART1_rxBuffer, "Run" ) == 0) {
+		return Run;
+	} else if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
 		return Sleep;
 	} else {
 		return Idle;
 	}
-	return;
 }
 
 State_t PrechargingEvent(void) {
-	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1);
-	osDelay(3000);
-	return Run;
+	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1); // close precharge pin
+	while (global_bms_data.battery.voltage < 51600) {
+		osDelay(1);
+	}
+	return Idle;
 }
 
 State_t RunEvent(void) {
 	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
-	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0);
 	// Replace pin with UART Receive
 	if (UART1_rxBuffer == "Stop") {
 		return Stop;

@@ -10,6 +10,8 @@
 
 #include "cmsis_os.h"
 
+#define TURN_ON_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1))
+#define TURN_OFF_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0))
 
 /* Definitions for stateMachineTask */
 osThreadId_t stateMachineTaskHandle;
