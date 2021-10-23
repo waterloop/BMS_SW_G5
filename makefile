@@ -123,6 +123,7 @@ C_INCLUDES =  \
 -I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include \
+-I ./WLoopCAN/inc
 
 C_INCLUDES += $(USER_INCLUDES)
 
@@ -175,7 +176,7 @@ $(BUILD_DIR)/%.o: %.s makefile | $(BUILD_DIR)
 	@echo ""
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) makefile
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(OBJECTS) ./WLoopCAN/bin/wloop_can.a $(LDFLAGS) -o $@
 	@echo ""
 	$(SZ) $@
 	@echo ""
