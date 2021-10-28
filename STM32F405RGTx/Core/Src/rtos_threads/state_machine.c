@@ -11,6 +11,7 @@
 #include "threads.h"
 #include "cmsis_os.h"
 #include "main.h"
+#include "bms_entry.h"
 
 uint8_t UART1_rxBuffer[4] = {0};
 
@@ -28,6 +29,7 @@ const char *StateNames[] = {
 	"Run",
 	"Stop",
 	"Sleep",
+	"InitializeFault",
 	"NormalDangerFault",
 	"SevereDangerFault",
 	"Charging",
@@ -45,6 +47,7 @@ StateMachine SM[11] = {
 	{Run, RunEvent},
 	{Stop, StopEvent},
 	{Sleep, SleepEvent},
+	{InitializeFault, InitializeFaultEvent},
 	{NormalDangerFault, NormalDangerFaultEvent},
 	{SevereDangerFault, SevereDangerFaultEvent},
 	{Charging, ChargingEvent},
@@ -58,30 +61,28 @@ State_t InitializeEvent(void) {
 }
 
 State_t IdleEvent(void) {
-//	osThreadResume(MeasurementsHandle); // Resumes measurement if the previous state was Sleep
-//	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-//	//	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-//	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-//	if (!Queue_empty(&RX_QUEUE)) {
-//		CANFrame rx_frame = CANBus_get_frame(); // convert from 8-bit to state
-//	}
-//	if (rx_frame == "Strt") { if rx_frame ==
-//		return Precharging;
-//	} else if (rx_frame == "Chrg") {
-//		return Charging;
-//	} else if (rx_frame == "Stop") {
-//		return Sleep;
-//	} else {
-//		return Idle;
-//	}
-//	return;
-
 	osThreadResume(measurements_thread); // Resumes measurement if the previous state was Sleep
 
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
 
-	TURN_OFF_CONTACTOR_PIN();
 	TURN_OFF_PRECHARGE_PIN();
+	TURN_OFF_CONTACTOR_PIN();
+
+	// Fault checking
+	float current = global_bms_data.battery.current;
+	if (current > MAX_CURRENT_SEVERE) {
+		return SevereDangerFault;
+	} 
+	for (int i = 0; i < NUM_CELLS; ++i) {
+		float voltage = global_bms_data.battery.cells[i].voltage;
+		float temperature = global_bms_data.battery.cells[i].temp;
+		if (voltage > MAX_VOLTAGE_SEVERE|| voltage < MIN_VOLTAGE_SEVERE {
+			return SevereDangerFault;
+		} 
+		if (temperature > MAX_TEMP_SEVERE) {
+			return SevereDangerFault;
+		} 
+	}
 
 	if (strcmp( (char*)UART1_rxBuffer, "Strt" ) == 0) {
 		return Precharging;
@@ -91,6 +92,8 @@ State_t IdleEvent(void) {
 		return Run;
 	} else if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
 		return Sleep;
+	} else if (strcmp( (char*)UART1_rxBuffer, "Balance") == 0) {
+		return Balancing;
 	} else {
 		return Idle;
 	}
@@ -105,8 +108,26 @@ State_t PrechargingEvent(void) {
 }
 
 State_t RunEvent(void) {
+	TURN_OFF_PRECHARGE_PIN();
+	TURN_ON_CONTACTOR_PIN();
+
+	// Fault checking
+	float current = global_bms_data.battery.current;
+	if (current < MIN_CURRENT_NORMAL) {
+		return NormalDangerFault;
+	}
+	for (int i = 0; i < NUM_CELLS; ++i) {
+		float voltage = global_bms_data.battery.cells[i].voltage;
+		float temperature = global_bms_data.battery.cells[i].temp;
+		if (voltage > MAX_VOLTAGE_NORMAL || voltage < MIN_VOLTAGE_NORMAL) {
+			return NormalDangerFault;
+		} 
+		if (temperature > MAX_TEMP_NORMAL) {
+			return NormalDangerFault;
+		}
+	}
+
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	// Replace pin with UART Receive
 	if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
 		return Stop;
 	} else {
@@ -115,9 +136,8 @@ State_t RunEvent(void) {
 }
 
 State_t StopEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
+	TURN_OFF_CONTACTOR_PIN();
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	// Replace pin with UART Receive
 	if (strcmp( (char*)UART1_rxBuffer, "Rest") == 0) {
 		return Idle;
 	} else {
@@ -127,7 +147,7 @@ State_t StopEvent(void) {
 
 State_t SleepEvent(void) {
 	osThreadSuspend(measurements_thread); // Pauses measurements
-	// Replace pin with UART Receive
+	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
 	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
 	} else {
@@ -135,19 +155,32 @@ State_t SleepEvent(void) {
 	}
 }
 
-State_t NormalDangerFaultEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	// Replace pin with UART Receive
+
+State_t InitializeFaultEvent(void) {
+	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
 	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
-} else {
+	} else {
+		return InitializeFault;
+	}
+}
+
+State_t NormalDangerFaultEvent(void) {
+	TURN_OFF_CONTACTOR_PIN();
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+		return Idle;
+	} else {
 		return NormalDangerFault;
 	}
 }
 
 State_t SevereDangerFaultEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	return SevereDangerFault;
+	TURN_OFF_CONTACTOR_PIN();
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+		return Idle;
+	} else {
+		return SevereDangerFault;
+	}
 }
 
 State_t ChargingEvent(void) {
@@ -164,13 +197,21 @@ State_t ChargedEvent(void) {
 	// Replace pin with UART Receive
 	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
 		return Idle;
-} else {
+	} else {
 		return Charged;
 	}
 }
 
+//
+// TODO:
+//
 State_t BalancingEvent(void) {
-	return Balancing;
+	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
+	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+		return Idle;
+	} else {
+		return Balancing;
+	}
 }
 
 void StartStateMachine(void *argument)

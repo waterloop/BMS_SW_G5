@@ -17,6 +17,16 @@
 #define TURN_OFF_CONTACTOR_PIN() (HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0))
 #define PRECHARGE_VOLTAGE_THRESHOLD 40.0
 
+#define MAX_VOLTAGE_SEVERE 4.0
+#define MIN_VOLTAGE_SEVERE 1.0
+#define MAX_TEMP_SEVERE 70.0
+#define MAX_CURRENT_SEVERE 50.0
+
+#define MAX_VOLTAGE_NORMAL 3.8
+#define MIN_VOLTAGE_NORMAL 1.8
+#define MAX_TEMP_NORMAL 60.0
+#define MIN_CURRENT_NORMAL 5.0
+
 /* Definitions for stateMachineTask */
 
 // extern osThreadId_t stateMachineTaskHandle;
