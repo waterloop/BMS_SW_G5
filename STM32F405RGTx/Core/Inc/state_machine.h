@@ -27,6 +27,9 @@
 #define MAX_TEMP_NORMAL 60.0
 #define MIN_CURRENT_NORMAL 5.0
 
+#define MIN_VOLT_FAULTS 5
+#define MIN_TEMP_FAULTS 5
+
 /* Definitions for stateMachineTask */
 
 // extern osThreadId_t stateMachineTaskHandle;

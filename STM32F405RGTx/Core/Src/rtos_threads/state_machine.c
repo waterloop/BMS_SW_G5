@@ -73,15 +73,20 @@ State_t IdleEvent(void) {
 	if (current > MAX_CURRENT_SEVERE) {
 		return SevereDangerFault;
 	} 
+	volt_faults = 0;
+	temp_faults = 0;
 	for (int i = 0; i < NUM_CELLS; ++i) {
 		float voltage = global_bms_data.battery.cells[i].voltage;
 		float temperature = global_bms_data.battery.cells[i].temp;
-		if (voltage > MAX_VOLTAGE_SEVERE|| voltage < MIN_VOLTAGE_SEVERE {
-			return SevereDangerFault;
+		if (voltage > MAX_VOLTAGE_SEVERE || voltage < MIN_VOLTAGE_SEVERE {
+			++volt_faults;
 		} 
 		if (temperature > MAX_TEMP_SEVERE) {
-			return SevereDangerFault;
+			++temp_faults;
 		} 
+		if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+			return SevereDangerFault;
+		}
 	}
 
 	if (strcmp( (char*)UART1_rxBuffer, "Strt" ) == 0) {
@@ -116,17 +121,21 @@ State_t RunEvent(void) {
 	if (current < MIN_CURRENT_NORMAL) {
 		return NormalDangerFault;
 	}
+	volt_faults = 0;
+	temp_faults = 0;
 	for (int i = 0; i < NUM_CELLS; ++i) {
 		float voltage = global_bms_data.battery.cells[i].voltage;
 		float temperature = global_bms_data.battery.cells[i].temp;
 		if (voltage > MAX_VOLTAGE_NORMAL || voltage < MIN_VOLTAGE_NORMAL) {
-			return NormalDangerFault;
+			++volt_faults;
 		} 
 		if (temperature > MAX_TEMP_NORMAL) {
+			++temp_faults;
+		}
+		if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
 			return NormalDangerFault;
 		}
 	}
-
 	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
 	if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
 		return Stop;
