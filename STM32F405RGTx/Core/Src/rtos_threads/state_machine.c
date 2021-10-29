@@ -5,6 +5,11 @@
  *      Author: tiffanywang
 */
 
+// TODO:
+// 	- Add condition for Sleep state in Idle event
+// 	- Impliment LED lighting
+// 	- Send ACK on CAN
+
 #include <stdio.h>
 #include <string.h>
 #include "state_machine.h"
@@ -12,6 +17,7 @@
 #include "cmsis_os.h"
 #include "main.h"
 #include "bms_entry.h"
+#include "wloop_can.h"
 
 uint8_t UART1_rxBuffer[4] = {0};
 
@@ -62,9 +68,7 @@ State_t InitializeEvent(void) {
 
 State_t IdleEvent(void) {
 	osThreadResume(measurements_thread); // Resumes measurement if the previous state was Sleep
-
-	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-
+	
 	TURN_OFF_PRECHARGE_PIN();
 	TURN_OFF_CONTACTOR_PIN();
 
@@ -88,24 +92,20 @@ State_t IdleEvent(void) {
 			return SevereDangerFault;
 		}
 	}
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
 
-	if (strcmp( (char*)UART1_rxBuffer, "Strt" ) == 0) {
+	if ( rx_frame == ARMED) {
 		return Precharging;
-	} else if (strcmp( (char*)UART1_rxBuffer, "Chrg" ) == 0) {
-		return Charging;
-	} else if (strcmp( (char*)UART1_rxBuffer, "Run" ) == 0) {
+	} else if (rx_frame == AUTO_PILOT) {
 		return Run;
-	} else if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
-		return Sleep;
-	} else if (strcmp( (char*)UART1_rxBuffer, "Balance") == 0) {
-		return Balancing;
-	} else {
-		return Idle;
-	}
+	} 
 }
 
 State_t PrechargingEvent(void) {
 	TURN_ON_PRECHARGE_PIN();
+	// Ensure capacitors are charged
 	while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
 		osDelay(1);
 	}
@@ -136,38 +136,50 @@ State_t RunEvent(void) {
 			return NormalDangerFault;
 		}
 	}
-	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (strcmp( (char*)UART1_rxBuffer, "Stop") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+
+	if ( rx_frame == BRAKING || rx_frame == EMERGENCY_BRAKE) {
 		return Stop;
 	} else {
 		return Run;
-	}
+	} 
 }
 
 State_t StopEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
-	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (strcmp( (char*)UART1_rxBuffer, "Rest") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+
+	if ( rx_frame == RESTING) {
 		return Idle;
 	} else {
 		return Stop;
-	}
+	} 
 }
 
 State_t SleepEvent(void) {
 	osThreadSuspend(measurements_thread); // Pauses measurements
-	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+
+	if ( rx_frame == RESTING) {
 		return Idle;
 	} else {
 		return Sleep;
-	}
+	} 
 }
 
 
 State_t InitializeFaultEvent(void) {
-	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+
+	if ( rx_frame == RESTING ) {
 		return Idle;
 	} else {
 		return InitializeFault;
@@ -176,7 +188,11 @@ State_t InitializeFaultEvent(void) {
 
 State_t NormalDangerFaultEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
-	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+	
+	if ( rx_frame == RESTING ) {
 		return Idle;
 	} else {
 		return NormalDangerFault;
@@ -185,38 +201,24 @@ State_t NormalDangerFaultEvent(void) {
 
 State_t SevereDangerFaultEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
-	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+	
+	if ( rx_frame == RESTING ) {
 		return Idle;
 	} else {
 		return SevereDangerFault;
 	}
 }
 
-State_t ChargingEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1);
-	if (global_bms_data.battery.voltage > 51600) {
-		return Charged;
-	} else {
-		return Charging;
-	}
-}
-
-State_t ChargedEvent(void) {
-	HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0);
-	// Replace pin with UART Receive
-	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
-		return Idle;
-	} else {
-		return Charged;
-	}
-}
-
-//
-// TODO:
-//
+// Not implemented yet
 State_t BalancingEvent(void) {
-	HAL_UART_Receive (&huart1, UART1_rxBuffer, 4, 5000);
-	if (strcmp( (char*)UART1_rxBuffer, "Rset") == 0) {
+	// Receive CAN frame
+	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+	CANFrame = rx_frame = CANBus_get_frame();
+	
+	if ( rx_frame == RESTING ) {
 		return Idle;
 	} else {
 		return Balancing;
@@ -231,7 +233,7 @@ void StartStateMachine(void *argument)
 	if (OldState != CurrentState) {
 		char dataState[100];
 		sprintf(dataState, "Current State: %s\r\n", StateNames[CurrentState]);
-		HAL_UART_Transmit(&huart1, (uint8_t*)dataState, strlen(dataState), 500);
+		HAL_UART_Transmit(&huart1, (uint8_t*)dataState, strlen(dataState), 500); // Implement using CAN
 	}
 	OldState = CurrentState;
 	CurrentState = (*SM[CurrentState].Event)();
