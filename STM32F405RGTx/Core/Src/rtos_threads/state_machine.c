@@ -94,11 +94,11 @@ State_t IdleEvent(void) {
 	}
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-
-	if ( rx_frame == ARMED) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == ARMED) {
 		return Precharging;
-	} else if (rx_frame == AUTO_PILOT) {
+	} else if (state_id == AUTO_PILOT) {
 		return Run;
 	} 
 }
@@ -138,9 +138,9 @@ State_t RunEvent(void) {
 	}
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-
-	if ( rx_frame == BRAKING || rx_frame == EMERGENCY_BRAKE) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
 		return Stop;
 	} else {
 		return Run;
@@ -151,9 +151,9 @@ State_t StopEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-
-	if ( rx_frame == RESTING) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == RESTING) {
 		return Idle;
 	} else {
 		return Stop;
@@ -164,9 +164,9 @@ State_t SleepEvent(void) {
 	osThreadSuspend(measurements_thread); // Pauses measurements
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-
-	if ( rx_frame == RESTING) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == RESTING) {
 		return Idle;
 	} else {
 		return Sleep;
@@ -177,9 +177,9 @@ State_t SleepEvent(void) {
 State_t InitializeFaultEvent(void) {
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-
-	if ( rx_frame == RESTING ) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == RESTING ) {
 		return Idle;
 	} else {
 		return InitializeFault;
@@ -190,9 +190,9 @@ State_t NormalDangerFaultEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-	
-	if ( rx_frame == RESTING ) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == RESTING ) {
 		return Idle;
 	} else {
 		return NormalDangerFault;
@@ -203,9 +203,9 @@ State_t SevereDangerFaultEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-	
-	if ( rx_frame == RESTING ) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == RESTING ) {
 		return Idle;
 	} else {
 		return SevereDangerFault;
@@ -216,9 +216,9 @@ State_t SevereDangerFaultEvent(void) {
 State_t BalancingEvent(void) {
 	// Receive CAN frame
 	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-	CANFrame = rx_frame = CANBus_get_frame();
-	
-	if ( rx_frame == RESTING ) {
+	CANFrame rx_frame = CANBus_get_frame();
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	if ( state_id == RESTING ) {
 		return Idle;
 	} else {
 		return Balancing;
