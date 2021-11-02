@@ -7,7 +7,8 @@
 
 // TODO:
 // 	- Add condition for Sleep state in Idle event
-// 	- Impliment LED lighting
+//  - Add condition for InitializeFault in Initialize event
+// 	- Implement LED lighting
 // 	- Send ACK on CAN
 
 #include <stdio.h>
@@ -18,8 +19,6 @@
 #include "main.h"
 #include "bms_entry.h"
 #include "wloop_can.h"
-
-uint8_t UART1_rxBuffer[4] = {0};
 
 const osThreadAttr_t state_machine_thread_attrs = {
 	.name = "state_machine_thread",
@@ -61,6 +60,34 @@ StateMachine SM[11] = {
 	{Balancing, BalancingEvent}
 };
 
+State_t FaultChecking(float min_current, float max_current, float max_voltage, float min_voltage, float max_temp, 
+						float min_volt, float min_temp, State_t FaultType) {
+	float current = global_bms_data.battery.current;
+	if (min_current == NULL) {
+		if (current > max_current) 
+			return FaultType;
+	} else {
+		if (current < min_current) 
+			return FaultType;
+	}
+	volt_faults = 0;
+	temp_faults = 0;
+	for (int i = 0; i < NUM_CELLS; ++i) {
+		float voltage = global_bms_data.battery.cells[i].voltage;
+		float temperature = global_bms_data.battery.cells[i].temp;
+		if (voltage > max_voltage || voltage < min_voltage) {
+			++volt_faults;
+		} 
+		if (temperature > max_temp) {
+			++temp_faults;
+		} 
+		if (volt_faults > min_volt || temp_faults > min_temp) {
+			return FaultType;
+		}
+	}
+	return NULL;
+}
+
 State_t InitializeEvent(void) {
 	osDelay(3000); // This is added to show it enters the initialize state for 3 seconds during testing
 	return Idle;
@@ -73,27 +100,13 @@ State_t IdleEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 
 	// Fault checking
-	float current = global_bms_data.battery.current;
-	if (current > MAX_CURRENT_SEVERE) {
-		return SevereDangerFault;
-	} 
-	volt_faults = 0;
-	temp_faults = 0;
-	for (int i = 0; i < NUM_CELLS; ++i) {
-		float voltage = global_bms_data.battery.cells[i].voltage;
-		float temperature = global_bms_data.battery.cells[i].temp;
-		if (voltage > MAX_VOLTAGE_SEVERE || voltage < MIN_VOLTAGE_SEVERE {
-			++volt_faults;
-		} 
-		if (temperature > MAX_TEMP_SEVERE) {
-			++temp_faults;
-		} 
-		if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
-			return SevereDangerFault;
-		}
+	State_t fault_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+	if (fault_check != NULL) {
+		return fault_check;
 	}
+
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == ARMED) {
@@ -117,27 +130,13 @@ State_t RunEvent(void) {
 	TURN_ON_CONTACTOR_PIN();
 
 	// Fault checking
-	float current = global_bms_data.battery.current;
-	if (current < MIN_CURRENT_NORMAL) {
-		return NormalDangerFault;
+	State_t fault_check = FaultChecking(MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+	if (fault_check != NULL) {
+		return fault_check;
 	}
-	volt_faults = 0;
-	temp_faults = 0;
-	for (int i = 0; i < NUM_CELLS; ++i) {
-		float voltage = global_bms_data.battery.cells[i].voltage;
-		float temperature = global_bms_data.battery.cells[i].temp;
-		if (voltage > MAX_VOLTAGE_NORMAL || voltage < MIN_VOLTAGE_NORMAL) {
-			++volt_faults;
-		} 
-		if (temperature > MAX_TEMP_NORMAL) {
-			++temp_faults;
-		}
-		if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
-			return NormalDangerFault;
-		}
-	}
+
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
@@ -150,7 +149,6 @@ State_t RunEvent(void) {
 State_t StopEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING) {
@@ -163,7 +161,6 @@ State_t StopEvent(void) {
 State_t SleepEvent(void) {
 	osThreadSuspend(measurements_thread); // Pauses measurements
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING) {
@@ -176,7 +173,6 @@ State_t SleepEvent(void) {
 
 State_t InitializeFaultEvent(void) {
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING ) {
@@ -189,7 +185,6 @@ State_t InitializeFaultEvent(void) {
 State_t NormalDangerFaultEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING ) {
@@ -202,7 +197,6 @@ State_t NormalDangerFaultEvent(void) {
 State_t SevereDangerFaultEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING ) {
@@ -215,7 +209,6 @@ State_t SevereDangerFaultEvent(void) {
 // Not implemented yet
 State_t BalancingEvent(void) {
 	// Receive CAN frame
-	if ( CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING ) {
