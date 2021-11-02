@@ -100,10 +100,14 @@ State_t IdleEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 
 	// Fault checking
-	State_t fault_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-	if (fault_check != NULL) {
-		return fault_check;
+	State_t normal_check = FaultChecking(MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+	if (severe_check != NULL) {
+		return severe_check;
+	} else if (normal_check != NULL) {
+		return normal_check;
 	}
 
 	// Receive CAN frame
@@ -118,6 +122,18 @@ State_t IdleEvent(void) {
 
 State_t PrechargingEvent(void) {
 	TURN_ON_PRECHARGE_PIN();
+	
+	// Fault checking
+	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+	State_t normal_check = FaultChecking(MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+	if (severe_check != NULL) {
+		return severe_check;
+	} else if (normal_check != NULL) {
+		return normal_check;
+	}
+	
 	// Ensure capacitors are charged
 	while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
 		osDelay(1);
@@ -130,10 +146,14 @@ State_t RunEvent(void) {
 	TURN_ON_CONTACTOR_PIN();
 
 	// Fault checking
-	State_t fault_check = FaultChecking(MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+	State_t normal_check = FaultChecking(MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-	if (fault_check != NULL) {
-		return fault_check;
+	if (severe_check != NULL) {
+		return severe_check;
+	} else if (normal_check != NULL) {
+		return normal_check;
 	}
 
 	// Receive CAN frame
