@@ -59,6 +59,7 @@ StateMachine SM[11] = {
 	{Balancing, BalancingEvent}
 };
 
+// Returns fault state or NULL based on current, voltage, and temperature measurements
 State_t FaultChecking(float min_current, float max_current, float max_voltage, float min_voltage, float max_temp, 
 						float min_volt, float min_temp, State_t FaultType) {
 	float current = global_bms_data.battery.current;
@@ -160,7 +161,7 @@ State_t RunEvent(void) {
 		return normal_check;
 	}
 
-	// Send ACK on CAN 
+	// Send ACK on CAN when ready to run
 	CANFrame rx_frame = CANBus_get_frame();
 	CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
@@ -182,7 +183,7 @@ State_t RunEvent(void) {
 State_t StopEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
 
-	// Send ACK on CAN 
+	// Send ACK on CAN when stop complete
 	CANFrame rx_frame = CANBus_get_frame();
 	CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
@@ -225,9 +226,14 @@ State_t InitializeFaultEvent(void) {
 }
 
 State_t NormalDangerFaultEvent(void) {
+	// Report fault on CAN
+	CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+	CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+
 	TURN_OFF_CONTACTOR_PIN();
+
 	// Receive CAN frame
-	CANFrame rx_frame = CANBus_get_frame();
+	rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING ) {
 		return Idle;
@@ -237,7 +243,12 @@ State_t NormalDangerFaultEvent(void) {
 }
 
 State_t SevereDangerFaultEvent(void) {
+	// Report fault on CAN
+	CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+	CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+
 	TURN_OFF_CONTACTOR_PIN();
+
 	// Receive CAN frame
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
