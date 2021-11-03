@@ -6,7 +6,6 @@
 */
 
 // TODO:
-// 	- Add condition for Sleep state in Idle event
 //  - Add condition for InitializeFault in Initialize event
 // 	- Implement LED lighting
 // 	- Send ACK on CAN
@@ -94,11 +93,6 @@ State_t InitializeEvent(void) {
 }
 
 State_t IdleEvent(void) {
-	osThreadResume(measurements_thread); // Resumes measurement if the previous state was Sleep
-	
-	TURN_OFF_PRECHARGE_PIN();
-	TURN_OFF_CONTACTOR_PIN();
-
 	// Fault checking
 	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
@@ -109,6 +103,12 @@ State_t IdleEvent(void) {
 	} else if (normal_check != NULL) {
 		return normal_check;
 	}
+
+	// Resumes measurement if the previous state was Sleep
+	osThreadResume(measurements_thread); 
+	
+	TURN_OFF_PRECHARGE_PIN();
+	TURN_OFF_CONTACTOR_PIN();
 
 	// Receive CAN frame
 	CANFrame rx_frame = CANBus_get_frame();
@@ -121,8 +121,6 @@ State_t IdleEvent(void) {
 }
 
 State_t PrechargingEvent(void) {
-	TURN_ON_PRECHARGE_PIN();
-	
 	// Fault checking
 	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
@@ -133,18 +131,24 @@ State_t PrechargingEvent(void) {
 	} else if (normal_check != NULL) {
 		return normal_check;
 	}
-	
+
+	TURN_ON_PRECHARGE_PIN();
+
 	// Ensure capacitors are charged
 	while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
 		osDelay(1);
 	}
+
+	// Send ACK on CAN 
+	CANFrame rx_frame = CANBus_get_frame();
+	CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+
 	return Idle;
 }
 
 State_t RunEvent(void) {
-	TURN_OFF_PRECHARGE_PIN();
-	TURN_ON_CONTACTOR_PIN();
-
 	// Fault checking
 	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
@@ -156,8 +160,17 @@ State_t RunEvent(void) {
 		return normal_check;
 	}
 
-	// Receive CAN frame
+	// Send ACK on CAN 
 	CANFrame rx_frame = CANBus_get_frame();
+	CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+
+	TURN_OFF_PRECHARGE_PIN();
+	TURN_ON_CONTACTOR_PIN();
+
+	// Receive CAN frame
+	rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
 		return Stop;
@@ -168,8 +181,15 @@ State_t RunEvent(void) {
 
 State_t StopEvent(void) {
 	TURN_OFF_CONTACTOR_PIN();
-	// Receive CAN frame
+
+	// Send ACK on CAN 
 	CANFrame rx_frame = CANBus_get_frame();
+	CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+	CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+
+	// Receive CAN frame
+	rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
 	if ( state_id == RESTING) {
 		return Idle;
@@ -179,7 +199,9 @@ State_t StopEvent(void) {
 }
 
 State_t SleepEvent(void) {
-	osThreadSuspend(measurements_thread); // Pauses measurements
+	// Pauses measurements
+	osThreadSuspend(measurements_thread); 
+
 	// Receive CAN frame
 	CANFrame rx_frame = CANBus_get_frame();
 	uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
