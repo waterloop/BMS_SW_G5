@@ -59,6 +59,28 @@ StateMachine SM[11] = {
 	{Balancing, BalancingEvent}
 };
 
+// Set channel duty cycle
+void _set_ch_duty_cycle(uint8_t ch, float dc) {
+	uint32_t ccr_val = (uint32_t)( ((100 - dc)*ARR_VAL)/100 );
+	switch (ch) {
+		case 1:
+			htim1.Instance->CCR1 = ccr_val;
+		case 2:
+			htim1.Instance->CCR2 = ccr_val;
+		case 3:
+			htim1.Instance->CCR3 = ccr_val;
+		case 4:
+			htim1.Instance->CCR4 = ccr_val;
+	}
+}
+
+// Set LED colour based on channel duty cycles for RGB channels
+void SetLEDColour(float R, float G, float B) {
+	htim1.Instance->CCR1 = ccr_val = R;
+	htim1.Instance->CCR2 = ccr_val = G;
+	htim1.Instance->CCR3 = ccr_val = B;	
+}
+
 // Returns fault state or NULL based on current, voltage, and temperature measurements
 State_t FaultChecking(float min_current, float max_current, float max_voltage, float min_voltage, float max_temp, 
 						float min_volt, float min_temp, State_t FaultType) {
@@ -94,6 +116,9 @@ State_t InitializeEvent(void) {
 }
 
 State_t IdleEvent(void) {
+	// Set LED colour to green
+	SetLEDColour(0.0, 100.0, 0.0);
+	
 	// Fault checking
 	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
@@ -122,6 +147,9 @@ State_t IdleEvent(void) {
 }
 
 State_t PrechargingEvent(void) {
+	// Set LED colour to white
+	SetLEDColour(100.0, 100.0, 100.0);
+
 	// Fault checking
 	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
@@ -150,6 +178,9 @@ State_t PrechargingEvent(void) {
 }
 
 State_t RunEvent(void) {
+	// Set LED colour to purple
+	SetLEDColour(41.57, 5.1, 67.84);
+
 	// Fault checking
 	State_t severe_check = FaultChecking(NULL, MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
 										MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
@@ -181,6 +212,10 @@ State_t RunEvent(void) {
 }
 
 State_t StopEvent(void) {
+	// Set LED colour to blinking blue
+	osDelay(500);
+	SetLEDColour(0.0, 0.0, 100.0);
+
 	TURN_OFF_CONTACTOR_PIN();
 
 	// Send ACK on CAN when stop complete
@@ -200,6 +235,9 @@ State_t StopEvent(void) {
 }
 
 State_t SleepEvent(void) {
+	// Set LED colour to blue
+	SetLEDColour(0.0, 0.0, 100.0);
+
 	// Pauses measurements
 	osThreadSuspend(measurements_thread); 
 
@@ -226,6 +264,9 @@ State_t InitializeFaultEvent(void) {
 }
 
 State_t NormalDangerFaultEvent(void) {
+	// Set LED colour to red
+	SetLEDColour(100.00, 0.0, 0.0);
+
 	// Report fault on CAN
 	CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
 	CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
@@ -243,6 +284,10 @@ State_t NormalDangerFaultEvent(void) {
 }
 
 State_t SevereDangerFaultEvent(void) {
+	// Set LED colour to blinking red
+	osDelay(500);
+	SetLEDColour(100.00, 0.0, 0.0);
+
 	// Report fault on CAN
 	CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
 	CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
