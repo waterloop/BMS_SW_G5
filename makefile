@@ -123,7 +123,7 @@ C_INCLUDES =  \
 -I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include \
--I ./WLoopCAN/inc
+-I ./WLoopCAN/include
 
 C_INCLUDES += $(USER_INCLUDES)
 
