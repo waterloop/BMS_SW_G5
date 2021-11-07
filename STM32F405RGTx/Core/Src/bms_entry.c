@@ -42,7 +42,6 @@ int bms_entry() {
 	osKernelInitialize();
 
 	printf("starting RTOS threads...\r\n");
-	ext_led_blink_thread = osThreadNew(ext_led_blink_thread_fn, NULL, &ext_led_blink_thread_attrs);
 	measurements_thread = osThreadNew(measurements_thread_fn, NULL, &measurements_thread_attrs);
 	coulomb_counting_thread = osThreadNew(coulomb_counting_thread_fn, NULL, &coulomb_counting_thread_attrs);
 	state_machine_thread = osThreadNew(StartStateMachine, NULL, &state_machine_thread_attrs);	

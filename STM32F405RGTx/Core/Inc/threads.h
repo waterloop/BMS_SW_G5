@@ -4,10 +4,6 @@
 
 #define MEASUREMENT_PERIODICITY     100E-3
 
-extern osThreadId_t ext_led_blink_thread;
-extern const osThreadAttr_t ext_led_blink_thread_attrs;
-void ext_led_blink_thread_fn(void* arg);
-
 extern osThreadId_t measurements_thread;
 extern const osThreadAttr_t measurements_thread_attrs;
 void measurements_thread_fn(void* arg);
