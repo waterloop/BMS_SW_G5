@@ -39,7 +39,10 @@ void Buffer_append(Buffer* self, uint8_t val) {
 }
 
 uint8_t Buffer_index(Buffer* self, uint8_t indx) {
-    if (indx >= self->len) { Error_Handler(); }
+    if (indx >= self->len) {
+        printf("Error: tried to get a buffer index that's out of range...\r\n");
+        Error_Handler();
+    }
     return self->data[indx];
 }
 void Buffer_set_index(Buffer* self, uint8_t indx, uint8_t val) {
@@ -123,30 +126,85 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
         NULL,    // memory for control block   
         0U        // size for control block
     };
-	slave_device._spi_mutex = osMutexNew(&mutex_attrs);
-	if (slave_device._spi_mutex == NULL) {
-		printf("Error: failed to create SPI mutex for LTC6813...\r\n");
-		Error_Handler();
-	}
+    slave_device._spi_mutex = osMutexNew(&mutex_attrs);
+    if (slave_device._spi_mutex == NULL) {
+        printf("Error: failed to create SPI mutex for LTC6813...\r\n");
+        Error_Handler();
+    }
 
     return slave_device;
 }
 
 void _Ltc6813_acquire_mutex(Ltc6813* self) {
-	if (osMutexAcquire(self->_spi_mutex, osWaitForever) != osOK) {
-		printf(
-			"Error: failed to aquire '_spi_mutex' from Ltc6813 object at %p...\r\n",
-			(void*)self );
-		Error_Handler();
-	}
+    if (osMutexAcquire(self->_spi_mutex, osWaitForever) != osOK) {
+        printf(
+            "Error: failed to aquire '_spi_mutex' from Ltc6813 object at %p...\r\n",
+            (void*)self );
+        Error_Handler();
+    }
 }
 void _Ltc6813_release_mutex(Ltc6813* self) {
-	if (osMutexRelease(self->_spi_mutex) != osOK) {
-		printf(
-			"Error: failed to release '_spi_mutex' from Ltc6813 object at %p...\r\n",
-			(void*)self );
-		Error_Handler();
-	}
+    if (osMutexRelease(self->_spi_mutex) != osOK) {
+        printf(
+            "Error: failed to release '_spi_mutex' from Ltc6813 object at %p...\r\n",
+            (void*)self );
+        Error_Handler();
+    }
+}
+void _Ltc6813_decode_adc(Ltc6813* self) {
+	/*
+	I'm not using Buffer_index here since I want
+	this subroutine to be as fast as possible.
+	*/
+
+    // CVA
+    uint16_t c1v = (self->cva_bfr.data[0] << 8) | self->cva_bfr.data[1];
+    uint16_t c2v = (self->cva_bfr.data[2] << 8) | self->cva_bfr.data[3];
+    uint16_t c3v = (self->cva_bfr.data[4] << 8) | self->cva_bfr.data[5];
+
+    // CVB
+    uint16_t c4v = (self->cvb_bfr.data[0] << 8) | self->cvb_bfr.data[1];
+    uint16_t c5v = (self->cvb_bfr.data[2] << 8) | self->cvb_bfr.data[3];
+    uint16_t c6v = (self->cvb_bfr.data[4] << 8) | self->cvb_bfr.data[5];
+
+    // CVC
+    uint16_t c7v = (self->cvc_bfr.data[0] << 8) | self->cvc_bfr.data[1];
+    uint16_t c8v = (self->cvc_bfr.data[2] << 8) | self->cvc_bfr.data[3];
+    uint16_t c9v = (self->cvc_bfr.data[4] << 8) | self->cvc_bfr.data[5];
+
+    // CVD
+    uint16_t c10v = (self->cvd_bfr.data[0] << 8) | self->cvd_bfr.data[1];
+    uint16_t c11v = (self->cvd_bfr.data[2] << 8) | self->cvd_bfr.data[3];
+    uint16_t c12v = (self->cvd_bfr.data[4] << 8) | self->cvd_bfr.data[5];
+
+    // CVE
+    uint16_t c13v = (self->cve_bfr.data[0] << 8) | self->cve_bfr.data[1];
+    uint16_t c14v = (self->cve_bfr.data[2] << 8) | self->cve_bfr.data[3];
+    uint16_t c15v = (self->cve_bfr.data[4] << 8) | self->cve_bfr.data[5];
+
+    // CVF
+    uint16_t c16v = (self->cvf_bfr.data[0] << 8) | self->cvf_bfr.data[1];
+    uint16_t c17v = (self->cvf_bfr.data[2] << 8) | self->cvf_bfr.data[3];
+    uint16_t c18v = (self->cvf_bfr.data[4] << 8) | self->cvf_bfr.data[5];
+
+    self->cell_voltages[0] = c1v*100E-6;
+    self->cell_voltages[1] = c2v*100E-6;
+    self->cell_voltages[2] = c3v*100E-6;
+    self->cell_voltages[3] = c4v*100E-6;
+    self->cell_voltages[4] = c5v*100E-6;
+    self->cell_voltages[5] = c6v*100E-6;
+    self->cell_voltages[6] = c7v*100E-6;
+    self->cell_voltages[7] = c8v*100E-6;
+    self->cell_voltages[8] = c9v*100E-6;
+    self->cell_voltages[9] = c10v*100E-6;
+    self->cell_voltages[10] = c11v*100E-6;
+    self->cell_voltages[11] = c12v*100E-6;
+    self->cell_voltages[12] = c13v*100E-6;
+    self->cell_voltages[13] = c14v*100E-6;
+    self->cell_voltages[14] = c15v*100E-6;
+    self->cell_voltages[15] = c16v*100E-6;
+    self->cell_voltages[16] = c17v*100E-6;
+    self->cell_voltages[17] = c18v*100E-6;
 }
 
 void Ltc6813_cs_low(Ltc6813* self) { HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 0); }
@@ -166,15 +224,14 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 
     uint8_t buff[1] = {0xff};
 
-	_Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Receive(&self->_spi_interface, buff, 1, self->timeout);
-	_Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 
     Ltc6813_cs_high(self);
 }
 
 void Ltc6813_print_voltages(Ltc6813* self) {
-
     printf("PRINTING CVA\r\n");
     Buffer_print(&(self->cva_bfr));
 
@@ -205,9 +262,9 @@ void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 
     Buffer_add_pec(&self->cmd_bfr);
 
-	_Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Transmit(&self->_spi_interface, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
-	_Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 }
 
 uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
@@ -249,9 +306,9 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 
     Ltc6813_send_cmd(self, reg_cmd);
 
-	_Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Receive(&self->_spi_interface, reg_buf->data, reg_buf->len, self->timeout);
-	_Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 
     Ltc6813_cs_high(self);
 
@@ -278,11 +335,11 @@ void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
     Ltc6813_cs_low(self);
     Ltc6813_send_cmd(self, reg_cmd);
 
-	_Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Transmit(&self->_spi_interface, reg_buff->data, reg_buff->len, self->timeout);
-	_Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 
-	Ltc6813_cs_high(self);
+    Ltc6813_cs_high(self);
     reg_buff->len = 6;
 }
 
@@ -303,15 +360,17 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
     printf("REFERENCES POWERED\r\n");
 
     uint32_t delay = FILTERED_ADC_DELAY;
-
-    if (mode == FAST_ADC) {
-        delay = FAST_ADC_DELAY;
-    } else if (mode == NORMAL_ADC) {
-        delay = NORMAL_ADC_DELAY;
-    } else if (mode == FILTERED_ADC) {
-        delay = FILTERED_ADC_DELAY;
+    switch (mode) {
+        case (FAST_ADC):
+            delay = FAST_ADC_DELAY;
+            break;
+        case (NORMAL_ADC):
+            delay = NORMAL_ADC_DELAY;
+            break;
+        case (FILTERED_ADC):
+            delay = FILTERED_ADC_DELAY;
+            break;
     }
-
     osDelay(delay);
 
     uint8_t success = 1;
@@ -329,8 +388,9 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
     success &= Ltc6813_read_reg(self, RDCVF);
     printf("PEC CVF: %d\r\n", success);
 
-    return success;
+    _Ltc6813_decode_adc(self);
 
+    return success;
 }
 
 uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask) {

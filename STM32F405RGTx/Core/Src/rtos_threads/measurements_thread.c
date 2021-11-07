@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "main.h"
+#include "bms_entry.h"
 #include "cmsis_os.h"
 #include "lut.h"
 #include "ltc6813.h"
@@ -36,7 +37,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     osThreadFlagsSet(measurements_thread, 0x00000001U);        // set flag to signal that ADC conversion has completed
 }
 
-void _adc_decimation() {
+void _process_data() {
     for (uint8_t i = 0; i < ADC_NUM_CONVERSIONS; i++) {
         uint32_t sum = 0;
         for (uint16_t j = 0; j < ADC_DECIMATION_COEFF; j++) {
@@ -59,44 +60,36 @@ void _adc_decimation() {
     }
 }
 
+void _start_adc_and_dma() {
+    // lock kernel to prevent a context switch while starting the DMA
+    osKernelLock();
+
+    HAL_StatusTypeDef status = HAL_ADC_Start_DMA(
+        &hadc1, (uint32_t*)ADC_buffer, ADC_NUM_CONVERSIONS*ADC_DECIMATION_COEFF);
+
+    if (status != HAL_OK) {
+        printf("Error: HAL_ADC_Start_DMA failed with status code %d\r\n", status);
+    }
+    osKernelUnlock();
+}
+
 void measurements_thread_fn(void* arg) {
+    _start_adc_and_dma();
+    Ltc6813_wakeup_sleep(&ltc6813);
+
     while (1) {
-        // MISC ADC READINGS
-        osKernelLock();
-        HAL_StatusTypeDef status = HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_buffer, ADC_NUM_CONVERSIONS*ADC_DECIMATION_COEFF);
-        if (status != HAL_OK) {
-            printf("Error: HAL_ADC_Start_DMA failed with status code %d\r\n", status);
+		Ltc6813_wakeup_idle(&ltc6813);
+		Ltc6813_read_adc(&ltc6813, NORMAL_ADC);
+        for (uint8_t i = 0; i < NUM_CELLS; i++) {
+            global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
         }
 
-        // // LTC6813 COMMANDS
-//        osKernelLock();
-
-        Ltc6813_wakeup_sleep(&ltc6813);
-
-        Ltc6813_wakeup_idle(&ltc6813);
-        Ltc6813_read_adc(&ltc6813, NORMAL_ADC);
-        Ltc6813_print_voltages(self);
-
-        osKernelUnlock();
         // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
         osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
-        _adc_decimation();
+        _process_data();
+        _start_adc_and_dma();
 
-
-//         printf("CFG A\r\n");
-//         Ltc6813_wakeup_idle(&ltc6813);
-//         if ( Ltc6813_read_cfga(&ltc6813) ) { printf("PEC SUCCESS\r\n"); }
-//         else { printf("PEC FAIL\r\n"); }
-//         Buffer_print( &(ltc6813.cfga_bfr) );
-//
-//         printf("CFG B\r\n");
-//         Ltc6813_wakeup_idle(&ltc6813);
-//         if ( Ltc6813_read_cfgb(&ltc6813) ) { printf("PEC SUCCESS\r\n"); }
-//         else { printf("PEC FAIL\r\n"); }
-//         Buffer_print( &(ltc6813.cfgb_bfr) );
-
-//        osDelay(MEASUREMENT_PERIODICITY*1E3);
-
+        osDelay(MEASUREMENT_PERIODICITY*1E3);
     }
 }
 
