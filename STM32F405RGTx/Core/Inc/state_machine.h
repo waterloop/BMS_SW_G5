@@ -30,6 +30,8 @@
 #define MIN_VOLT_FAULTS 5
 #define MIN_TEMP_FAULTS 5
 
+#define ARR_VAL	65535
+
 /* Definitions for stateMachineTask */
 
 // extern osThreadId_t stateMachineTaskHandle;
