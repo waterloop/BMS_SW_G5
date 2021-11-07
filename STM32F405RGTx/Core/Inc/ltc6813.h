@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "main.h"
+#include "cmsis_os.h"
 
 #ifndef LTC6813_BUFFER_SIZE
 #define LTC6813_BUFFER_SIZE 	10 // bytes
@@ -35,6 +36,8 @@ typedef struct {
 	GPIO_TypeDef* _cs_gpio_port;
 	uint8_t _cs_pin_num;
 
+	osMutexId_t _spi_mutex;
+
 	Buffer cmd_bfr;
 
 	Buffer cfga_bfr;
@@ -53,6 +56,9 @@ typedef struct {
 // WARNING: Ltc6813_init will re-configure the CS pin to be used as basic GPIO,
 //          meaning previous configurations will be broken...
 Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t cs_pin_num);
+
+void _Ltc6813_acquire_mutex(Ltc6813* self);
+void _Ltc6813_release_mutex(Ltc6813* self);
 
 void Ltc6813_cs_low(Ltc6813* self);
 void Ltc6813_cs_high(Ltc6813* self);
