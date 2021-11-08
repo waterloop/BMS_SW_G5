@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "cmsis_os.h"
+// #include "cmsis_os.h"
 
 #ifndef LTC6813_BUFFER_SIZE
 #define LTC6813_BUFFER_SIZE     10 // bytes
@@ -36,7 +36,7 @@ typedef struct {
     GPIO_TypeDef* _cs_gpio_port;
     uint8_t _cs_pin_num;
 
-    osMutexId_t _spi_mutex;
+    // osMutexId_t _spi_mutex;
 
     Buffer cmd_bfr;
 

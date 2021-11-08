@@ -8,7 +8,7 @@
 #ifndef _STATE_MACHINE_H_
 #define _STATE_MACHINE_H_
 
-#include "can.h"
+// #include "can.h"
 #include "cmsis_os.h"
 
 #define TURN_ON_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1))

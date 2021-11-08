@@ -17,7 +17,7 @@
 #include "cmsis_os.h"
 #include "main.h"
 #include "bms_entry.h"
-#include "can.h"
+// #include "can.h"
 
 const osThreadAttr_t state_machine_thread_attrs = {
     .name = "state_machine_thread",
