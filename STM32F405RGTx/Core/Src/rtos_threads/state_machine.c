@@ -76,9 +76,9 @@ void _set_ch_duty_cycle(uint8_t ch, float dc) {
 
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
-	_set_ch_duty_cycle(1, R);
-	_set_ch_duty_cycle(2, G);
-	_set_ch_duty_cycle(3, B);
+    _set_ch_duty_cycle(1, R);
+    _set_ch_duty_cycle(2, G);
+    _set_ch_duty_cycle(3, B);
 }
 
 // Returns fault state or NULL based on current, voltage, and temperature measurements
@@ -144,7 +144,7 @@ State_t IdleEvent(void) {
     // } else if (state_id == AUTO_PILOT) {
     //     return Run;
     // }
-	return 0;
+    return 0;
 }
 
 State_t PrechargingEvent(void) {
@@ -176,7 +176,7 @@ State_t PrechargingEvent(void) {
     // CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
 
     // return Idle;
-	return 0;
+    return 0;
 }
 
 State_t RunEvent(void) {
@@ -211,7 +211,7 @@ State_t RunEvent(void) {
     // } else {
     //     return Run;
     // }
-	return 0;
+    return 0;
 }
 
 State_t StopEvent(void) {
@@ -235,7 +235,7 @@ State_t StopEvent(void) {
     // } else {
     //     return Stop;
     // }
-	return 0;
+    return 0;
 }
 
 State_t SleepEvent(void) {
@@ -253,7 +253,7 @@ State_t SleepEvent(void) {
     // } else {
     //     return Sleep;
     // }
-	return 0;
+    return 0;
 }
 
 
@@ -266,7 +266,7 @@ State_t InitializeFaultEvent(void) {
     // } else {
     //     return InitializeFault;
     // }
-	return 0;
+    return 0;
 }
 
 State_t NormalDangerFaultEvent(void) {
@@ -287,7 +287,7 @@ State_t NormalDangerFaultEvent(void) {
     // } else {
     //     return NormalDangerFault;
     // }
-	return 0;
+    return 0;
 }
 
 State_t SevereDangerFaultEvent(void) {
@@ -309,7 +309,7 @@ State_t SevereDangerFaultEvent(void) {
     // } else {
     //     return SevereDangerFault;
     // }
-	return 0;
+    return 0;
 }
 
 // Not implemented yet
@@ -322,15 +322,15 @@ State_t BalancingEvent(void) {
     // } else {
     //     return Balancing;
     // }
-	return 0;
+    return 0;
 }
 
 State_t ChargingEvent(void) {
-	return 0;
+    return 0;
 }
 
 State_t ChargedEvent(void) {
-	return 0;
+    return 0;
 }
 
 void StartStateMachine(void *argument)

@@ -8,10 +8,10 @@
 #include "ltc6813.h"
 #include "threads.h"
 
-#define ADC_NUM_CONVERSIONS			5U
-#define ADC_DECIMATION_COEFF		256U
+#define ADC_NUM_CONVERSIONS         5U
+#define ADC_DECIMATION_COEFF        256U
 
-#define CURRENT_SENSE_RESISTANCE	1E-3
+#define CURRENT_SENSE_RESISTANCE    1E-3
 
 #define ADC_TO_VOLTAGE(x) ( x*(3.3/(1 << 12)) )
 
@@ -50,12 +50,12 @@ void _process_data() {
                 global_bms_data.buck_temp = ADC_TO_TEMP_LUT[val];
             case 1:
                 global_bms_data.battery.current = VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
-			case 2:
-				global_bms_data.battery.voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
-			case 3:
-				global_bms_data.mc_cap_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
-			case 4:
-				global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+            case 2:
+                global_bms_data.battery.voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+            case 3:
+                global_bms_data.mc_cap_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+            case 4:
+                global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
         }
     }
 }
@@ -78,8 +78,8 @@ void measurements_thread_fn(void* arg) {
     Ltc6813_wakeup_sleep(&ltc6813);
 
     while (1) {
-		Ltc6813_wakeup_idle(&ltc6813);
-		Ltc6813_read_adc(&ltc6813, NORMAL_ADC);
+        Ltc6813_wakeup_idle(&ltc6813);
+        Ltc6813_read_adc(&ltc6813, NORMAL_ADC);
         for (uint8_t i = 0; i < NUM_CELLS; i++) {
             global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
         }
