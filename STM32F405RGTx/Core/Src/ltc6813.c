@@ -120,36 +120,36 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 
     Ltc6813_cs_high(&slave_device);
 
-    // osMutexAttr_t mutex_attrs = {
-    //     "spi_mutex",
-    //     osMutexRecursive | osMutexPrioInherit,
-    //     NULL,    // memory for control block   
-    //     0U        // size for control block
-    // };
-    // slave_device._spi_mutex = osMutexNew(&mutex_attrs);
-    // if (slave_device._spi_mutex == NULL) {
-        // printf("Error: failed to create SPI mutex for LTC6813...\r\n");
-        // Error_Handler();
-    // }
+    osMutexAttr_t mutex_attrs = {
+        "spi_mutex",
+        osMutexRecursive | osMutexPrioInherit,
+        NULL,    // memory for control block   
+        0U        // size for control block
+    };
+    slave_device._spi_mutex = osMutexNew(&mutex_attrs);
+    if (slave_device._spi_mutex == NULL) {
+        printf("Error: failed to create SPI mutex for LTC6813...\r\n");
+        Error_Handler();
+    }
 
     return slave_device;
 }
 
 void _Ltc6813_acquire_mutex(Ltc6813* self) {
-    // if (osMutexAcquire(self->_spi_mutex, osWaitForever) != osOK) {
-    //     printf(
-    //         "Error: failed to aquire '_spi_mutex' from Ltc6813 object at %p...\r\n",
-    //         (void*)self );
-    //     Error_Handler();
-    // }
+    if (osMutexAcquire(self->_spi_mutex, osWaitForever) != osOK) {
+        printf(
+            "Error: failed to aquire '_spi_mutex' from Ltc6813 object at %p...\r\n",
+            (void*)self );
+        Error_Handler();
+    }
 }
 void _Ltc6813_release_mutex(Ltc6813* self) {
-    // if (osMutexRelease(self->_spi_mutex) != osOK) {
-    //     printf(
-    //         "Error: failed to release '_spi_mutex' from Ltc6813 object at %p...\r\n",
-    //         (void*)self );
-    //     Error_Handler();
-    // }
+    if (osMutexRelease(self->_spi_mutex) != osOK) {
+        printf(
+            "Error: failed to release '_spi_mutex' from Ltc6813 object at %p...\r\n",
+            (void*)self );
+        Error_Handler();
+    }
 }
 void _Ltc6813_decode_adc(Ltc6813* self) {
 	/*
@@ -224,9 +224,9 @@ void Ltc6813_wakeup_idle(Ltc6813* self) {
 
     uint8_t buff[1] = {0xff};
 
-    // _Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Receive(&self->_spi_interface, buff, 1, self->timeout);
-    // _Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 
     Ltc6813_cs_high(self);
 }
@@ -262,9 +262,9 @@ void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd) {
 
     Buffer_add_pec(&self->cmd_bfr);
 
-    // _Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Transmit(&self->_spi_interface, self->cmd_bfr.data, self->cmd_bfr.len, self->timeout);
-    // _Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 }
 
 uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
@@ -306,9 +306,9 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
 
     Ltc6813_send_cmd(self, reg_cmd);
 
-    // _Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Receive(&self->_spi_interface, reg_buf->data, reg_buf->len, self->timeout);
-    // _Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 
     Ltc6813_cs_high(self);
 
@@ -335,9 +335,9 @@ void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
     Ltc6813_cs_low(self);
     Ltc6813_send_cmd(self, reg_cmd);
 
-    // _Ltc6813_acquire_mutex(self);
+    _Ltc6813_acquire_mutex(self);
     HAL_SPI_Transmit(&self->_spi_interface, reg_buff->data, reg_buff->len, self->timeout);
-    // _Ltc6813_release_mutex(self);
+    _Ltc6813_release_mutex(self);
 
     Ltc6813_cs_high(self);
     reg_buff->len = 6;
