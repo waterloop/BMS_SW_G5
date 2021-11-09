@@ -3,28 +3,141 @@
 #include "cmsis_os.h"
 #include "threads.h"
 
-const int NUM_CELLS = 14;   // number of cells in pack
-const float OV_BOUNDS = 3.7;    // upper bounds of cell voltage -- overvoltage limit
-const float UV_BOUNDS = 2.7;    //  lower bounds of cell voltage -- undervoltage limit
-const float TARGET_VOLTAGE = 3.6;   // target cell voltage
+#define OV_BOUNDS 3.7    // upper bounds of cell voltage -- overvoltage limit
+#define UV_BOUNDS 2.7    //  lower bounds of cell voltage -- undervoltage limit
+#define TARGET_VOLTAGE 3.6   // target cell voltage
 
-void cellCheck () { // this fxn checks each cell for under/overvoltage and calls the respective balancing fxn
+void ovCheck () {
 
-    for (int n = 0 ; n < NUM_CELLS ; n++)
+    uint32_t dischargeCells = 0;
+
+    for (uint8_t n = 0 ; n < NUM_CELLS ; n++)
     {
         float cellVoltage = global_bms_data.cells[n].voltage;
 
         if (cellVoltage > OV_BOUNDS)
-            overchargeBalance(n);
+        {
+            discargeCells |= (1 << n);
+        }
 
-        else if (cellVoltage < UV_BOUNDS)
-            underchargeBalance(n);
+    }
 
+    ovBalance(dischargeCells);
+
+}
+
+void uvCheck () {
+
+    uint32_t dischargeCells = 0;
+
+    for (uint8_t n = 0 ; n < NUM_CELLS ; n++)
+    {
+        float cellVoltage = global_bms_data.cells[n].voltage;
+
+        if (cellVoltage < UV_BOUNDS)
+        {
+            for (uint8_t j = 0; j < NUM_CELLS; j++)
+            {
+                if (j == n)
+                {
+                    continue;
+                }
+
+                else if (global_bms_data.cells[j].voltage <= cellVoltage)
+                {
+                    dischargeCells &= ~(1 << j);
+                    continue;
+                }
+
+                dischargeCells |= (1 << j);
+            }
+
+        }
     }
 
 }
 
-void overchargeBalance (int imbalancedCell) {   // OV fxn, discharges imbalanced cell to target voltage
+void ovBalance (uint32_t overchargedCells) {
+
+    float ovBalanceVoltage = TARGET_VOLTAGE + 10E-3;    // tolerance of 10mV added
+
+    for (uint8_t n = 0 ; n < NUM_CELLS ; n++)
+    {
+        uint8_t nthCellStatus = (overchargedCell >> n) & 1;
+
+        if (nthCellStatus == 1)
+        {
+            ltc6813_discharge_ctrl(&ltc6813, (1 << n));
+        }
+    }
+
+    for (uint8_t i = 0 ; i < NUM_CELLS ; i++)
+    {
+
+        uint8_t nCellStatus = (overchargedCell >> n) & 1;
+
+        if (nCellStatus == 0)
+        {
+            continue;
+        }
+
+        float checkVoltage = global_bms_data.cells[i].voltage;
+
+        if (checkVoltage <= ovBalanceVoltage)
+        {
+            ltc6813_discharge_ctrl(&ltc6813, &= ~(0 << j));
+            dischargeCells &= ~(1 << j)
+        }
+
+    } // needs to be encapsulated by while loop
+
+    // figure out how to stop discharging individual cells once they reach target voltage
+
+}
+
+void uvBalance (uint32_t overchargedCells) {
+
+    float uvTargetVoltage;
+
+    for (uint8_t n = 0 ; n < NUM_CELLS ; n++)
+    {
+        uint8_t nthCellStatus = (overchargedCell >> n) & 1;
+
+        if (nthCellStatus == 1)
+        {
+            ltc6813_discharge_ctrl(&ltc6813, (1 << n));
+        }
+
+        else if (nthCellStatus == 0)
+        {
+            uvTargetVoltage = global_bms_data.cells[n].voltage;
+        }
+    }
+
+    for (uint8_t i = 0 ; i < NUM_CELLS ; i++)
+    {
+
+        uint8_t nCellStatus = (overchargedCell >> n) & 1;
+
+        if (nCellStatus == 0)
+        {
+            continue;
+        }
+
+        float checkVoltage = global_bms_data.cells[i].voltage;
+
+        if (checkVoltage <= uvTargetVoltage)
+        {
+            ltc6813_discharge_ctrl(&ltc6813, (1 << j));
+        }
+
+    } // needs to be encapsulated by while loop
+
+    // figure out how to stop discharging individual cells once they reach target voltage
+
+}
+
+/*void overchargeBalance (int imbalancedCell) {   // OV fxn, discharges imbalanced cell to target voltage
 
     float balanceVoltage = TARGET_VOLTAGE + 0.01; // tolerance of 10mV added
 
@@ -70,4 +183,4 @@ void underchargeBalance (int imbalancedCell) {  // UV fxn, discharges all other 
     } while (global_bms_data.battery.voltage > balanceVoltage * NUM_CELLS);
         // balance only while voltage of cells is greater than target voltage
 
-}
+}*/
