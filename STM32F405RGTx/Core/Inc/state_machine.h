@@ -47,6 +47,7 @@ typedef enum {
     Sleep,
     NormalDangerFault,
     SevereDangerFault,
+    NoFault,
     Charging,
     Charged,
     Balancing
@@ -68,6 +69,7 @@ State_t StopEvent(void);
 State_t SleepEvent(void);
 State_t NormalDangerFaultEvent(void);
 State_t SevereDangerFaultEvent(void);
+State_t NoFaultEvent(void);
 State_t ChargingEvent(void);
 State_t ChargedEvent(void);
 State_t BalancingEvent(void);

@@ -36,6 +36,7 @@ const char *StateNames[] = {
     "InitializeFault",
     "NormalDangerFault",
     "SevereDangerFault",
+    "NoFault",
     "Charging",
     "Charged",
     "Balancing"
@@ -54,6 +55,7 @@ StateMachine SM[12] = {
     {InitializeFault, InitializeFaultEvent},
     {NormalDangerFault, NormalDangerFaultEvent},
     {SevereDangerFault, SevereDangerFaultEvent},
+    {NoFault, NoFaultEvent},
     {Charging, ChargingEvent},
     {Charged, ChargedEvent},
     {Balancing, BalancingEvent}
@@ -109,7 +111,7 @@ State_t FaultChecking(void *min_current, void *max_current, float max_voltage, f
             return FaultType;
         }
     }
-    return NULL;
+    return NoFault;
 }
 
 State_t InitializeEvent(void) {
@@ -126,9 +128,9 @@ State_t IdleEvent(void) {
                                         MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
     State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
                                         MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    if (severe_check != NULL) {
+    if (severe_check != NoFault) {
         return severe_check;
-    } else if (normal_check != NULL) {
+    } else if (normal_check != NoFault) {
         return normal_check;
     }
 
@@ -139,191 +141,217 @@ State_t IdleEvent(void) {
     TURN_OFF_CONTACTOR_PIN();
 
     // Receive CAN frame
-    CANFrame rx_frame = CANBus_get_frame();
-    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    if ( state_id == ARMED) {
-        return Precharging;
-    } else if (state_id == AUTO_PILOT) {
-        return Run;
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) {
+            CANFrame rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == ARMED) {
+                return Precharging;
+            } else if (state_id == AUTO_PILOT) {
+                return Run;
+            }
+        }
     }
     return 0;
 }
 
 State_t PrechargingEvent(void) {
     // Set LED colour to white
-    // SetLEDColour(50.0, 50.0, 50.0);
+    SetLEDColour(50.0, 50.0, 50.0);
 
-    // // Fault checking
-    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    // if (severe_check != NULL) {
-    //     return severe_check;
-    // } else if (normal_check != NULL) {
-    //     return normal_check;
-    // }
+    // Fault checking
+    State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+    State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+    if (severe_check != NoFault) {
+        return severe_check;
+    } else if (normal_check != NoFault) {
+        return normal_check;
+    }
 
-    // TURN_ON_PRECHARGE_PIN();
+    TURN_ON_PRECHARGE_PIN();
 
-    // // Ensure capacitors are charged
-    // while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
-    //     osDelay(1);
-    // }
+    // Ensure capacitors are charged
+    while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
+        osDelay(1);
+    }
 
-    // // Send ACK on CAN 
-    // CANFrame rx_frame = CANBus_get_frame();
-    // CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+    // Send ACK on CAN 
+    CANFrame rx_frame = CANBus_get_frame();
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+    // TODO: state id should be from previous (idle in this case)
+    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
 
-    // return Idle;
-    return 0;
+    return Idle;
 }
 
 State_t RunEvent(void) {
-    // // Set LED colour to purple
-    // SetLEDColour(41.57, 5.1, 67.84);
+    // Set LED colour to purple
+    SetLEDColour(41.57, 5.1, 67.84);
 
-    // // Fault checking
-    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    // if (severe_check != NULL) {
-    //     return severe_check;
-    // } else if (normal_check != NULL) {
-    //     return normal_check;
-    // }
+    // Fault checking
+    State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+    State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+    if (severe_check != NoFault) {
+        return severe_check;
+    } else if (normal_check != NoFault) {
+        return normal_check;
+    }
 
-    // // Send ACK on CAN when ready to run
-    // CANFrame rx_frame = CANBus_get_frame();
-    // CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+    // Send ACK on CAN when ready to run
+    CANFrame rx_frame = CANBus_get_frame();
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+    // TODO: state id should be from previous (idle in this case)
+    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
 
-    // TURN_OFF_PRECHARGE_PIN();
-    // TURN_ON_CONTACTOR_PIN();
+    TURN_OFF_PRECHARGE_PIN();
+    TURN_ON_CONTACTOR_PIN();
 
-    // // Receive CAN frame
-    // rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
-    //     return Stop;
-    // } else {
-    //     return Run;
-    // }
+    // Receive CAN frame
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) {
+            rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
+                return Stop;
+            } else {
+                return Run;
+            }
+        }
+    }
     return 0;
 }
 
 State_t StopEvent(void) {
-    // // Set LED colour to blinking blue
-    // osDelay(500);
-    // SetLEDColour(0.0, 0.0, 50.0);
+    // Set LED colour to blinking blue
+    // TODO: change to yellow
+    osDelay(500);
+    SetLEDColour(0.0, 0.0, 50.0);
 
-    // TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONTACTOR_PIN();
 
-    // // Send ACK on CAN when stop complete
-    // CANFrame rx_frame = CANBus_get_frame();
-    // CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+    // Send ACK on CAN when stop complete
+    CANFrame rx_frame = CANBus_get_frame();
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+    // TODO: state id should be from previous (idle in this case)
+    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
 
-    // // Receive CAN frame
-    // rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == RESTING) {
-    //     return Idle;
-    // } else {
-    //     return Stop;
-    // }
+    // Receive CAN frame
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) {
+            rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == RESTING) {
+                return Idle;
+            } else {
+                return Stop;
+            }
+        }
+    }
     return 0;
 }
 
 State_t SleepEvent(void) {
-    // // Set LED colour to blue
-    // SetLEDColour(0.0, 0.0, 50.0);
+    // Set LED colour to blue
+    SetLEDColour(0.0, 0.0, 50.0);
 
-    // // Pauses measurements
-    // osThreadSuspend(measurements_thread); 
+    // Pauses measurements
+    osThreadSuspend(measurements_thread); 
 
-    // // Receive CAN frame
-    // CANFrame rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == RESTING) {
-    //     return Idle;
-    // } else {
-    //     return Sleep;
-    // }
+    // Receive CAN frame
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) {
+            CANFrame rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == RESTING) {
+                return Idle;
+            } else {
+                return Sleep;
+            }
+        }
+    }
     return 0;
 }
 
 
 State_t InitializeFaultEvent(void) {
-    // // Receive CAN frame
-    // CANFrame rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == RESTING ) {
-    //     return Idle;
-    // } else {
-    //     return InitializeFault;
-    // }
+    // Receive CAN frame
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) {
+            CANFrame rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == RESTING ) {
+                return Idle;
+            } else {
+                return InitializeFault;
+            }
+        }
+    }
     return 0;
 }
 
 State_t NormalDangerFaultEvent(void) {
-    // // Set LED colour to red
-    // SetLEDColour(50.00, 0.0, 0.0);
+    // Set LED colour to red
+    // TODO: change to light orange
+    SetLEDColour(50.00, 0.0, 0.0);
 
-    // // Report fault on CAN
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+    // Report fault on CAN
+    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+    // TODO: CAN put frame function
 
-    // TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONTACTOR_PIN();
 
-    // // Receive CAN frame
-    // rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == RESTING ) {
-    //     return Idle;
-    // } else {
-    //     return NormalDangerFault;
-    // }
+    // Receive CAN frame
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) {
+            rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == RESTING ) {
+                return Idle;
+            } else {
+                return NormalDangerFault;
+            }
+        }
+    }
     return 0;
 }
 
 State_t SevereDangerFaultEvent(void) {
-    // // Set LED colour to blinking red
-    // osDelay(500);
-    // SetLEDColour(50.00, 0.0, 0.0);
+    // Set LED colour to blinking red
+    // TODO: change to red
+    osDelay(500);
+    SetLEDColour(50.00, 0.0, 0.0);
 
-    // // Report fault on CAN
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+    // Report fault on CAN
+    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+    // TODO: CAN put frame function
 
-    // TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONTACTOR_PIN();
 
-    // // Receive CAN frame
-    // CANFrame rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == RESTING ) {
-    //     return Idle;
-    // } else {
-    //     return SevereDangerFault;
-    // }
+    // Receive CAN frame
+    while (1) {
+        if (!Queue_empty(&RX_QUEUE)) { 
+            CANFrame rx_frame = CANBus_get_frame();
+            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+            if ( state_id == RESTING ) {
+                return Idle;
+            } else {
+                return SevereDangerFault;
+            }
+        }
+    }
     return 0;
 }
 
-// Not implemented yet
 State_t BalancingEvent(void) {
-    // // Receive CAN frame
-    // CANFrame rx_frame = CANBus_get_frame();
-    // uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    // if ( state_id == RESTING ) {
-    //     return Idle;
-    // } else {
-    //     return Balancing;
-    // }
     return 0;
 }
 
@@ -335,19 +363,17 @@ State_t ChargedEvent(void) {
     return 0;
 }
 
+State_t NoFaultEvent(void) {
+    return 0;
+}
+
 void StartStateMachine(void *argument)
 {
   for(;;)
   {
-    // Print CurrentState in serial terminal if the state changes
-    if (OldState != CurrentState) {
-        char dataState[100];
-        sprintf(dataState, "Current State: %s\r\n", StateNames[CurrentState]);
-        HAL_UART_Transmit(&huart1, (uint8_t*)dataState, strlen(dataState), 500); // Implement using CAN
-    }
-    OldState = CurrentState;
-    CurrentState = (*SM[CurrentState].Event)();
-    osDelay(200);
+	OldState = CurrentState;
+	CurrentState = (*SM[CurrentState].Event)();
+	osDelay(200);
   }
 }
 
