@@ -2,7 +2,7 @@
  * state_machine.c
  *
  *  Created on: Jul. 11, 2021
- *      Author: tiffanywang
+ *      Author: Tiffany Wang, Ivan Mudarth
 */
 
 // TODO:
@@ -78,11 +78,23 @@ void _set_ch_duty_cycle(uint8_t ch, float dc) {
 
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
+    /*
+    TODO: this function doesn't work, needs to actually
+          change to the right colors, I have no idea what's
+          wrong with it right now though
+             - Ryan
+
+    Assigned to: Ryan, Ivaan
+    */     
     _set_ch_duty_cycle(1, B);
     _set_ch_duty_cycle(2, G);
     _set_ch_duty_cycle(3, R);
 }
+/*
+TODO: this function doesn't compile, so it's commented out
 
+Assigned to: Ivan
+*/
 // Returns fault state or NULL based on current, voltage, and temperature measurements
 // State_t FaultChecking(void *min_current, void *max_current, float max_voltage, float min_voltage, float max_temp, 
 //                         float min_volt, float min_temp, State_t FaultType) {
@@ -115,7 +127,6 @@ void SetLEDColour(float R, float G, float B) {
 // }
 
 State_t InitializeEvent(void) {
-    osDelay(3000); // This is added to show it enters the initialize state for 3 seconds during testing
     return Idle;
 }
 
@@ -136,12 +147,17 @@ State_t IdleEvent(void) {
 
     // Resumes measurement if the previous state was Sleep
     osThreadResume(measurements_thread); 
-    
+   
+    /*
+    TODO: this will turn off the precharge relay EVEN IF it should be on,
+          i.e., if we just finished precharging - need logic for this
+
+    Assigned to: Ivan
+    */
     TURN_OFF_PRECHARGE_PIN();
     TURN_OFF_CONTACTOR_PIN();
 
     // Receive CAN frame
-    
     if (!Queue_empty(&RX_QUEUE)) {
         CANFrame rx_frame = CANBus_get_frame();
         uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
@@ -151,7 +167,7 @@ State_t IdleEvent(void) {
             return Run;
         }
     }
-    
+
     return Idle;
 }
 
@@ -177,6 +193,13 @@ State_t PrechargingEvent(void) {
         osDelay(1);
     }
 
+    /*
+    TODO: need to actually send the frame by calling CANBus_put_frame,
+          need to get the state_id by the LAST received state id, could probably
+          store it in a global variable or something.
+
+    Assigned to: Ivan
+    */
     // Send ACK on CAN 
     CANFrame rx_frame = CANBus_get_frame();
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
@@ -202,6 +225,15 @@ State_t RunEvent(void) {
     //     return normal_check;
     // }
 
+    /*
+    TODO: need to actually send the frame by calling CANBus_put_frame,
+          need to get the state_id by the LAST received state id, could probably
+          store it in a global variable or something.
+
+          Also, ACK should only be sent until AFTER the contactor is turned on.
+
+    Assigned to: Ivan
+    */
     // Send ACK on CAN when ready to run
     CANFrame rx_frame = CANBus_get_frame();
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
@@ -212,11 +244,10 @@ State_t RunEvent(void) {
 
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
-    TURN_OFF_PRECHARGE_PIN();
     TURN_ON_CONTACTOR_PIN();
+    TURN_OFF_PRECHARGE_PIN();
 
     // Receive CAN frame
-    
     if (!Queue_empty(&RX_QUEUE)) {
         rx_frame = CANBus_get_frame();
         uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
@@ -236,6 +267,13 @@ State_t StopEvent(void) {
 
     TURN_OFF_CONTACTOR_PIN();
 
+    /*
+    TODO: need to actually send the frame by calling CANBus_put_frame,
+          need to get the state_id by the LAST received state id, could probably
+          store it in a global variable or something.
+
+    Assigned to: Ivan
+    */
     // Send ACK on CAN when stop complete
     CANFrame rx_frame = CANBus_get_frame();
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);

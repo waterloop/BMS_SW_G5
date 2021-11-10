@@ -8,7 +8,7 @@ load
 b main
 b bms_entry
 # b STM32F405RGTx/Core/Src/rtos_threads/measurements_thread.c:89
-# b StartStateMachine
+b StartStateMachine
 # b HAL_CAN_RxFifo0MsgPendingCallback
-b coulomb_counting_thread_fn
+# b coulomb_counting_thread_fn
 

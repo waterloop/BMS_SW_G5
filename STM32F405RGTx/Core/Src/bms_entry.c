@@ -26,11 +26,9 @@ uint8_t __io_getchar() {
 BMS global_bms_data;
 Ltc6813 ltc6813;
 
-osThreadId_t ext_led_blink_thread;
 osThreadId_t measurements_thread;
 osThreadId_t coulomb_counting_thread;
 osThreadId_t state_machine_thread;
-osThreadId_t debug_log_thread;
 
 int bms_entry() {
     printf("starting timers...\r\n");
@@ -38,9 +36,10 @@ int bms_entry() {
 
     printf("initializing CAN bus...\r\n");
     if (CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-    // if (CANBus_subscribe(STATE_ID) != HAL_OK) { Error_Handler(); }
-    // if (CANBus_subscribe(BMS_FAULT_REPORT) != HAL_OK) { Error_Handler(); }
-    if (CANBus_subscribe_all() != HAL_OK) { Error_Handler(); }
+    if (CANBus_subscribe(STATE_ID) != HAL_OK) { Error_Handler(); }
+
+    // needed when using a debugger
+    // TODO: delete later
     hcan1.Instance->MCR &= ~(1 << 16);
 
     printf("initializing objects...\r\n");
