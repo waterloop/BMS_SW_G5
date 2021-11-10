@@ -38,7 +38,10 @@ int bms_entry() {
 
     printf("initializing CAN bus...\r\n");
     if (CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
-    if (CANBus_subscribe(STATE_ID) != HAL_OK) { Error_Handler(); }
+    // if (CANBus_subscribe(STATE_ID) != HAL_OK) { Error_Handler(); }
+    // if (CANBus_subscribe(BMS_FAULT_REPORT) != HAL_OK) { Error_Handler(); }
+    if (CANBus_subscribe_all() != HAL_OK) { Error_Handler(); }
+    hcan1.Instance->MCR &= ~(1 << 16);
 
     printf("initializing objects...\r\n");
     ltc6813 = Ltc6813_init(hspi1, GPIOA, 4);

@@ -30,10 +30,10 @@ void coulomb_counting_thread_fn(void* arg) {
     float totalChargeConsumed = 0.0;
 
     while (1) {
-        osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);
+        // osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);
     
         totalChargeConsumed += getCharge();
-        float curr_soc = (INIT_SOC - (totalChargeConsumed / NOMINAL_CAP) )* 100;
+        float curr_soc = (INIT_SOC - ( (totalChargeConsumed / NOMINAL_CAP)*100 ) );
 
         if ( (0 < curr_soc) && (curr_soc <= 100) ) {
             global_bms_data.battery.soc = curr_soc;
@@ -46,5 +46,6 @@ void coulomb_counting_thread_fn(void* arg) {
             global_bms_data.battery.soc = 100;
             totalChargeConsumed = 0;
         }
+        osDelay(100);
     }
 }

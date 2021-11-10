@@ -210,6 +210,8 @@ State_t RunEvent(void) {
     uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
     CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
 
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+
     TURN_OFF_PRECHARGE_PIN();
     TURN_ON_CONTACTOR_PIN();
 
