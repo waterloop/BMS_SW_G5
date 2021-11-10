@@ -45,14 +45,14 @@ const char *StateNames[] = {
 State_t CurrentState = Initialize;
 State_t OldState = Sleep;
 
-StateMachine SM[12] = {
+StateMachine SM[13] = {
     {Initialize, InitializeEvent},
+    {InitializeFault, InitializeFaultEvent},
     {Idle, IdleEvent},
     {Precharging, PrechargingEvent},
     {Run, RunEvent},
     {Stop, StopEvent},
     {Sleep, SleepEvent},
-    {InitializeFault, InitializeFaultEvent},
     {NormalDangerFault, NormalDangerFaultEvent},
     {SevereDangerFault, SevereDangerFaultEvent},
     {NoFault, NoFaultEvent},
@@ -78,41 +78,41 @@ void _set_ch_duty_cycle(uint8_t ch, float dc) {
 
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
-    _set_ch_duty_cycle(1, R);
-    _set_ch_duty_cycle(2, G);
-    _set_ch_duty_cycle(3, B);
+    _set_ch_duty_cycle(1, B);
+    _set_ch_duty_cycle(2, R);
+    _set_ch_duty_cycle(3, G);
 }
 
 // Returns fault state or NULL based on current, voltage, and temperature measurements
-State_t FaultChecking(void *min_current, void *max_current, float max_voltage, float min_voltage, float max_temp, 
-                        float min_volt, float min_temp, State_t FaultType) {
-    float current = global_bms_data.battery.current;
-    if (min_current == NULL) {
-        float max_current_float = *( (float*)(max_current) );
-        if (current > max_current_float) 
-            return FaultType;
-    } else {
-        float min_current_float = *( (float*)(min_current) );
-        if (current < min_current_float) 
-            return FaultType;
-    }
-    int volt_faults = 0;
-    int temp_faults = 0;
-    for (int i = 0; i < NUM_CELLS; ++i) {
-        float voltage = global_bms_data.battery.cells[i].voltage;
-        float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > max_voltage || voltage < min_voltage) {
-            ++volt_faults;
-        } 
-        if (temperature > max_temp) {
-            ++temp_faults;
-        } 
-        if (volt_faults > min_volt || temp_faults > min_temp) {
-            return FaultType;
-        }
-    }
-    return NoFault;
-}
+// State_t FaultChecking(void *min_current, void *max_current, float max_voltage, float min_voltage, float max_temp, 
+//                         float min_volt, float min_temp, State_t FaultType) {
+//     float current = global_bms_data.battery.current;
+//     if (min_current == NULL) {
+//         float max_current_float = *( (float*)(max_current) );
+//         if (current > max_current_float) 
+//             return FaultType;
+//     } else {
+//         float min_current_float = *( (float*)(min_current) );
+//         if (current < min_current_float) 
+//             return FaultType;
+//     }
+//     int volt_faults = 0;
+//     int temp_faults = 0;
+//     for (int i = 0; i < NUM_CELLS; ++i) {
+//         float voltage = global_bms_data.battery.cells[i].voltage;
+//         float temperature = global_bms_data.battery.cells[i].temp;
+//         if (voltage > max_voltage || voltage < min_voltage) {
+//             ++volt_faults;
+//         } 
+//         if (temperature > max_temp) {
+//             ++temp_faults;
+//         } 
+//         if (volt_faults > min_volt || temp_faults > min_temp) {
+//             return FaultType;
+//         }
+//     }
+//     return NoFault;
+// }
 
 State_t InitializeEvent(void) {
     osDelay(3000); // This is added to show it enters the initialize state for 3 seconds during testing
@@ -124,15 +124,15 @@ State_t IdleEvent(void) {
     SetLEDColour(0.0, 50.0, 0.0);
     
     // Fault checking
-    State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    if (severe_check != NoFault) {
-        return severe_check;
-    } else if (normal_check != NoFault) {
-        return normal_check;
-    }
+    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+    // if (severe_check != NoFault) {
+    //     return severe_check;
+    // } else if (normal_check != NoFault) {
+    //     return normal_check;
+    // }
 
     // Resumes measurement if the previous state was Sleep
     osThreadResume(measurements_thread); 
@@ -141,18 +141,18 @@ State_t IdleEvent(void) {
     TURN_OFF_CONTACTOR_PIN();
 
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) {
-            CANFrame rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == ARMED) {
-                return Precharging;
-            } else if (state_id == AUTO_PILOT) {
-                return Run;
-            }
+    
+    if (!Queue_empty(&RX_QUEUE)) {
+        CANFrame rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == ARMED) {
+            return Precharging;
+        } else if (state_id == AUTO_PILOT) {
+            return Run;
         }
     }
-    return 0;
+    
+    return Idle;
 }
 
 State_t PrechargingEvent(void) {
@@ -160,15 +160,15 @@ State_t PrechargingEvent(void) {
     SetLEDColour(50.0, 50.0, 50.0);
 
     // Fault checking
-    State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    if (severe_check != NoFault) {
-        return severe_check;
-    } else if (normal_check != NoFault) {
-        return normal_check;
-    }
+    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+    // if (severe_check != NoFault) {
+    //     return severe_check;
+    // } else if (normal_check != NoFault) {
+    //     return normal_check;
+    // }
 
     TURN_ON_PRECHARGE_PIN();
 
@@ -192,19 +192,20 @@ State_t RunEvent(void) {
     SetLEDColour(41.57, 5.1, 67.84);
 
     // Fault checking
-    State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-                                        MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    if (severe_check != NoFault) {
-        return severe_check;
-    } else if (normal_check != NoFault) {
-        return normal_check;
-    }
+    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
+    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
+    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
+    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
+    // if (severe_check != NoFault) {
+    //     return severe_check;
+    // } else if (normal_check != NoFault) {
+    //     return normal_check;
+    // }
 
     // Send ACK on CAN when ready to run
     CANFrame rx_frame = CANBus_get_frame();
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+
     // TODO: state id should be from previous (idle in this case)
     uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
     CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
@@ -213,24 +214,22 @@ State_t RunEvent(void) {
     TURN_ON_CONTACTOR_PIN();
 
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) {
-            rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
-                return Stop;
-            } else {
-                return Run;
-            }
+    
+    if (!Queue_empty(&RX_QUEUE)) {
+        rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
+            return Stop;
+        } else {
+            return Run;
         }
     }
-    return 0;
+    return Run;
 }
 
 State_t StopEvent(void) {
     // Set LED colour to blinking blue
     // TODO: change to yellow
-    osDelay(500);
     SetLEDColour(0.0, 0.0, 50.0);
 
     TURN_OFF_CONTACTOR_PIN();
@@ -243,18 +242,16 @@ State_t StopEvent(void) {
     CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
 
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) {
-            rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == RESTING) {
-                return Idle;
-            } else {
-                return Stop;
-            }
+    if (!Queue_empty(&RX_QUEUE)) {
+        rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == RESTING) {
+            return Idle;
+        } else {
+            return Stop;
         }
     }
-    return 0;
+    return Stop;
 }
 
 State_t SleepEvent(void) {
@@ -265,18 +262,16 @@ State_t SleepEvent(void) {
     osThreadSuspend(measurements_thread); 
 
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) {
-            CANFrame rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == RESTING) {
-                return Idle;
-            } else {
-                return Sleep;
-            }
+    if (!Queue_empty(&RX_QUEUE)) {
+        CANFrame rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == RESTING) {
+            return Idle;
+        } else {
+            return Sleep;
         }
     }
-    return 0;
+    return Sleep;
 }
 
 
@@ -293,7 +288,7 @@ State_t InitializeFaultEvent(void) {
             }
         }
     }
-    return 0;
+    return InitializeFault;
 }
 
 State_t NormalDangerFaultEvent(void) {
@@ -302,25 +297,23 @@ State_t NormalDangerFaultEvent(void) {
     SetLEDColour(50.00, 0.0, 0.0);
 
     // Report fault on CAN
-    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
     // TODO: CAN put frame function
 
     TURN_OFF_CONTACTOR_PIN();
 
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) {
-            rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == RESTING ) {
-                return Idle;
-            } else {
-                return NormalDangerFault;
-            }
+    if (!Queue_empty(&RX_QUEUE)) {
+        CANFrame rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == RESTING ) {
+            return Idle;
+        } else {
+            return NormalDangerFault;
         }
     }
-    return 0;
+    return NormalDangerFault;
 }
 
 State_t SevereDangerFaultEvent(void) {
@@ -330,22 +323,20 @@ State_t SevereDangerFaultEvent(void) {
     SetLEDColour(50.00, 0.0, 0.0);
 
     // Report fault on CAN
-    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
+    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
     // TODO: CAN put frame function
 
     TURN_OFF_CONTACTOR_PIN();
 
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) { 
-            CANFrame rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == RESTING ) {
-                return Idle;
-            } else {
-                return SevereDangerFault;
-            }
+    if (!Queue_empty(&RX_QUEUE)) { 
+        CANFrame rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == RESTING ) {
+            return Idle;
+        } else {
+            return SevereDangerFault;
         }
     }
     return 0;
