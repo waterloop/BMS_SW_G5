@@ -79,8 +79,8 @@ void _set_ch_duty_cycle(uint8_t ch, float dc) {
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
     _set_ch_duty_cycle(1, B);
-    _set_ch_duty_cycle(2, R);
-    _set_ch_duty_cycle(3, G);
+    _set_ch_duty_cycle(2, G);
+    _set_ch_duty_cycle(3, R);
 }
 
 // Returns fault state or NULL based on current, voltage, and temperature measurements
@@ -145,7 +145,7 @@ State_t IdleEvent(void) {
     if (!Queue_empty(&RX_QUEUE)) {
         CANFrame rx_frame = CANBus_get_frame();
         uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-        if ( state_id == ARMED) {
+        if (state_id == ARMED) {
             return Precharging;
         } else if (state_id == AUTO_PILOT) {
             return Run;
@@ -339,23 +339,23 @@ State_t SevereDangerFaultEvent(void) {
             return SevereDangerFault;
         }
     }
-    return 0;
+    return SevereDangerFault;
 }
 
 State_t BalancingEvent(void) {
-    return 0;
+    return Balancing;
 }
 
 State_t ChargingEvent(void) {
-    return 0;
+    return Charging;
 }
 
 State_t ChargedEvent(void) {
-    return 0;
+    return Charged;
 }
 
 State_t NoFaultEvent(void) {
-    return 0;
+    return NoFault;
 }
 
 void StartStateMachine(void *argument)

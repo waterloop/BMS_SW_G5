@@ -2,6 +2,7 @@
 #include "cmsis_os.h"
 
 #include "main.h"
+#include "can.h"
 #include "timer_utils.h"
 #include "threads.h"
 #include "state_machine.h"
@@ -34,6 +35,10 @@ osThreadId_t debug_log_thread;
 int bms_entry() {
     printf("starting timers...\r\n");
     start_timers();
+
+    printf("initializing CAN bus...\r\n");
+    if (CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+    if (CANBus_subscribe(STATE_ID) != HAL_OK) { Error_Handler(); }
 
     printf("initializing objects...\r\n");
     ltc6813 = Ltc6813_init(hspi1, GPIOA, 4);
