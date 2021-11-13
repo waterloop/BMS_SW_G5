@@ -116,6 +116,11 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
     slave_device.cve_bfr = Buffer_init();
     slave_device.cvf_bfr = Buffer_init();
 
+    slave_device.ava_bfr = Buffer_init();
+    slave_device.avb_bfr = Buffer_init();
+    slave_device.avc_bfr = Buffer_init();
+    slave_device.avd_bfr = Buffer_init();
+
     slave_device.timeout = 10000;
 
     Ltc6813_cs_high(&slave_device);
@@ -294,6 +299,18 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
         case RDCVF:
             reg_buf = &(self->cvf_bfr);
             break;
+        case RDAUXA:
+            reg_buf = &(self->ava_bfr);
+            break;
+        case RDAUXB:
+            reg_buf = &(self->avb_bfr);
+            break;
+        case RDAUXC:
+            reg_buf = &(self->avc_bfr);
+            break;
+        case RDAUXD:
+            reg_buf = &(self->avd_bfr);
+            break;
         default:
             reg_buf = NULL;
             break;
@@ -389,6 +406,47 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
     printf("PEC CVF: %d\r\n", success);
 
     _Ltc6813_decode_adc(self);
+
+    return success;
+}
+
+uint8_t Ltc6813_read_gpio_adc(Ltc6813* self, uint16_t mode) {
+    Ltc6813_cs_low(self);
+
+    printf("REFERENCES POWERING UP\r\n");
+    Ltc6813_send_cmd(self, mode);
+
+    // Wait for references to power up. Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
+    osDelay(5);
+
+    printf("REFERENCES POWERED\r\n");
+
+    uint32_t delay = FILTERED_GPIO_ADC_DELAY;
+    switch (mode) {
+        case (FAST_GPIO_ADC):
+            delay = FAST_GPIO_ADC_DELAY;
+            break;
+        case (NORMAL_GPIO_ADC):
+            delay = NORMAL_GPIO_ADC_DELAY;
+            break;
+        case (FILTERED_GPIO_ADC):
+            delay = FILTERED_GPIO_ADC_DELAY;
+            break;
+    }
+    osDelay(delay);
+
+    uint8_t success = 1;
+
+    success &= Ltc6813_read_reg(self, RDAUXA);
+    printf("PEC AUXA: %d\r\n", success);
+    success &= Ltc6813_read_reg(self, RDAUXB);
+    printf("PEC AUXB: %d\r\n", success);
+    success &= Ltc6813_read_reg(self, RDAUXC);
+    printf("PEC AUXC: %d\r\n", success);
+    success &= Ltc6813_read_reg(self, RDAUXD);
+    printf("PEC AUXD: %d\r\n", success);
+
+    // TODO: Need to write this command _Ltc6813_decode_gpio_adc(self);
 
     return success;
 }

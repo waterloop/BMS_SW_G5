@@ -47,8 +47,13 @@ typedef struct {
     Buffer cvb_bfr;
     Buffer cvc_bfr;
     Buffer cvd_bfr;
-    Buffer cve_bfr;;
+    Buffer cve_bfr;
     Buffer cvf_bfr;
+
+    Buffer ava_bfr;
+    Buffer avb_bfr;
+    Buffer avc_bfr;
+    Buffer avd_bfr;
 
     float cell_voltages[18U];    // the LTC6813 allows for up to 18 cells
 
@@ -85,6 +90,7 @@ void Ltc6813_write_cfga(Ltc6813* self);
 void Ltc6813_write_cfgb(Ltc6813* self);
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode);
+uint8_t Ltc6813_read_gpio_adc(Ltc6813* self, uint16_t mode);
 
 /*
 cell_mask is a mask of 32 bits where the i-th bit represents whether or not a cell should be discharged
@@ -114,6 +120,11 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 #define RDCVE       0b00000001001u
 #define RDCVF       0b00000001011u
 
+#define RDAUXA      0b00000001100u
+#define RDAUXB      0b00000001110u
+#define RDAUXC      0b00000001101u
+#define RDAUXD      0b00000001111u
+
 #define PLADC       0b11100010100u
 
 #endif
@@ -129,6 +140,19 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 
 #define FILTERED_ADC        0b01111100000u
 #define FILTERED_ADC_DELAY  202
+
+#endif
+
+#ifndef __LTC6813_GPIO_ADC_MODES
+
+#define FAST_GPIO_ADC            0b10011100000u
+#define FAST_GPIO_ADC_DELAY      2
+
+#define NORMAL_GPIO_ADC          0b10101100000u
+#define NORMAL_GPIO_ADC_DELAY    4
+
+#define FILTERED_GPIO_ADC        0b10111100000u
+#define FILTERED_GPIO_ADC_DELAY  336
 
 #endif
 
