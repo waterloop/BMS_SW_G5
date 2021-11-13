@@ -310,9 +310,11 @@ State_t NormalDangerFaultEvent(void) {
     SetLEDColour(50.00, 0.0, 0.0);
 
     // Report fault on CAN
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
-    // TODO: CAN put frame function
+    CANFrame rx_frame = CANBus_get_frame();
+    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    uint8_t error_code = CANFrame_get_field(&rx_frame, BMS_FAULT_REPORT);
+    CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT, error_code);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONTACTOR_PIN();
 
@@ -336,9 +338,11 @@ State_t SevereDangerFaultEvent(void) {
     SetLEDColour(50.00, 0.0, 0.0);
 
     // Report fault on CAN
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT);
-    // TODO: CAN put frame function
+    CANFrame rx_frame = CANBus_get_frame();
+    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    uint8_t error_code = CANFrame_get_field(&rx_frame, BMS_FAULT_REPORT);
+    CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT, error_code);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONTACTOR_PIN();
 
