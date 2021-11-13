@@ -21,9 +21,11 @@ const osThreadAttr_t state_machine_thread_attrs = {
     .stack_size = 1024*3
 };
 
+typedef enum { false = 0, true = !false } bool;
 
 uint8_t idle_state_id;
 uint8_t run_state_id;
+bool has_precharged = false;
 
 /* This is created to display the state name in serial terminal. */
 const char *StateNames[] = {
@@ -163,7 +165,9 @@ State_t IdleEvent(void) {
 
     Assigned to: Ivan
     */
-    TURN_OFF_PRECHARGE_PIN();
+    if (!has_precharged) {
+        TURN_OFF_PRECHARGE_PIN();
+    }
     TURN_OFF_CONTACTOR_PIN();
 
     // Receive CAN frame
@@ -200,6 +204,7 @@ State_t PrechargingEvent(void) {
     while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
         osDelay(1);
     }
+    has_precharged = true;
 
     // Send ACK on CAN 
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
