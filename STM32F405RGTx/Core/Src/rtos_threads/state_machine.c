@@ -159,12 +159,6 @@ State_t IdleEvent(void) {
     // Resumes measurement if the previous state was Sleep
     osThreadResume(measurements_thread); 
    
-    /*
-    TODO: this will turn off the precharge relay EVEN IF it should be on,
-          i.e., if we just finished precharging - need logic for this
-
-    Assigned to: Ivan
-    */
     if (!has_precharged) {
         TURN_OFF_PRECHARGE_PIN();
     }
@@ -250,9 +244,8 @@ State_t RunEvent(void) {
 }
 
 State_t StopEvent(void) {
-    // Set LED colour to blinking blue
-    // TODO: change to yellow
-    SetLEDColour(0.0, 0.0, 50.0);
+    // Set LED colour to yellow
+    SetLEDColour(50.0, 50.0, 0.0);
 
     TURN_OFF_CONTACTOR_PIN();
 
@@ -310,9 +303,8 @@ State_t InitializeFaultEvent(void) {
 }
 
 State_t NormalDangerFaultEvent(void) {
-    // Set LED colour to red
-    // TODO: change to light orange
-    SetLEDColour(50.00, 0.0, 0.0);
+    // Set LED colour to light orange
+    SetLEDColour(50.00, 32.3, 0.0);
 
     // Report fault on CAN
     CANFrame rx_frame = CANBus_get_frame();
@@ -337,9 +329,7 @@ State_t NormalDangerFaultEvent(void) {
 }
 
 State_t SevereDangerFaultEvent(void) {
-    // Set LED colour to blinking red
-    // TODO: change to red
-    osDelay(500);
+    // Set LED colour to red
     SetLEDColour(50.00, 0.0, 0.0);
 
     // Report fault on CAN
