@@ -5,10 +5,6 @@
  *      Author: Tiffany Wang, Ivan Mudarth
 */
 
-// TODO:
-//  - Add condition for InitializeFault in Initialize event
-//     - Implement LED lighting
-//     - Send ACK on CAN
 
 #include <stdio.h>
 #include <string.h>
@@ -90,41 +86,52 @@ void SetLEDColour(float R, float G, float B) {
     _set_ch_duty_cycle(2, G);
     _set_ch_duty_cycle(3, R);
 }
-/*
-TODO: this function doesn't compile, so it's commented out
 
-Assigned to: Ivan
-*/
-// Returns fault state or NULL based on current, voltage, and temperature measurements
-// State_t FaultChecking(void *min_current, void *max_current, float max_voltage, float min_voltage, float max_temp, 
-//                         float min_volt, float min_temp, State_t FaultType) {
-//     float current = global_bms_data.battery.current;
-//     if (min_current == NULL) {
-//         float max_current_float = *( (float*)(max_current) );
-//         if (current > max_current_float) 
-//             return FaultType;
-//     } else {
-//         float min_current_float = *( (float*)(min_current) );
-//         if (current < min_current_float) 
-//             return FaultType;
-//     }
-//     int volt_faults = 0;
-//     int temp_faults = 0;
-//     for (int i = 0; i < NUM_CELLS; ++i) {
-//         float voltage = global_bms_data.battery.cells[i].voltage;
-//         float temperature = global_bms_data.battery.cells[i].temp;
-//         if (voltage > max_voltage || voltage < min_voltage) {
-//             ++volt_faults;
-//         } 
-//         if (temperature > max_temp) {
-//             ++temp_faults;
-//         } 
-//         if (volt_faults > min_volt || temp_faults > min_temp) {
-//             return FaultType;
-//         }
-//     }
-//     return NoFault;
-// }
+// Returns normal fault state or no fault based on current, voltage, and temperature measurements
+State_t NormalFaultChecking(void) {
+    float current = global_bms_data.battery.current;
+    if (current < MIN_CURRENT_NORMAL) 
+        return NormalDangerFault;
+    int volt_faults = 0;
+    int temp_faults = 0;
+    for (int i = 0; i < NUM_CELLS; ++i) {
+        float voltage = global_bms_data.battery.cells[i].voltage;
+        float temperature = global_bms_data.battery.cells[i].temp;
+        if (voltage > MAX_VOLTAGE_NORMAL || voltage < MIN_VOLTAGE_NORMAL) {
+            ++volt_faults;
+        } 
+        if (temperature > MAX_TEMP_NORMAL) {
+            ++temp_faults;
+        } 
+        if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+            return NormalDangerFault;
+        }
+    }
+    return NoFault;
+}
+
+// Returns severe fault state or no fault based on current, voltage, and temperature measurements
+State_t SevereFaultChecking(void) {
+    float current = global_bms_data.battery.current;
+    if (current > MAX_CURRENT_SEVERE) 
+        return SevereDangerFault;
+    int volt_faults = 0;
+    int temp_faults = 0;
+    for (int i = 0; i < NUM_CELLS; ++i) {
+        float voltage = global_bms_data.battery.cells[i].voltage;
+        float temperature = global_bms_data.battery.cells[i].temp;
+        if (voltage > MAX_VOLTAGE_SEVERE || voltage < MIN_VOLTAGE_SEVERE) {
+            ++volt_faults;
+        } 
+        if (temperature > MAX_TEMP_SEVERE) {
+            ++temp_faults;
+        } 
+        if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+            return SevereDangerFault;
+        }
+    }
+    return NoFault;
+}
 
 State_t InitializeEvent(void) {
     return Idle;
@@ -135,15 +142,13 @@ State_t IdleEvent(void) {
     SetLEDColour(0.0, 50.0, 0.0);
     
     // Fault checking
-    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    // if (severe_check != NoFault) {
-    //     return severe_check;
-    // } else if (normal_check != NoFault) {
-    //     return normal_check;
-    // }
+    State_t severe_check = SevereFaultChecking();
+    State_t normal_check = NormalFaultChecking();
+    if (severe_check != NoFault) {
+        return severe_check;
+    } else if (normal_check != NoFault) {
+        return normal_check;
+    }
 
     // Resumes measurement if the previous state was Sleep
     osThreadResume(measurements_thread); 
@@ -176,15 +181,13 @@ State_t PrechargingEvent(void) {
     SetLEDColour(50.0, 50.0, 50.0);
 
     // Fault checking
-    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    // if (severe_check != NoFault) {
-    //     return severe_check;
-    // } else if (normal_check != NoFault) {
-    //     return normal_check;
-    // }
+    State_t severe_check = SevereFaultChecking();
+    State_t normal_check = NormalFaultChecking();
+    if (severe_check != NoFault) {
+        return severe_check;
+    } else if (normal_check != NoFault) {
+        return normal_check;
+    }
 
     TURN_ON_PRECHARGE_PIN();
 
@@ -215,15 +218,13 @@ State_t RunEvent(void) {
     SetLEDColour(41.57, 5.1, 67.84);
 
     // Fault checking
-    // State_t severe_check = FaultChecking(NULL, (void*)&MAX_CURRENT_SEVERE, MAX_VOLTAGE_SEVERE, MIN_VOLTAGE_SEVERE, MAX_TEMP_SEVERE, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, SevereDangerFault);
-    // State_t normal_check = FaultChecking((void*)&MIN_CURRENT_NORMAL, NULL, MAX_VOLTAGE_NORMAL, MIN_VOLTAGE_NORMAL, MAX_TEMP_NORMAL, 
-    //                                     MIN_VOLT_FAULTS, MIN_TEMP_FAULTS, NormalDangerFault);
-    // if (severe_check != NoFault) {
-    //     return severe_check;
-    // } else if (normal_check != NoFault) {
-    //     return normal_check;
-    // }
+    State_t severe_check = SevereFaultChecking();
+    State_t normal_check = NormalFaultChecking();
+    if (severe_check != NoFault) {
+        return severe_check;
+    } else if (normal_check != NoFault) {
+        return normal_check;
+    }
 
     /*
     TODO: need to actually send the frame by calling CANBus_put_frame,
@@ -317,15 +318,13 @@ State_t SleepEvent(void) {
 
 State_t InitializeFaultEvent(void) {
     // Receive CAN frame
-    while (1) {
-        if (!Queue_empty(&RX_QUEUE)) {
-            CANFrame rx_frame = CANBus_get_frame();
-            uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-            if ( state_id == RESTING ) {
-                return Idle;
-            } else {
-                return InitializeFault;
-            }
+    if (!Queue_empty(&RX_QUEUE)) {
+        CANFrame rx_frame = CANBus_get_frame();
+        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        if ( state_id == RESTING ) {
+            return Idle;
+        } else {
+            return InitializeFault;
         }
     }
     return InitializeFault;
