@@ -21,6 +21,10 @@ const osThreadAttr_t state_machine_thread_attrs = {
     .stack_size = 1024*3
 };
 
+
+uint8_t idle_state_id;
+uint8_t run_state_id;
+
 /* This is created to display the state name in serial terminal. */
 const char *StateNames[] = {
     "Initialize",
@@ -166,6 +170,7 @@ State_t IdleEvent(void) {
     if (!Queue_empty(&RX_QUEUE)) {
         CANFrame rx_frame = CANBus_get_frame();
         uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        idle_state_id = state_id;
         if (state_id == ARMED) {
             return Precharging;
         } else if (state_id == AUTO_PILOT) {
@@ -196,19 +201,10 @@ State_t PrechargingEvent(void) {
         osDelay(1);
     }
 
-    /*
-    TODO: need to actually send the frame by calling CANBus_put_frame,
-          need to get the state_id by the LAST received state id, could probably
-          store it in a global variable or something.
-
-    Assigned to: Ivan
-    */
     // Send ACK on CAN 
-    CANFrame rx_frame = CANBus_get_frame();
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    // TODO: state id should be from previous (idle in this case)
-    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, idle_state_id);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     return Idle;
 }
@@ -226,32 +222,19 @@ State_t RunEvent(void) {
         return normal_check;
     }
 
-    /*
-    TODO: need to actually send the frame by calling CANBus_put_frame,
-          need to get the state_id by the LAST received state id, could probably
-          store it in a global variable or something.
-
-          Also, ACK should only be sent until AFTER the contactor is turned on.
-
-    Assigned to: Ivan
-    */
-    // Send ACK on CAN when ready to run
-    CANFrame rx_frame = CANBus_get_frame();
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-
-    // TODO: state id should be from previous (idle in this case)
-    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
-
-    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
-
     TURN_ON_CONTACTOR_PIN();
     TURN_OFF_PRECHARGE_PIN();
 
+    // Send ACK on CAN when ready to run
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
+    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, idle_state_id);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
-        rx_frame = CANBus_get_frame();
+        CANFrame rx_frame = CANBus_get_frame();
         uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+        run_state_id = state_id;
         if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
             return Stop;
         } else {
@@ -268,23 +251,14 @@ State_t StopEvent(void) {
 
     TURN_OFF_CONTACTOR_PIN();
 
-    /*
-    TODO: need to actually send the frame by calling CANBus_put_frame,
-          need to get the state_id by the LAST received state id, could probably
-          store it in a global variable or something.
-
-    Assigned to: Ivan
-    */
     // Send ACK on CAN when stop complete
-    CANFrame rx_frame = CANBus_get_frame();
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    // TODO: state id should be from previous (idle in this case)
-    uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, state_id);
+    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, run_state_id);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
-        rx_frame = CANBus_get_frame();
+        CANFrame rx_frame = CANBus_get_frame();
         uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
         if ( state_id == RESTING) {
             return Idle;
