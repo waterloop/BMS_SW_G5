@@ -41,7 +41,7 @@ int bms_entry() {
     hcan1.Instance->MCR &= ~(1 << 16);
 
     printf("initializing objects...\r\n");
-    ltc6813 = Ltc6813_init(hspi1, GPIOA, 4);
+    ltc6813 = Ltc6813_init(hspi1, GPIOC, 4); //changed from base A to C for CS2
 
     printf("initializing RTOS kernel...\r\n");
     osKernelInitialize();
@@ -57,7 +57,7 @@ int bms_entry() {
         StartStateMachine, NULL, &state_machine_thread_attrs);
 
     // RUNNING A BMS test --> Don't start scheduler
-    // ltc6813_comm_test();    // Test communication by reading cfg register
+    ltc6813_comm_test();    // Test communication by reading cfg register
     // ltc6813_adc_test();     // Driver test -> Running the ADC
 
     printf("starting RTOS scheduler...\r\n");
