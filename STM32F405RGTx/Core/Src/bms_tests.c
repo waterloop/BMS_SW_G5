@@ -27,7 +27,21 @@ void delay_us_test() {
     }
 }
 
-void ltc6813_test() {
+void ltc6813_comm_test() {
+    while(1) {
+        Ltc6813_wakeup_sleep(&ltc6813);
+        Ltc6813_wakeup_idle(&ltc6813);
+        uint8_t success = Ltc6813_read_cfga(&ltc6813);
+        if (success == 1) {
+            printf("PEC SUCCESS");
+            Buffer_print(&(ltc6813.cfga_bfr));
+        } else {
+            printf("PEC FAIL");
+        }
+    }
+}
+
+void ltc6813_adc_test() {
     while(1) {
         Ltc6813_wakeup_sleep(&ltc6813);
         Ltc6813_wakeup_idle(&ltc6813);
@@ -35,4 +49,3 @@ void ltc6813_test() {
         Ltc6813_print_voltages(&ltc6813);
     }
 }
-
