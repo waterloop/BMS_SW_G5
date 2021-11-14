@@ -8,7 +8,7 @@
 #include "state_machine.h"
 #include "bms_entry.h"
 
-#include "bms_tests.h"
+//#include "bms_tests.h"
 
 // redirect stdin and stdout to UART1
 void __io_putchar(uint8_t ch) {
@@ -57,7 +57,7 @@ int bms_entry() {
         StartStateMachine, NULL, &state_machine_thread_attrs);
 
     // RUNNING A BMS test --> Don't start scheduler
-    ltc6813_comm_test();    // Test communication by reading cfg register
+    //ltc6813_comm_test();    // Test communication by reading cfg register
     // ltc6813_adc_test();     // Driver test -> Running the ADC
 
     printf("starting RTOS scheduler...\r\n");
