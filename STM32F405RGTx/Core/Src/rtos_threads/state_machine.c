@@ -124,19 +124,19 @@ void SendCANHeartbeat(void) {
     }
     avg_cell_temp /= NUM_CELLS;
 
-    CANFrame tx_frame0 = CANFrame_init(BATTERY_PACK_CURRENT.id);
+    CANFrame tx_frame0 = CANFrame_init(BMS_HEALTH_CHECK);
     CANFrame_set_field(&tx_frame0, BATTERY_PACK_CURRENT, FLOAT_TO_UINT(global_bms_data.battery.current));
     CANFrame_set_field(&tx_frame0, CELL_TEMPERATURE, FLOAT_TO_UINT(avg_cell_temp));
 
-    CANFrame tx_frame1 = CANFrame_init(BATTERY_PACK_VOLTAGE.id);
+    CANFrame tx_frame1 = CANFrame_init(BMS_DATA_1);
     CANFrame_set_field(&tx_frame1, BATTERY_PACK_VOLTAGE, FLOAT_TO_UINT(global_bms_data.battery.voltage));
     CANFrame_set_field(&tx_frame1, STATE_OF_CHARGE, FLOAT_TO_UINT(global_bms_data.battery.soc));
 
-    CANFrame tx_frame2 = CANFrame_init(BUCK_TEMPERATURE.id);
+    CANFrame tx_frame2 = CANFrame_init(BMS_DATA_2);
     CANFrame_set_field(&tx_frame2, BUCK_TEMPERATURE, FLOAT_TO_UINT(global_bms_data.buck_temp));
     // CANFrame_set_field(&tx_frame2, BMS_CURRENT, FLOAT_TO_UINT(0));
 
-    CANFrame tx_frame3 = CANFrame_init(MC_CAP_VOLTAGE.id);
+    CANFrame tx_frame3 = CANFrame_init(BMS_DATA_3);
     CANFrame_set_field(&tx_frame3, MC_CAP_VOLTAGE, FLOAT_TO_UINT(global_bms_data.mc_cap_voltage));
 
     if (CANBus_put_frame(&tx_frame0) != HAL_OK) { Error_Handler(); }
@@ -230,8 +230,8 @@ State_t PrechargingEvent(void) {
     has_precharged = true;
 
     // Send ACK on CAN 
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, idle_state_id);
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+    CANFrame_set_field(&tx_frame, BMS_STATE_ID_ACK_NACK, idle_state_id);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     return Idle;
@@ -254,8 +254,8 @@ State_t RunEvent(void) {
     TURN_OFF_PRECHARGE_PIN();
 
     // Send ACK on CAN when ready to run
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, idle_state_id);
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+    CANFrame_set_field(&tx_frame, BMS_STATE_ID_ACK_NACK, idle_state_id);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
@@ -279,8 +279,8 @@ State_t StopEvent(void) {
     TURN_OFF_CONTACTOR_PIN();
 
     // Send ACK on CAN when stop complete
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, run_state_id);
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+    CANFrame_set_field(&tx_frame, BMS_STATE_ID_ACK_NACK, run_state_id);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
@@ -337,9 +337,9 @@ State_t NormalDangerFaultEvent(void) {
 
     // Report fault on CAN
     // CANFrame rx_frame = CANBus_get_frame();
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
+    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT);
     // uint8_t error_code = CANFrame_get_field(&rx_frame, BMS_FAULT_REPORT);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT, error_code);
+    // CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, error_code);
     // if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONTACTOR_PIN();
