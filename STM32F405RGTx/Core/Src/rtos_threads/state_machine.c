@@ -116,6 +116,35 @@ State_t NormalFaultChecking(void) {
     return NoFault;
 }
 
+// CAN heartbeat subroutine
+void SendCANHeartbeat(void) {
+    float avg_cell_temp = 0;
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
+        avg_cell_temp += global_bms_data.battery.cells[i].temp;
+    }
+    avg_cell_temp /= NUM_CELLS;
+
+    CANFrame tx_frame0 = CANFrame_init(BATTERY_PACK_CURRENT.id);
+    CANFrame_set_field(&tx_frame0, BATTERY_PACK_CURRENT, FLOAT_TO_UINT(global_bms_data.battery.current));
+    CANFrame_set_field(&tx_frame0, CELL_TEMPERATURE, FLOAT_TO_UINT(avg_cell_temp));
+
+    CANFrame tx_frame1 = CANFrame_init(BATTERY_PACK_VOLTAGE.id);
+    CANFrame_set_field(&tx_frame1, BATTERY_PACK_VOLTAGE, FLOAT_TO_UINT(global_bms_data.battery.voltage));
+    CANFrame_set_field(&tx_frame1, STATE_OF_CHARGE, FLOAT_TO_UINT(global_bms_data.battery.soc));
+
+    CANFrame tx_frame2 = CANFrame_init(BUCK_TEMPERATURE.id);
+    CANFrame_set_field(&tx_frame2, BUCK_TEMPERATURE, FLOAT_TO_UINT(global_bms_data.buck_temp));
+    // CANFrame_set_field(&tx_frame2, BMS_CURRENT, FLOAT_TO_UINT(0));
+
+    CANFrame tx_frame3 = CANFrame_init(MC_CAP_VOLTAGE.id);
+    CANFrame_set_field(&tx_frame3, MC_CAP_VOLTAGE, FLOAT_TO_UINT(global_bms_data.mc_cap_voltage));
+
+    if (CANBus_put_frame(&tx_frame0) != HAL_OK) { Error_Handler(); }
+    if (CANBus_put_frame(&tx_frame1) != HAL_OK) { Error_Handler(); }
+    if (CANBus_put_frame(&tx_frame2) != HAL_OK) { Error_Handler(); }
+    if (CANBus_put_frame(&tx_frame3) != HAL_OK) { Error_Handler(); }
+}
+
 // Returns severe fault state or no fault based on current, voltage, and temperature measurements
 State_t SevereFaultChecking(void) {
     float current = global_bms_data.battery.current;
@@ -370,12 +399,12 @@ State_t NoFaultEvent(void) {
     return NoFault;
 }
 
-void StartStateMachine(void *argument)
-{
+void StartStateMachine(void *argument) {
   for(;;)
   {
 	OldState = CurrentState;
 	CurrentState = (*SM[CurrentState].Event)();
+    SendCANHeartbeat();
 	osDelay(200);
   }
 }
