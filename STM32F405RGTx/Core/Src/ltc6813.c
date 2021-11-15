@@ -350,14 +350,12 @@ void Ltc6813_write_cfgb(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGB);
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
     Ltc6813_cs_low(self);
-
-    printf("REFERENCES POWERING UP\r\n");
     Ltc6813_send_cmd(self, mode);
+    Ltc6813_cs_high(self);
 
     // Wait for references to power up. Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
     osDelay(5);
 
-    printf("REFERENCES POWERED\r\n");
 
     uint32_t delay = FILTERED_ADC_DELAY;
     switch (mode) {
@@ -374,6 +372,8 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
     osDelay(delay);
 
     uint8_t success = 1;
+
+    Ltc6813_wakeup_idle(self);
 
     success &= Ltc6813_read_reg(self, RDCVA);
     printf("PEC CVA: %d\r\n", success);
