@@ -140,9 +140,9 @@ State_t NormalFaultChecking(void) {
             } else if (undervolt_faults > MIN_UNDERVOLT_FAULTS) {
                 /*
                     TODO: Spelling mistake in config.h
-                    BATTERY_UNDERVOLTAGAE_ERR should be BATTERY_UNDERVOLTAGE_ERR
+                    BATTERY_UNDERVOLTAGE_ERR should be BATTERY_UNDERVOLTAGE_ERR
                 */
-                bms_error_code = BATTERY_UNDERVOLTAGAE_ERR; 
+                bms_error_code = BATTERY_UNDERVOLTAGE_ERR; 
             } else {
                 // TODO: why is there no BATTERY_TEMPERATURE_ERR error code?
             }            
@@ -181,9 +181,9 @@ State_t SevereFaultChecking(void) {
             } else if (undervolt_faults > MIN_UNDERVOLT_FAULTS) {
                 /*
                     TODO: Spelling mistake in config.h
-                    BATTERY_UNDERVOLTAGAE_ERR should be BATTERY_UNDERVOLTAGE_ERR
+                    BATTERY_UNDERVOLTAGE_ERR should be BATTERY_UNDERVOLTAGE_ERR
                 */
-                bms_error_code = BATTERY_UNDERVOLTAGAE_ERR; 
+                bms_error_code = BATTERY_UNDERVOLTAGE_ERR; 
             } else {
                 // TODO: why is there no BATTERY_TEMPERATURE_ERR error code?
             }            
@@ -255,8 +255,9 @@ State_t PrechargingEvent(void) {
     has_precharged = true;
 
     // Send ACK on CAN 
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, idle_state_id);
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
+    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     return Idle;
@@ -284,8 +285,9 @@ State_t RunEvent(void) {
     TURN_OFF_PRECHARGE_PIN();
 
     // Send ACK on CAN when ready to run
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, idle_state_id);
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
+    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
@@ -309,8 +311,9 @@ State_t StopEvent(void) {
     TURN_OFF_CONTACTOR_PIN();
 
     // Send ACK on CAN when stop complete
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK.id);
-    CANFrame_set_field(&tx_frame, BMS_STATE_CHANGE_ACK_NACK, run_state_id);
+    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, run_state_id);
+    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
