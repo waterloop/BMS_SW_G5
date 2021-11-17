@@ -75,9 +75,9 @@ void SetLEDColour(float R, float G, float B) {
 
     Assigned to: Ryan, Ivaan
     */     
-    set_led_pwm_dc(1, B);
-    set_led_pwm_dc(2, G);
-    set_led_pwm_dc(3, R);
+    set_led_intensity(RED, R);
+    set_led_intensity(GREEN, G);
+    set_led_intensity(BLUE, B);
 }
 
 // CAN heartbeat subroutine
