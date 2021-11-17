@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "state_machine.h"
+#include "timer_utils.h"
 #include "threads.h"
 #include "cmsis_os.h"
 #include "main.h"
@@ -25,6 +26,7 @@ typedef enum { false = 0, true = !false } bool;
 
 uint8_t idle_state_id;
 uint8_t run_state_id;
+uint8_t bms_error_code;
 bool has_precharged = false;
 
 /* This is created to display the state name in serial terminal. */
@@ -43,7 +45,7 @@ const char *StateNames[] = {
     "Charged",
     "Balancing"
 };
-
+// test
 State_t CurrentState = Initialize;
 State_t OldState = Sleep;
 
@@ -63,21 +65,6 @@ StateMachine SM[13] = {
     {Balancing, BalancingEvent}
 };
 
-// Set channel duty cycle
-void _set_ch_duty_cycle(uint8_t ch, float dc) {
-    uint32_t ccr_val = (uint32_t)( ((100 - dc)*ARR_VAL)/100 );
-    switch (ch) {
-        case 1:
-            htim1.Instance->CCR1 = ccr_val;
-        case 2:
-            htim1.Instance->CCR2 = ccr_val;
-        case 3:
-            htim1.Instance->CCR3 = ccr_val;
-        case 4:
-            htim1.Instance->CCR4 = ccr_val;
-    }
-}
-
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
     /*
@@ -88,28 +75,77 @@ void SetLEDColour(float R, float G, float B) {
 
     Assigned to: Ryan, Ivaan
     */     
-    _set_ch_duty_cycle(1, B);
-    _set_ch_duty_cycle(2, G);
-    _set_ch_duty_cycle(3, R);
+    set_led_intensity(RED, R);
+    set_led_intensity(GREEN, G);
+    set_led_intensity(BLUE, B);
+}
+
+// CAN heartbeat subroutine
+void SendCANHeartbeat(void) {
+    float avg_cell_temp = 0;
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
+        avg_cell_temp += global_bms_data.battery.cells[i].temp;
+    }
+    avg_cell_temp /= NUM_CELLS;
+
+    CANFrame tx_frame0 = CANFrame_init(BATTERY_PACK_CURRENT.id);
+    CANFrame_set_field(&tx_frame0, BATTERY_PACK_CURRENT, FLOAT_TO_UINT(global_bms_data.battery.current));
+    CANFrame_set_field(&tx_frame0, CELL_TEMPERATURE, FLOAT_TO_UINT(avg_cell_temp));
+
+    CANFrame tx_frame1 = CANFrame_init(BATTERY_PACK_VOLTAGE.id);
+    CANFrame_set_field(&tx_frame1, BATTERY_PACK_VOLTAGE, FLOAT_TO_UINT(global_bms_data.battery.voltage));
+    CANFrame_set_field(&tx_frame1, STATE_OF_CHARGE, FLOAT_TO_UINT(global_bms_data.battery.soc));
+
+    CANFrame tx_frame2 = CANFrame_init(BUCK_TEMPERATURE.id);
+    CANFrame_set_field(&tx_frame2, BUCK_TEMPERATURE, FLOAT_TO_UINT(global_bms_data.buck_temp));
+    // CANFrame_set_field(&tx_frame2, BMS_CURRENT, FLOAT_TO_UINT(0));
+
+    CANFrame tx_frame3 = CANFrame_init(MC_CAP_VOLTAGE.id);
+    CANFrame_set_field(&tx_frame3, MC_CAP_VOLTAGE, FLOAT_TO_UINT(global_bms_data.mc_cap_voltage));
+
+    if (CANBus_put_frame(&tx_frame0) != HAL_OK) { Error_Handler(); }
+    if (CANBus_put_frame(&tx_frame1) != HAL_OK) { Error_Handler(); }
+    if (CANBus_put_frame(&tx_frame2) != HAL_OK) { Error_Handler(); }
+    if (CANBus_put_frame(&tx_frame3) != HAL_OK) { Error_Handler(); }
 }
 
 // Returns normal fault state or no fault based on current, voltage, and temperature measurements
 State_t NormalFaultChecking(void) {
     float current = global_bms_data.battery.current;
-    if (current < MIN_CURRENT_NORMAL) 
-        return NormalDangerFault;
-    int volt_faults = 0;
+    // if (current < MIN_CURRENT_NORMAL) {
+    //     // TODO: why is there no BATTERY_UNDERCURRENT_ERR error code ?
+    //     return NormalDangerFault;
+    // }
+    int overvolt_faults = 0;
+    int undervolt_faults = 0;
     int temp_faults = 0;
     for (int i = 0; i < NUM_CELLS; ++i) {
+        // Check if cell measurements should be flagged as a fault
         float voltage = global_bms_data.battery.cells[i].voltage;
         float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_VOLTAGE_NORMAL || voltage < MIN_VOLTAGE_NORMAL) {
-            ++volt_faults;
-        } 
+        if (voltage > MAX_VOLTAGE_NORMAL) {
+            ++overvolt_faults;
+        }
+        else if (voltage < MIN_VOLTAGE_NORMAL) {
+            ++undervolt_faults;
+        }
+
         if (temperature > MAX_TEMP_NORMAL) {
             ++temp_faults;
         } 
-        if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+        // Return faults if appropriate
+        if (overvolt_faults > MIN_OVERVOLT_FAULTS || undervolt_faults > MIN_UNDERVOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+            if (overvolt_faults > MIN_OVERVOLT_FAULTS) {
+                bms_error_code = BATTERY_OVERVOLTAGE_ERR; 
+            } else if (undervolt_faults > MIN_UNDERVOLT_FAULTS) {
+                /*
+                    TODO: Spelling mistake in config.h
+                    BATTERY_UNDERVOLTAGAE_ERR should be BATTERY_UNDERVOLTAGE_ERR
+                */
+                bms_error_code = BATTERY_UNDERVOLTAGAE_ERR; 
+            } else {
+                // TODO: why is there no BATTERY_TEMPERATURE_ERR error code?
+            }            
             return NormalDangerFault;
         }
     }
@@ -119,20 +155,38 @@ State_t NormalFaultChecking(void) {
 // Returns severe fault state or no fault based on current, voltage, and temperature measurements
 State_t SevereFaultChecking(void) {
     float current = global_bms_data.battery.current;
-    if (current > MAX_CURRENT_SEVERE) 
+    if (current > MAX_CURRENT_SEVERE) {
+        bms_error_code = BATTERY_OVERCURRENT_ERR;
         return SevereDangerFault;
-    int volt_faults = 0;
+    }
+    int overvolt_faults = 0;
+    int undervolt_faults = 0;
     int temp_faults = 0;
     for (int i = 0; i < NUM_CELLS; ++i) {
+        // Check if cell measurements should be flagged as a fault
         float voltage = global_bms_data.battery.cells[i].voltage;
         float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_VOLTAGE_SEVERE || voltage < MIN_VOLTAGE_SEVERE) {
-            ++volt_faults;
-        } 
+        if (voltage > MAX_VOLTAGE_SEVERE) {
+            ++overvolt_faults;
+        } else if (voltage < MIN_VOLTAGE_SEVERE) {
+            ++undervolt_faults;
+        }
         if (temperature > MAX_TEMP_SEVERE) {
             ++temp_faults;
         } 
-        if (volt_faults > MIN_VOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+        // Return faults if appropriate
+        if (overvolt_faults > MIN_OVERVOLT_FAULTS || undervolt_faults > MIN_UNDERVOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+            if (overvolt_faults > MIN_OVERVOLT_FAULTS) {
+                bms_error_code = BATTERY_OVERVOLTAGE_ERR; 
+            } else if (undervolt_faults > MIN_UNDERVOLT_FAULTS) {
+                /*
+                    TODO: Spelling mistake in config.h
+                    BATTERY_UNDERVOLTAGAE_ERR should be BATTERY_UNDERVOLTAGE_ERR
+                */
+                bms_error_code = BATTERY_UNDERVOLTAGAE_ERR; 
+            } else {
+                // TODO: why is there no BATTERY_TEMPERATURE_ERR error code?
+            }            
             return SevereDangerFault;
         }
     }
@@ -210,6 +264,11 @@ State_t PrechargingEvent(void) {
 
 State_t RunEvent(void) {
     // Set LED colour to purple
+    /*
+    TODO: This isn't actually purple, it's kinda blue
+
+        Assigned to - Ivan
+    */
     SetLEDColour(41.57, 5.1, 67.84);
 
     // Fault checking
@@ -307,11 +366,10 @@ State_t NormalDangerFaultEvent(void) {
     SetLEDColour(50.00, 32.3, 0.0);
 
     // Report fault on CAN
-    // CANFrame rx_frame = CANBus_get_frame();
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    // uint8_t error_code = CANFrame_get_field(&rx_frame, BMS_FAULT_REPORT);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT, error_code);
-    // if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
+    CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, DANGER);
+    CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONTACTOR_PIN();
 
@@ -333,11 +391,10 @@ State_t SevereDangerFaultEvent(void) {
     SetLEDColour(50.00, 0.0, 0.0);
 
     // Report fault on CAN
-    // CANFrame rx_frame = CANBus_get_frame();
-    // CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT.id);
-    // uint8_t error_code = CANFrame_get_field(&rx_frame, BMS_FAULT_REPORT);
-    // CANFrame_set_field(&tx_frame, BMS_FAULT_REPORT, error_code);
-    // if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
+    CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
+    CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
+    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONTACTOR_PIN();
 
@@ -370,12 +427,12 @@ State_t NoFaultEvent(void) {
     return NoFault;
 }
 
-void StartStateMachine(void *argument)
-{
+void StartStateMachine(void *argument) {
   for(;;)
   {
 	OldState = CurrentState;
 	CurrentState = (*SM[CurrentState].Event)();
+    SendCANHeartbeat();
 	osDelay(200);
   }
 }
