@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "state_machine.h"
+#include "timer_utils.h"
 #include "threads.h"
 #include "cmsis_os.h"
 #include "main.h"
@@ -44,7 +45,7 @@ const char *StateNames[] = {
     "Charged",
     "Balancing"
 };
-
+// test
 State_t CurrentState = Initialize;
 State_t OldState = Sleep;
 
@@ -64,21 +65,6 @@ StateMachine SM[13] = {
     {Balancing, BalancingEvent}
 };
 
-// Set channel duty cycle
-void _set_ch_duty_cycle(uint8_t ch, float dc) {
-    uint32_t ccr_val = (uint32_t)( ((100 - dc)*ARR_VAL)/100 );
-    switch (ch) {
-        case 1:
-            htim1.Instance->CCR1 = ccr_val;
-        case 2:
-            htim1.Instance->CCR2 = ccr_val;
-        case 3:
-            htim1.Instance->CCR3 = ccr_val;
-        case 4:
-            htim1.Instance->CCR4 = ccr_val;
-    }
-}
-
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
     /*
@@ -89,50 +75,9 @@ void SetLEDColour(float R, float G, float B) {
 
     Assigned to: Ryan, Ivaan
     */     
-    _set_ch_duty_cycle(1, B);
-    _set_ch_duty_cycle(2, G);
-    _set_ch_duty_cycle(3, R);
-}
-
-// Returns normal fault state or no fault based on current, voltage, and temperature measurements
-State_t NormalFaultChecking(void) {
-    float current = global_bms_data.battery.current;
-    if (current < MIN_CURRENT_NORMAL) {
-        // TODO: why is there no BATTERY_UNDERCURRENT_ERR error code ?
-        return NormalDangerFault;
-    }
-    int overvolt_faults = 0;
-    int undervolt_faults = 0;
-    int temp_faults = 0;
-    for (int i = 0; i < NUM_CELLS; ++i) {
-        // Check if cell measurements should be flagged as a fault
-        float voltage = global_bms_data.battery.cells[i].voltage;
-        float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_VOLTAGE_NORMAL) {
-            ++overvolt_faults;
-        } else if (voltage < MIN_VOLTAGE_NORMAL) {
-            ++undervolt_faults;
-        }
-        if (temperature > MAX_TEMP_NORMAL) {
-            ++temp_faults;
-        } 
-        // Return faults if appropriate
-        if (overvolt_faults > MIN_OVERVOLT_FAULTS || undervolt_faults > MIN_UNDERVOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
-            if (overvolt_faults > MIN_OVERVOLT_FAULTS) {
-                bms_error_code = BATTERY_OVERVOLTAGE_ERR; 
-            } else if (undervolt_faults > MIN_UNDERVOLT_FAULTS) {
-                /*
-                    TODO: Spelling mistake in config.h
-                    BATTERY_UNDERVOLTAGAE_ERR should be BATTERY_UNDERVOLTAGE_ERR
-                */
-                bms_error_code = BATTERY_UNDERVOLTAGAE_ERR; 
-            } else {
-                // TODO: why is there no BATTERY_TEMPERATURE_ERR error code?
-            }            
-            return NormalDangerFault;
-        }
-    }
-    return NoFault;
+    set_led_pwm_dc(1, B);
+    set_led_pwm_dc(2, G);
+    set_led_pwm_dc(3, R);
 }
 
 // CAN heartbeat subroutine
@@ -162,6 +107,49 @@ void SendCANHeartbeat(void) {
     if (CANBus_put_frame(&tx_frame1) != HAL_OK) { Error_Handler(); }
     if (CANBus_put_frame(&tx_frame2) != HAL_OK) { Error_Handler(); }
     if (CANBus_put_frame(&tx_frame3) != HAL_OK) { Error_Handler(); }
+}
+
+// Returns normal fault state or no fault based on current, voltage, and temperature measurements
+State_t NormalFaultChecking(void) {
+    float current = global_bms_data.battery.current;
+    // if (current < MIN_CURRENT_NORMAL) {
+    //     // TODO: why is there no BATTERY_UNDERCURRENT_ERR error code ?
+    //     return NormalDangerFault;
+    // }
+    int overvolt_faults = 0;
+    int undervolt_faults = 0;
+    int temp_faults = 0;
+    for (int i = 0; i < NUM_CELLS; ++i) {
+        // Check if cell measurements should be flagged as a fault
+        float voltage = global_bms_data.battery.cells[i].voltage;
+        float temperature = global_bms_data.battery.cells[i].temp;
+        if (voltage > MAX_VOLTAGE_NORMAL) {
+            ++overvolt_faults;
+        }
+        else if (voltage < MIN_VOLTAGE_NORMAL) {
+            ++undervolt_faults;
+        }
+
+        if (temperature > MAX_TEMP_NORMAL) {
+            ++temp_faults;
+        } 
+        // Return faults if appropriate
+        if (overvolt_faults > MIN_OVERVOLT_FAULTS || undervolt_faults > MIN_UNDERVOLT_FAULTS || temp_faults > MIN_TEMP_FAULTS) {
+            if (overvolt_faults > MIN_OVERVOLT_FAULTS) {
+                bms_error_code = BATTERY_OVERVOLTAGE_ERR; 
+            } else if (undervolt_faults > MIN_UNDERVOLT_FAULTS) {
+                /*
+                    TODO: Spelling mistake in config.h
+                    BATTERY_UNDERVOLTAGAE_ERR should be BATTERY_UNDERVOLTAGE_ERR
+                */
+                bms_error_code = BATTERY_UNDERVOLTAGAE_ERR; 
+            } else {
+                // TODO: why is there no BATTERY_TEMPERATURE_ERR error code?
+            }            
+            return NormalDangerFault;
+        }
+    }
+    return NoFault;
 }
 
 // Returns severe fault state or no fault based on current, voltage, and temperature measurements
