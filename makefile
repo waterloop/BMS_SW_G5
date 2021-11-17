@@ -100,15 +100,11 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 # AS defines
 AS_DEFS = 
 
-# C defines
-# C_DEFS = \
-# -D USE_HAL_DRIVER \
-# -D STM32F401xE
-
 C_DEFS = \
 -D USE_HAL_DRIVER \
 -D STM32F405xx \
--D MASTER_BMS
+-D MASTER_BMS \
+-D DEBUG
 
 
 # AS includes

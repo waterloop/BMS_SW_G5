@@ -27,7 +27,8 @@
 #define MAX_TEMP_NORMAL 60.0
 #define MIN_CURRENT_NORMAL 5.0
 
-#define MIN_VOLT_FAULTS 5
+#define MIN_OVERVOLT_FAULTS 5
+#define MIN_UNDERVOLT_FAULTS 5
 #define MIN_TEMP_FAULTS 5
 
 #define ARR_VAL    65535
@@ -47,6 +48,7 @@ typedef enum {
     Sleep,
     NormalDangerFault,
     SevereDangerFault,
+    NoFault,
     Charging,
     Charged,
     Balancing
@@ -68,6 +70,7 @@ State_t StopEvent(void);
 State_t SleepEvent(void);
 State_t NormalDangerFaultEvent(void);
 State_t SevereDangerFaultEvent(void);
+State_t NoFaultEvent(void);
 State_t ChargingEvent(void);
 State_t ChargedEvent(void);
 State_t BalancingEvent(void);
