@@ -158,34 +158,34 @@ void _Ltc6813_decode_adc(Ltc6813* self) {
 	*/
 
     // CVA
-    uint16_t c1v = (self->cva_bfr.data[0] << 8) | self->cva_bfr.data[1];
-    uint16_t c2v = (self->cva_bfr.data[2] << 8) | self->cva_bfr.data[3];
-    uint16_t c3v = (self->cva_bfr.data[4] << 8) | self->cva_bfr.data[5];
+    uint16_t c1v = (self->cva_bfr.data[1] << 8) | self->cva_bfr.data[0];
+    uint16_t c2v = (self->cva_bfr.data[3] << 8) | self->cva_bfr.data[2];
+    uint16_t c3v = (self->cva_bfr.data[5] << 8) | self->cva_bfr.data[4];
 
     // CVB
-    uint16_t c4v = (self->cvb_bfr.data[0] << 8) | self->cvb_bfr.data[1];
-    uint16_t c5v = (self->cvb_bfr.data[2] << 8) | self->cvb_bfr.data[3];
-    uint16_t c6v = (self->cvb_bfr.data[4] << 8) | self->cvb_bfr.data[5];
+    uint16_t c4v = (self->cvb_bfr.data[1] << 8) | self->cvb_bfr.data[0];
+    uint16_t c5v = (self->cvb_bfr.data[3] << 8) | self->cvb_bfr.data[2];
+    uint16_t c6v = (self->cvb_bfr.data[5] << 8) | self->cvb_bfr.data[4];
 
     // CVC
-    uint16_t c7v = (self->cvc_bfr.data[0] << 8) | self->cvc_bfr.data[1];
-    uint16_t c8v = (self->cvc_bfr.data[2] << 8) | self->cvc_bfr.data[3];
-    uint16_t c9v = (self->cvc_bfr.data[4] << 8) | self->cvc_bfr.data[5];
+    uint16_t c7v = (self->cvc_bfr.data[1] << 8) | self->cvc_bfr.data[0];
+    uint16_t c8v = (self->cvc_bfr.data[3] << 8) | self->cvc_bfr.data[2];
+    uint16_t c9v = (self->cvc_bfr.data[5] << 8) | self->cvc_bfr.data[4];
 
     // CVD
-    uint16_t c10v = (self->cvd_bfr.data[0] << 8) | self->cvd_bfr.data[1];
-    uint16_t c11v = (self->cvd_bfr.data[2] << 8) | self->cvd_bfr.data[3];
-    uint16_t c12v = (self->cvd_bfr.data[4] << 8) | self->cvd_bfr.data[5];
+    uint16_t c10v = (self->cvd_bfr.data[1] << 8) | self->cvd_bfr.data[0];
+    uint16_t c11v = (self->cvd_bfr.data[3] << 8) | self->cvd_bfr.data[2];
+    uint16_t c12v = (self->cvd_bfr.data[5] << 8) | self->cvd_bfr.data[4];
 
     // CVE
-    uint16_t c13v = (self->cve_bfr.data[0] << 8) | self->cve_bfr.data[1];
-    uint16_t c14v = (self->cve_bfr.data[2] << 8) | self->cve_bfr.data[3];
-    uint16_t c15v = (self->cve_bfr.data[4] << 8) | self->cve_bfr.data[5];
+    uint16_t c13v = (self->cve_bfr.data[1] << 8) | self->cve_bfr.data[0];
+    uint16_t c14v = (self->cve_bfr.data[3] << 8) | self->cve_bfr.data[2];
+    uint16_t c15v = (self->cve_bfr.data[5] << 8) | self->cve_bfr.data[4];
 
     // CVF
-    uint16_t c16v = (self->cvf_bfr.data[0] << 8) | self->cvf_bfr.data[1];
-    uint16_t c17v = (self->cvf_bfr.data[2] << 8) | self->cvf_bfr.data[3];
-    uint16_t c18v = (self->cvf_bfr.data[4] << 8) | self->cvf_bfr.data[5];
+    uint16_t c16v = (self->cvf_bfr.data[1] << 8) | self->cvf_bfr.data[0];
+    uint16_t c17v = (self->cvf_bfr.data[3] << 8) | self->cvf_bfr.data[2];
+    uint16_t c18v = (self->cvf_bfr.data[5] << 8) | self->cvf_bfr.data[4];
 
     self->cell_voltages[0] = c1v*100E-6;
     self->cell_voltages[1] = c2v*100E-6;
