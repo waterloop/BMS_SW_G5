@@ -7,7 +7,7 @@
 #define UV_BOUNDS 2.7    //  lower bounds of cell voltage -- undervoltage limit
 #define TARGET_VOLTAGE 3.6   // target cell voltage
 
-void ovCheck () {
+void ovCheck () {   // this fxn checks for overvoltage of individual cells and writes to the bitmask if it's seen
 
     uint32_t dischargeCells = 0;
 
@@ -17,16 +17,16 @@ void ovCheck () {
 
         if (cellVoltage > OV_BOUNDS)
         {
-            discargeCells |= (1 << n);
+            discargeCells |= (1 << n);  // setting given bitmask to 1
         }
 
     }
 
-    ovBalance(dischargeCells);
+    ovBalance(dischargeCells); // sends bitmask to OV balance fxn
 
 }
 
-void uvCheck () {
+void uvCheck () {   // this fxn checks for overvoltage of individual cells and writes to the bitmask if it's seen
 
     uint32_t dischargeCells = 0;
 
@@ -57,7 +57,7 @@ void uvCheck () {
 
 }
 
-void ovBalance (uint32_t overchargedCells) {
+void ovBalance (uint32_t overchargedCells) {    // this fxn should enable and disable discharging of individual cells
 
     float ovBalanceVoltage = TARGET_VOLTAGE + 10E-3;    // tolerance of 10mV added
 
@@ -95,7 +95,7 @@ void ovBalance (uint32_t overchargedCells) {
 
 }
 
-void uvBalance (uint32_t overchargedCells) {
+void uvBalance (uint32_t overchargedCells) { // this fxn should enable and disable discharging of individual cells
 
     float uvTargetVoltage;
 
