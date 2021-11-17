@@ -264,6 +264,11 @@ State_t PrechargingEvent(void) {
 
 State_t RunEvent(void) {
     // Set LED colour to purple
+    /*
+    TODO: This isn't actually purple, it's kinda blue
+
+        Assigned to - Ivan
+    */
     SetLEDColour(41.57, 5.1, 67.84);
 
     // Fault checking
