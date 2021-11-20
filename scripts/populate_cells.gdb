@@ -1,0 +1,14 @@
+set var global_bms_data.battery.cells[0].voltage = 5.0
+set var global_bms_data.battery.cells[1].voltage = 5.0
+set var global_bms_data.battery.cells[2].voltage = 5.0
+set var global_bms_data.battery.cells[3].voltage = 5.0
+set var global_bms_data.battery.cells[4].voltage = 5.0
+set var global_bms_data.battery.cells[5].voltage = 5.0
+set var global_bms_data.battery.cells[6].voltage = 5.0
+set var global_bms_data.battery.cells[7].voltage = 5.0
+set var global_bms_data.battery.cells[8].voltage = 5.0
+set var global_bms_data.battery.cells[9].voltage = 5.0
+set var global_bms_data.battery.cells[10].voltage = 3.0
+set var global_bms_data.battery.cells[11].voltage = 3.0
+set var global_bms_data.battery.cells[12].voltage = 3.0
+set var global_bms_data.battery.cells[13].voltage = 3.0
