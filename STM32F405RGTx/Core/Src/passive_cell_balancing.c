@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include "main.h"
-#include "cmsis_os.h"
 #include "threads.h"
-
-#define OV_BOUNDS 3.7    // upper bounds of cell voltage -- overvoltage limit
-#define UV_BOUNDS 2.7    //  lower bounds of cell voltage -- undervoltage limit
-#define TARGET_VOLTAGE 3.6   // target cell voltage
+#include "state_machine.h"
+#include "bms_entry.h"
+#include "ltc6813.h"
+#include "passive_cell_balancing.h""
 
 void ovCheck () {   // this fxn checks for overvoltage of individual cells and writes to the bitmask if it's seen
 
