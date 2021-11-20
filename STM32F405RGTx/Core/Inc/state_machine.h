@@ -25,13 +25,13 @@
 #define MAX_VOLTAGE_NORMAL 3.8
 #define MIN_VOLTAGE_NORMAL 1.8
 #define MAX_TEMP_NORMAL 60.0
-// #define MIN_CURRENT_NORMAL 5.0
-#define MAX_CURRENT_NORMAL 40.0
+#define MIN_CURRENT_NORMAL 5.0
 
 #define MIN_OVERVOLT_FAULTS 5
 #define MIN_UNDERVOLT_FAULTS 5
 #define MIN_TEMP_FAULTS 5
 
+#define ARR_VAL    65535
 
 /* Definitions for stateMachineTask */
 

@@ -74,7 +74,7 @@ void _start_adc_and_dma() {
 }
 
 void measurements_thread_fn(void* arg) {
-    // _start_adc_and_dma();
+    _start_adc_and_dma();
     // Ltc6813_wakeup_sleep(&ltc6813);
 
     while (1) {
@@ -84,10 +84,10 @@ void measurements_thread_fn(void* arg) {
         //     global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
         // }
 
-        // // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
-        // osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
-        // _process_data();
-        // _start_adc_and_dma();
+        // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
+        osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
+        _process_data();
+        _start_adc_and_dma();
 
         osDelay(MEASUREMENT_PERIODICITY*1E3);
     }
