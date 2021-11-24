@@ -74,14 +74,6 @@ StateMachine SM[13] = {
 
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
-    /*
-    TODO: this function doesn't work, needs to actually
-          change to the right colors, I have no idea what's
-          wrong with it right now though
-             - Ryan
-
-    Assigned to: Ryan, Ivaan
-    */     
     set_led_intensity(RED, R);
     set_led_intensity(GREEN, G);
     set_led_intensity(BLUE, B);
@@ -201,16 +193,16 @@ State_t IdleEvent(void) {
     SetLEDColour(0.0, 50.0, 0.0);
     
     // Fault checking
-    State_t severe_check = SevereFaultChecking();
-    State_t normal_check = NormalFaultChecking();
-    if (severe_check != NoFault) {
-        return severe_check;
-    } else if (normal_check != NoFault) {
-        return normal_check;
-    }
+    // State_t severe_check = SevereFaultChecking();
+    // State_t normal_check = NormalFaultChecking();
+    // if (severe_check != NoFault) {
+    //     return severe_check;
+    // } else if (normal_check != NoFault) {
+    //     return normal_check;
+    // }
 
     // Resumes measurement if the previous state was Sleep
-    osThreadResume(measurements_thread); 
+    // osThreadResume(measurements_thread); 
    
     if (!has_precharged) {
         TURN_OFF_PRECHARGE_PIN();
@@ -237,13 +229,13 @@ State_t PrechargingEvent(void) {
     SetLEDColour(50.0, 50.0, 50.0);
 
     // Fault checking
-    State_t severe_check = SevereFaultChecking();
-    State_t normal_check = NormalFaultChecking();
-    if (severe_check != NoFault) {
-        return severe_check;
-    } else if (normal_check != NoFault) {
-        return normal_check;
-    }
+    // State_t severe_check = SevereFaultChecking();
+    // State_t normal_check = NormalFaultChecking();
+    // if (severe_check != NoFault) {
+    //     return severe_check;
+    // } else if (normal_check != NoFault) {
+    //     return normal_check;
+    // }
 
     TURN_ON_PRECHARGE_PIN();
 
@@ -272,13 +264,13 @@ State_t RunEvent(void) {
     SetLEDColour(41.57, 5.1, 67.84);
 
     // Fault checking
-    State_t severe_check = SevereFaultChecking();
-    State_t normal_check = NormalFaultChecking();
-    if (severe_check != NoFault) {
-        return severe_check;
-    } else if (normal_check != NoFault) {
-        return normal_check;
-    }
+    // State_t severe_check = SevereFaultChecking();
+    // State_t normal_check = NormalFaultChecking();
+    // if (severe_check != NoFault) {
+    //     return severe_check;
+    // } else if (normal_check != NoFault) {
+    //     return normal_check;
+    // }
 
     TURN_ON_CONTACTOR_PIN();
     TURN_OFF_PRECHARGE_PIN();
