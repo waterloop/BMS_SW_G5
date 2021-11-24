@@ -31,7 +31,17 @@ void ltc6813_comm_test() {
     while(1) {
         Ltc6813_wakeup_sleep(&ltc6813);
         Ltc6813_wakeup_idle(&ltc6813);
-        uint8_t success = Ltc6813_read_cfga(&ltc6813);
+        Ltc6813_read_adc(&ltc6813, NORMAL_ADC);
+
+        Ltc6813_wakeup_sleep(&ltc6813);
+        Ltc6813_wakeup_idle(&ltc6813);
+        uint8_t success = Ltc6813_read_reg(&ltc6813, RDCVA);
+        success = Ltc6813_read_reg(&ltc6813, RDCVB);
+        success = Ltc6813_read_reg(&ltc6813, RDCVC);
+        success = Ltc6813_read_reg(&ltc6813, RDCVD);
+        success = Ltc6813_read_reg(&ltc6813, RDCVE);
+        success = Ltc6813_read_reg(&ltc6813, RDCVF);
+        _Ltc6813_decode_adc(&ltc6813);
         if (success == 1) {
             printf("PEC SUCCESS");
             Buffer_print(&(ltc6813.cfga_bfr));
