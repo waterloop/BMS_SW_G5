@@ -49,9 +49,7 @@ int bms_entry() {
     if (CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
     if (CANBus_subscribe(STATE_CHANGE_REQ) != HAL_OK) { Error_Handler(); }
 
-    // needed when using a debugger
-    // TODO: delete later
-    // hcan1.Instance->MCR &= ~(1 << 16);
+    hcan1.Instance->MCR = 0x60;
 
     printf("initializing objects...\r\n");
     ltc6813 = Ltc6813_init(hspi1, GPIOC, 4); //changed from base A to C for CS2
@@ -62,8 +60,8 @@ int bms_entry() {
     _lv_test_init_global_bms_obj();
 
     printf("starting RTOS threads...\r\n");
-    // measurements_thread = osThreadNew(
-    //     measurements_thread_fn, NULL, &measurements_thread_attrs);
+    measurements_thread = osThreadNew(
+        measurements_thread_fn, NULL, &measurements_thread_attrs);
 
     coulomb_counting_thread = osThreadNew(
         coulomb_counting_thread_fn, NULL, &coulomb_counting_thread_attrs);
@@ -72,7 +70,7 @@ int bms_entry() {
         StartStateMachine, NULL, &state_machine_thread_attrs);
 
     // RUNNING A BMS test --> Don't start scheduler
-    //ltc6813_comm_test();    // Test communication by reading cfg register
+    // ltc6813_comm_test();    // Test communication by reading cfg register
     // ltc6813_adc_test();     // Driver test -> Running the ADC
 
     printf("starting RTOS scheduler...\r\n");

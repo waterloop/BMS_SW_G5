@@ -15,21 +15,36 @@
 #define TURN_OFF_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0))
 #define TURN_ON_CONTACTOR_PIN() (HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 1))
 #define TURN_OFF_CONTACTOR_PIN() (HAL_GPIO_WritePin(CONTACTOR_GPIO_Port, CONTACTOR_Pin, 0))
+
+//////////////////////////////////////////////////////////////
+// PACK PARAMETERS
 #define PRECHARGE_VOLTAGE_THRESHOLD 40.0
 
-#define MAX_VOLTAGE_SEVERE 4.0
-#define MIN_VOLTAGE_SEVERE 1.0
-#define MAX_TEMP_SEVERE 70.0
-#define MAX_CURRENT_SEVERE 50.0
+#define MAX_PACK_CURRENT_SEVERE 50.0
+#define MAX_PACK_CURRENT_NORMAL 40.0
 
-#define MAX_VOLTAGE_NORMAL 3.8
-#define MIN_VOLTAGE_NORMAL 1.8
-#define MAX_TEMP_NORMAL 60.0
-#define MAX_CURRENT_NORMAL 40.0
+#define MAX_PACK_VOLTAGE_SEVERE 50.0
+#define MIN_PACK_VOLTAGE_SEVERE 40.0
+#define MAX_PACK_VOLTAGE_NORMAL 47.0
+#define MIN_PACK_VOLTAGE_NORMAL 44.0
 
-#define MIN_OVERVOLT_FAULTS 5
-#define MIN_UNDERVOLT_FAULTS 5
-#define MIN_TEMP_FAULTS 5
+#define MAX_BUCK_TEMP_SEVERE 100.0
+#define MAX_BUCK_TEMP_NORMAL 80.0
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+// CELL PARAMETERS
+#define MAX_CELL_VOLTAGE_SEVERE 3.7
+#define MIN_CELL_VOLTAGE_SEVERE 1.6
+#define MAX_CELL_VOLTAGE_NORMAL 3.6
+#define MIN_CELL_VOLTAGE_NORMAL 2.6
+
+#define MAX_CELL_TEMP_SEVERE 60.0   // not final
+
+#define MIN_CELL_OVERVOLT_FAULTS 1
+#define MIN_CELL_UNDERVOLT_FAULTS 1
+#define MIN_CELL_TEMP_FAULTS 1
+//////////////////////////////////////////////////////////////
 
 
 /* Definitions for stateMachineTask */
