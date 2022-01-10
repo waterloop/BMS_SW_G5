@@ -4,11 +4,11 @@
 #include "main.h"
 #include "can.h"
 #include "timer_utils.h"
-#include "threads.h"
-#include "state_machine.h"
-#include "bms_entry.h"
+#include "threads.hpp"
+#include "state_machine.hpp"
+#include "bms_entry.hpp"
 
-//#include "bms_tests.h"
+//#include "bms_tests.hpp"
 
 // redirect stdin and stdout to UART1
 void __io_putchar(uint8_t ch) {

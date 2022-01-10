@@ -39,7 +39,7 @@ BUILD_DIR = build
 # C sources
 # USER_INCLUDES := -I ./inc
 CORE_C_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.c")
-CORE_CPP_SOUIRCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.cpp")
+CORE_CPP_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.cpp")
 
 HAL_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver -name "*.c")
 
@@ -55,7 +55,7 @@ $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
 
 C_SOURCES = $(CORE_C_SOURCES) $(HAL_SOURCES) $(RTOS_SOURCES)
-CPP_SOURCES = $(CORE_CPP_SOUIRCES)
+CPP_SOURCES = $(CORE_CPP_SOURCES)
 
 # ASM sources
 ASM_SOURCES = $(DEVICE_DIRNAME)/Core/Startup/startup_stm32f405rgtx.s
@@ -72,13 +72,13 @@ CC = $(GCC_PATH)/$(PREFIX)gcc
 AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
 CP = $(GCC_PATH)/$(PREFIX)objcopy
 SZ = $(GCC_PATH)/$(PREFIX)size
-CPP_CC = $(GCC_PATH)/$(PREFIX)g++
+CPP_CC = $(GCC_PATH)/$(PREFIX)g++ -std=c++11
 else
 CC = $(PREFIX)gcc
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
 SZ = $(PREFIX)size
-CPP_CC = $(PREFIX)g++
+CPP_CC = $(PREFIX)g++ -std=c++11
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S

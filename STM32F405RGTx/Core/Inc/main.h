@@ -33,7 +33,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ltc6813.h"
-#include "bms_entry.h"
+#include "bms_entry.hpp"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

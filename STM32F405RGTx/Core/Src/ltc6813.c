@@ -2,10 +2,10 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "lut.h"
+#include "lut.hpp"
 #include "ltc6813.h"
-#include "timer_utils.h"
 #include "cmsis_os.h"
+#include "timer_utils.h"
 
 /*
 IMPORTANT TIMING PARAMETERS:

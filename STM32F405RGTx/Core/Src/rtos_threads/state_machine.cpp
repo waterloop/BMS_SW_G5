@@ -5,15 +5,14 @@
  *      Author: Tiffany Wang, Ivan Mudarth
 */
 
-
 #include <stdio.h>
 #include <string.h>
-#include "state_machine.h"
+#include "state_machine.hpp"
 #include "timer_utils.h"
-#include "threads.h"
+#include "threads.hpp"
 #include "cmsis_os.h"
 #include "main.h"
-#include "bms_entry.h"
+#include "bms_entry.hpp"
 #include "can.h"
 
 /*
@@ -25,11 +24,11 @@ return cell temp faults
 */
 const osThreadAttr_t state_machine_thread_attrs = {
     .name = "state_machine_thread",
-    .priority = (osPriority_t)osPriorityNormal,
-    .stack_size = 1024*3
+    .stack_size = 1024*3,
+    .priority = (osPriority_t)osPriorityNormal
 };
 
-typedef enum { false = 0, true = !false } bool;
+// typedef enum { false = 0, true = !false } bool;
 
 uint8_t idle_state_id;
 uint8_t run_state_id;

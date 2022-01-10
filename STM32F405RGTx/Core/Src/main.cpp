@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "bms_entry.h"
+#include "bms_entry.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
