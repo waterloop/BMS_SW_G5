@@ -28,16 +28,16 @@ osThreadId_t measurements_thread;
 osThreadId_t coulomb_counting_thread;
 osThreadId_t state_machine_thread;
 
-void _lv_test_init_global_bms_obj() {
-    global_bms_data.mc_cap_voltage = 46;
-    global_bms_data.contactor_voltage = 46;
-    global_bms_data.buck_temp = 25;
-    global_bms_data.battery.voltage = 46;
-    global_bms_data.battery.current = 15;
-    global_bms_data.battery.soc = 100;
+void BMS::_lv_test_init() {
+    mc_cap_voltage = 46;
+    contactor_voltage = 46;
+    buck_temp = 25;
+    battery.voltage = 46;
+    battery.current = 15;
+    battery.soc = 100;
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
-        global_bms_data.battery.cells[i].voltage = 3.3;
-        global_bms_data.battery.cells[i].temp = 25;
+        battery.cells[i].voltage = 3.3;
+        battery.cells[i].temp = 25;
     }
 }
 
@@ -57,7 +57,7 @@ int bms_entry() {
     printf("initializing RTOS kernel...\r\n");
     osKernelInitialize();
 
-    _lv_test_init_global_bms_obj();
+    global_bms_data._lv_test_init();
 
     printf("starting RTOS threads...\r\n");
     measurements_thread = osThreadNew(

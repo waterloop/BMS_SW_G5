@@ -2,24 +2,29 @@
 
 #define NUM_CELLS   14
 
-typedef struct {
-    float voltage;
-    float temp;
-} Cell;
+class Cell {
+    public:
+        float voltage;
+        float temp;
+};
 
-typedef struct {
-    float voltage;
-    float current;
-    float soc;
-    Cell cells[NUM_CELLS];
-} Battery;
+class Battery {
+    public:
+        float voltage;
+        float current;
+        float soc;
+        Cell cells[NUM_CELLS];
+};
 
-typedef struct {
-    float buck_temp;
-    float mc_cap_voltage;
-    float contactor_voltage;
-    Battery battery;
-} BMS;
+class BMS {
+    public:
+        float buck_temp;
+        float mc_cap_voltage;
+        float contactor_voltage;
+        Battery battery;
+        void _lv_test_init();
+};
 
 int bms_entry();
 
+extern BMS global_bms_data;

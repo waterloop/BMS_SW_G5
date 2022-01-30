@@ -2,6 +2,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "threads.hpp"
+#include "bms_entry.hpp"
 
 #define NOMINAL_CAP     21600
 #define INIT_SOC        100
