@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bms_entry.h"
+#include "bsp.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -707,9 +708,22 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+  
+  /* Disengage contactor */
+  TURN_OFF_CONTACTOR_PIN();
+
+  /* Disengage precharge relay */
+  TURN_OFF_PRECHARGE_PIN();
+
+  /* Slave device does not require disabling. SLEEP state activated automatically */
+  /* In STADNDY, REFUP, MEASURE states, SLEEP state reached after t_sleep time */
+  /* Other states are not reached, which can be ignored */
+
+  /* Enter infinite loop to preserve the system state */
   while (1)
   {
   }
+
   /* USER CODE END Error_Handler_Debug */
 }
 
