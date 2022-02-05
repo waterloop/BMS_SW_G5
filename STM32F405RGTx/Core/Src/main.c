@@ -707,7 +707,6 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
   
   /* Disengage contactor */
   TURN_OFF_CONTACTOR_PIN();
@@ -718,6 +717,9 @@ void Error_Handler(void)
   /* Slave device does not require disabling. SLEEP state activated automatically */
   /* In STADNDY, REFUP, MEASURE states, SLEEP state reached after t_sleep time */
   /* Other states are not reached, which can be ignored */
+
+  /* Disable all interrupt requests */
+  __disable_irq();
 
   /* Enter infinite loop to preserve the system state */
   while (1)
