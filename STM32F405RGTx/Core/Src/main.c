@@ -718,6 +718,15 @@ void Error_Handler(void)
   /* In STADNDY, REFUP, MEASURE states, SLEEP state reached after t_sleep time */
   /* Other states are not reached, which can be ignored */
 
+  /* Report a fault on CAN */
+  
+
+  /* Report a fault on UART */
+  printf("Error handling initiated.");
+
+  /* Hard fault state transition */
+
+
   /* Disable all interrupt requests */
   __disable_irq();
 
