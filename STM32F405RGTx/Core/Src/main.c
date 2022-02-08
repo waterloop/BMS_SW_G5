@@ -630,9 +630,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(ADC1_IN2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : CONT2_Pin CS1_Pin G_Pin B_Pin
-                           R_Pin TIMING_Pin */
+                           R_Pin */
   GPIO_InitStruct.Pin = CONT2_Pin|CS1_Pin|G_Pin|B_Pin
-                          |R_Pin|TIMING_Pin;
+                          |R_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -657,6 +657,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BUTTON_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : TIMING_Pin */
+  GPIO_InitStruct.Pin = TIMING_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(TIMING_GPIO_Port, &GPIO_InitStruct);
 
 }
 
