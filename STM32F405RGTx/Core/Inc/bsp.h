@@ -10,7 +10,3 @@
 #define TURN_ON_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1))
 #define TURN_OFF_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0))
 
-// UART fault macros
-
-// State machine hard fault transition macros
-

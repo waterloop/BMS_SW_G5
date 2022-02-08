@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "bms_entry.h"
 #include "bsp.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -719,7 +720,7 @@ void Error_Handler(void)
   /* Other states are not reached, which can be ignored */
 
   /* Report a fault on CAN */
-  
+  __report_CAN();
 
   /* Report a fault on UART */
   printf("Error handling initiated.");
@@ -729,6 +730,9 @@ void Error_Handler(void)
 
   /* Disable all interrupt requests */
   __disable_irq();
+
+  /* Disable all cells via cell mask */
+  __cell_disable();
 
   /* Enter infinite loop to preserve the system state */
   while (1)

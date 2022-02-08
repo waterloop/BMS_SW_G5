@@ -41,6 +41,17 @@ void _lv_test_init_global_bms_obj() {
     }
 }
 
+void __report_CAN() {
+    CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT);
+    CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
+    CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, LOW_LAYER_EXCEPTION);
+}
+
+void __cell_disable() {
+    uint32_t cell_mask = 0b0;
+    Ltc6813_discharge_ctrl(&ltc6813, cell_mask);
+}
+
 int bms_entry() {
     printf("starting timers...\r\n");
     start_timers();

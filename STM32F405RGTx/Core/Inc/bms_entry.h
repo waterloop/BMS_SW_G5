@@ -22,4 +22,6 @@ typedef struct {
 } BMS;
 
 int bms_entry();
+void __report_CAN();
+void __cell_disable();
 
