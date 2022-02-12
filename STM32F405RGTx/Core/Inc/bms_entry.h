@@ -18,6 +18,7 @@ typedef struct {
     float buck_temp;
     float mc_cap_voltage;
     float contactor_voltage;
+    float shunt_current;
     Battery battery;
 } BMS;
 

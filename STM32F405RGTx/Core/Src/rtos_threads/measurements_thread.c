@@ -8,7 +8,7 @@
 #include "ltc6813.h"
 #include "threads.h"
 
-#define ADC_NUM_CONVERSIONS         5U
+#define ADC_NUM_CONVERSIONS         6U
 #define ADC_DECIMATION_COEFF        256U
 
 #define CURRENT_SENSE_RESISTANCE    1E-3
@@ -19,6 +19,8 @@
 #define VOLTAGE_TO_CURRENT(v) (INA240_UNBIAS(v)/CURRENT_SENSE_RESISTANCE)
 
 #define UN_VOLTAGE_DIVIDE(v) ( (21*v) )
+
+#define INA180_VOLTAGE_TO_CURRENT(v) ( v * (2/3) )
 
 const osThreadAttr_t measurements_thread_attrs = {
     .name = "measurements_thread",
@@ -56,6 +58,8 @@ void _process_data() {
                 global_bms_data.mc_cap_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
             case 4:
                 global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+            case 5:
+            	global_bms_data.shunt_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
         }
     }
 }
@@ -74,14 +78,31 @@ void _start_adc_and_dma() {
 }
 
 void measurements_thread_fn(void* arg) {
-    // Ltc6813_wakeup_sleep(&ltc6813);
-	ltc6813_comm_test();
+    _start_adc_and_dma();
 
     while (1) {
-        // // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
-        // osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
-        // _process_data();
-        // _start_adc_and_dma();
+		Ltc6813_wakeup_sleep(&ltc6813);
+        Ltc6813_wakeup_idle(&ltc6813);
+        if (Ltc6813_read_adc(&ltc6813, NORMAL_ADC)) {
+            for (uint8_t i = 0; i < NUM_CELLS; i++) {
+                global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
+            }
+        }
+
+        // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
+        osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
+        _process_data();
+        _start_adc_and_dma();
+
+        osDelay(MEASUREMENT_PERIODICITY*1E3);
+    }
+
+
+    while (1) {
+        // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
+        osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
+        _process_data();
+        _start_adc_and_dma();
 
         osDelay(MEASUREMENT_PERIODICITY*1E3);
     }
