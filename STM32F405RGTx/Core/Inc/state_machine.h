@@ -89,6 +89,8 @@ State_t ChargingEvent(void);
 State_t ChargedEvent(void);
 State_t BalancingEvent(void);
 
+extern State_t CurrentState;
+
 /**
     * @brief    Function implementing the StartStateMachine thread.
     * @param    argument: Not used

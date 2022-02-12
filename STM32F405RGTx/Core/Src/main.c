@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "bms_entry.h"
 #include "bsp.h"
+#include "state_machine.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -726,7 +727,7 @@ void Error_Handler(void)
   printf("Error handling initiated.");
 
   /* Hard fault state transition */
-
+  CurrentState = SevereDangerFault;
 
   /* Disable all interrupt requests */
   __disable_irq();
