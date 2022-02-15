@@ -8,13 +8,9 @@
 #include "state_machine.hpp"
 #include "bms_entry.hpp"
 
-<<<<<<< HEAD:STM32F405RGTx/Core/Src/bms_entry.c
 #include "coulomb_counting_thread.h"
 
-//#include "bms_tests.h"
-=======
 //#include "bms_tests.hpp"
->>>>>>> origin/c++_port:STM32F405RGTx/Core/Src/bms_entry.cpp
 
 // redirect stdin and stdout to UART1
 void __io_putchar(uint8_t ch) {
