@@ -4,6 +4,10 @@
 #include "main.h"
 #include "cmsis_os.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef LTC6813_BUFFER_SIZE
 #define LTC6813_BUFFER_SIZE     10 // bytes
 #endif
@@ -133,3 +137,7 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef __cplusplus
+}
+#endif

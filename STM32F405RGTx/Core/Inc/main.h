@@ -33,7 +33,6 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ltc6813.h"
-#include "bms_entry.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -52,7 +51,6 @@ extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
 
 extern Ltc6813 ltc6813;
-extern BMS global_bms_data;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

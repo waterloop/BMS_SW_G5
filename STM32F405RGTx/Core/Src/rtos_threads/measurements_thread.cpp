@@ -2,13 +2,13 @@
 #include <stdint.h>
 
 #include "main.h"
-#include "bms_entry.h"
+#include "bms_entry.hpp"
 #include "cmsis_os.h"
-#include "lut.h"
+#include "lut.hpp"
 #include "ltc6813.h"
-#include "threads.h"
+#include "threads.hpp"
 
-#define ADC_NUM_CONVERSIONS         6U
+#define ADC_NUM_CONVERSIONS         5U
 #define ADC_DECIMATION_COEFF        256U
 
 #define CURRENT_SENSE_RESISTANCE    1E-3
@@ -20,12 +20,12 @@
 
 #define UN_VOLTAGE_DIVIDE(v) ( (21*v) )
 
-#define INA180_VOLTAGE_TO_CURRENT(v) ( v * (2/3) )
+#define ADC(v)
 
 const osThreadAttr_t measurements_thread_attrs = {
     .name = "measurements_thread",
-    .priority = (osPriority_t)osPriorityAboveNormal,
-    .stack_size = 1024*5
+    .stack_size = 1024*5,
+    .priority = (osPriority_t)osPriorityAboveNormal
 };
 
 uint16_t ADC_buffer[ADC_NUM_CONVERSIONS*ADC_DECIMATION_COEFF];
@@ -58,8 +58,6 @@ void _process_data() {
                 global_bms_data.mc_cap_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
             case 4:
                 global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
-            case 5:
-            	global_bms_data.shunt_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
         }
     }
 }
