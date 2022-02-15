@@ -8,7 +8,7 @@
 #include "state_machine.hpp"
 #include "bms_entry.hpp"
 
-#include "coulomb_counting_thread.h"
+#include "coulomb_counting_thread.hpp"
 
 //#include "bms_tests.hpp"
 
@@ -65,7 +65,7 @@ int bms_entry() {
     measurements_thread = osThreadNew(
         measurements_thread_fn, NULL, &measurements_thread_attrs);
 
-    coulomb_counting_thread();
+    coulomb_counting_thread = CoulombCountingThread();
 
     state_machine_thread = osThreadNew(
         StartStateMachine, NULL, &state_machine_thread_attrs);

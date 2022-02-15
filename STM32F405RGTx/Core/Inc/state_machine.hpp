@@ -10,6 +10,7 @@
 #include "can.h"
 #include "cmsis_os.h"
 #include "can.h"
+#include "util.hpp"
 
 #define TURN_ON_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 1))
 #define TURN_OFF_PRECHARGE_PIN() (HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, 0))
@@ -105,6 +106,6 @@ class StateMachineThread {
         State_t ChargingEvent(void);
         State_t ChargedEvent(void);
         State_t BalancingEvent(void);
-}
+};
 
 
