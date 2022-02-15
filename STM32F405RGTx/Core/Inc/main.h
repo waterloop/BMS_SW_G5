@@ -60,8 +60,6 @@ extern BMS global_bms_data;
 
 /* USER CODE END EM */
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -70,24 +68,46 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define CS_Pin GPIO_PIN_4
-#define CS_GPIO_Port GPIOA
+#define ADC1_CURRENT_Pin GPIO_PIN_0
+#define ADC1_CURRENT_GPIO_Port GPIOC
+#define ADC1_VBATT_Pin GPIO_PIN_1
+#define ADC1_VBATT_GPIO_Port GPIOC
+#define ADC1_VCAP_Pin GPIO_PIN_2
+#define ADC1_VCAP_GPIO_Port GPIOC
+#define ADC1_CONTACTOR_Pin GPIO_PIN_3
+#define ADC1_CONTACTOR_GPIO_Port GPIOC
+#define ADC1_THERMISTOR_Pin GPIO_PIN_1
+#define ADC1_THERMISTOR_GPIO_Port GPIOA
+#define ADC1_IN2_Pin GPIO_PIN_2
+#define ADC1_IN2_GPIO_Port GPIOA
+#define CONT2_Pin GPIO_PIN_3
+#define CONT2_GPIO_Port GPIOA
+#define CS1_Pin GPIO_PIN_4
+#define CS1_GPIO_Port GPIOA
 #define CS2_Pin GPIO_PIN_4
 #define CS2_GPIO_Port GPIOC
-#define CONTACTOR_Pin GPIO_PIN_1
-#define CONTACTOR_GPIO_Port GPIOB
+#define CONT1_Pin GPIO_PIN_1
+#define CONT1_GPIO_Port GPIOB
 #define PRECHARGE_Pin GPIO_PIN_2
 #define PRECHARGE_GPIO_Port GPIOB
 #define EXT_LED_Pin GPIO_PIN_10
 #define EXT_LED_GPIO_Port GPIOB
-#define TIM3_CH1_IMD_IN_Pin GPIO_PIN_6
-#define TIM3_CH1_IMD_IN_GPIO_Port GPIOC
-#define TIM1_CH1_BLUE_Pin GPIO_PIN_8
-#define TIM1_CH1_BLUE_GPIO_Port GPIOA
-#define TIM1_CH2_GREEN_Pin GPIO_PIN_9
-#define TIM1_CH2_GREEN_GPIO_Port GPIOA
-#define TIM1_CH3_RED_Pin GPIO_PIN_10
-#define TIM1_CH3_RED_GPIO_Port GPIOA
+#define BUTTON_Pin GPIO_PIN_11
+#define BUTTON_GPIO_Port GPIOB
+#define G_Pin GPIO_PIN_8
+#define G_GPIO_Port GPIOA
+#define B_Pin GPIO_PIN_9
+#define B_GPIO_Port GPIOA
+#define R_Pin GPIO_PIN_10
+#define R_GPIO_Port GPIOA
+#define SWDIO_Pin GPIO_PIN_13
+#define SWDIO_GPIO_Port GPIOA
+#define SWCLK_Pin GPIO_PIN_14
+#define SWCLK_GPIO_Port GPIOA
+#define TIMING_Pin GPIO_PIN_15
+#define TIMING_GPIO_Port GPIOA
+#define DEBUG_Pin GPIO_PIN_3
+#define DEBUG_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
