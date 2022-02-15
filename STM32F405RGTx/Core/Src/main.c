@@ -25,7 +25,6 @@
 /* USER CODE BEGIN Includes */
 #include "bms_entry.h"
 #include "bsp.h"
-#include "state_machine.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -722,11 +721,8 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   
-  /* Disengage contactor */
-  TURN_OFF_CONTACTOR_PIN();
-
-  /* Disengage precharge relay */
-  TURN_OFF_PRECHARGE_PIN();
+  /* Disable all interrupt requests */
+  __disable_irq();
 
   /* Slave device does not require disabling. SLEEP state activated automatically */
   /* In STADNDY, REFUP, MEASURE states, SLEEP state reached after t_sleep time */
@@ -738,14 +734,17 @@ void Error_Handler(void)
   /* Report a fault on UART */
   printf("Error handling initiated.");
 
-  /* Hard fault state transition */
-  CurrentState = SevereDangerFault;
+  /* Disengage contactor */
+  TURN_OFF_CONTACTOR_PIN();
 
-  /* Disable all interrupt requests */
-  __disable_irq();
+  /* Disengage precharge relay */
+  TURN_OFF_PRECHARGE_PIN();
 
   /* Disable all cells via cell mask */
   __cell_disable();
+
+  /* Hard fault state transition */
+  CurrentState = SevereDangerFault;
 
   /* Enter infinite loop to preserve the system state */
   while (1)
