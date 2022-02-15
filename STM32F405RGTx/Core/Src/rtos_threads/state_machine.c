@@ -15,6 +15,7 @@
 #include "main.h"
 #include "bms_entry.h"
 #include "can.h"
+#include "bsp.h"
 
 /*
 Don’t check for undercurrent

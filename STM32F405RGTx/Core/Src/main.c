@@ -744,7 +744,7 @@ void Error_Handler(void)
   __cell_disable();
 
   /* Hard fault state transition */
-  CurrentState = SevereDangerFault;
+  __hard_fault_state_trans();
 
   /* Enter infinite loop to preserve the system state */
   while (1)

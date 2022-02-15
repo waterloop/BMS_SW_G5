@@ -52,6 +52,10 @@ void __cell_disable() {
     Ltc6813_discharge_ctrl(&ltc6813, cell_mask);
 }
 
+void __hard_fault_state_trans() {
+    CurrentState = SevereDangerFault;
+}
+
 int bms_entry() {
     printf("starting timers...\r\n");
     start_timers();
