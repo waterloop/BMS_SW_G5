@@ -21,6 +21,7 @@ class BMS {
         float buck_temp;
         float mc_cap_voltage;
         float contactor_voltage;
+        float bms_current;
         Battery battery;
         void _lv_test_init();
 };
