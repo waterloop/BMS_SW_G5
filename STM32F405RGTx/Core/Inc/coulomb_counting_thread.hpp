@@ -2,12 +2,12 @@
 
 class CoulombCountingThread {
     public:
-        CoulombCountingThread();
+        static void initialize();
 
-        float getCharge();
+        static float getCharge();
     private:
-        RTOSThread thread;
-        void runCoulombCounting(void* args);
+        static RTOSThread thread;
+        static void runCoulombCounting(void* args);
 
-        float prev_current;
+        static float prev_current;
 };

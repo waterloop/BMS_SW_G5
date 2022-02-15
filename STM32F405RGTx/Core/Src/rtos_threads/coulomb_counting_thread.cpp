@@ -1,33 +1,32 @@
 #include <stdio.h>
 #include "main.h"
 #include "cmsis_os.h"
-#include "coulomb_counting_thread.h"
+#include "coulomb_counting_thread.hpp"
+#include "bms_entry.hpp"
+#include "threads.hpp"
 
 #define NOMINAL_CAP     21600
 #define INIT_SOC        100
 
-CoulombCountingThread::CoulombCountingThread() {
-    this->thread = RTOSThread(
+void CoulombCountingThread::initialize() {
+    thread = RTOSThread(
         "coulomb_counting_thread",
         1024,
         osPriorityBelowNormal,
-        this->runCoulombCounting
+        runCoulombCounting
     );
 }
 
-CoulombCountingThread::getCharge() {
-    // ADC sample rate, which doubles down as width of individual subdivision (10 MHz)
-    const double WIDTH = MEASUREMENT_PERIODICITY;
-
+float CoulombCountingThread::getCharge() {
     // integrate wrt time to get charge
     float curr_current = global_bms_data.battery.current;
-    float trapArea = 0.5 * WIDTH * (this->prev_current + curr_current);
+    float trapArea = 0.5 * MEASUREMENT_PERIODICITY * (prev_current + curr_current);
     prev_current = curr_current;
     
     return trapArea;
 }
 
-CoulombCountingThread::runCoulombCounting(void* args) {
+void CoulombCountingThread::runCoulombCounting(void* args) {
     float totalChargeConsumed = 0.0;
 
     while (1) {
