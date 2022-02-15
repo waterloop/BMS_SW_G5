@@ -4,3 +4,4 @@
 [submodule "WLoopUtil"]
 	path = WLoopUtil
 	url = https://github.com/waterloop/WLoopUtil.git
+	branch = develop
