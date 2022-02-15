@@ -99,6 +99,4 @@ void StartStateMachine(void *argument);
 
 void StartMeasurements(void *argument);
 
-
-
 #endif /* _STATE_MACHINE_H_ */

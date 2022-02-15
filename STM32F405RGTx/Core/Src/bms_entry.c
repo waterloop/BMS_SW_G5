@@ -8,6 +8,8 @@
 #include "state_machine.h"
 #include "bms_entry.h"
 
+#include "coulomb_counting_thread.h"
+
 //#include "bms_tests.h"
 
 // redirect stdin and stdout to UART1
@@ -25,7 +27,7 @@ BMS global_bms_data;
 Ltc6813 ltc6813;
 
 osThreadId_t measurements_thread;
-osThreadId_t coulomb_counting_thread;
+CoulombCountingThread coulomb_counting_thread;
 osThreadId_t state_machine_thread;
 
 void _lv_test_init_global_bms_obj() {
@@ -63,8 +65,7 @@ int bms_entry() {
     measurements_thread = osThreadNew(
         measurements_thread_fn, NULL, &measurements_thread_attrs);
 
-    coulomb_counting_thread = osThreadNew(
-        coulomb_counting_thread_fn, NULL, &coulomb_counting_thread_attrs);
+    coulomb_counting_thread();
 
     state_machine_thread = osThreadNew(
         StartStateMachine, NULL, &state_machine_thread_attrs);
