@@ -25,8 +25,6 @@ BMS global_bms_data;
 Ltc6813 ltc6813;
 
 osThreadId_t measurements_thread;
-CoulombCountingThread coulomb_counting_thread;
-StateMachineThread state_machine_thread;
 
 void BMS::_lv_test_init() {
     mc_cap_voltage = 46;
@@ -63,8 +61,8 @@ int bms_entry() {
     measurements_thread = osThreadNew(
         measurements_thread_fn, NULL, &measurements_thread_attrs);
 
-    coulomb_counting_thread = CoulombCountingThread();
-    state_machine_thread = StateMachineThread();
+    CoulombCountingThread::initialize();
+    StateMachineThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register

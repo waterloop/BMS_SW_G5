@@ -9,6 +9,3 @@
 extern osThreadId_t measurements_thread;
 extern const osThreadAttr_t measurements_thread_attrs;
 void measurements_thread_fn(void* arg);
-
-extern CoulombCountingThread coulomb_counting_thread;
-extern StateMachineThread state_machine_thread;

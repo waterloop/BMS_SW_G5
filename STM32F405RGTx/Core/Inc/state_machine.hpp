@@ -78,7 +78,7 @@ typedef struct {
 
 class StateMachineThread {
     public:
-        static void startStateMachine(void *argument);
+        static void initialize();
 
         static void startMeasurements(void *argument);
         static void stopMeasurements(void *argument);
@@ -89,6 +89,8 @@ class StateMachineThread {
 
     private:
         static RTOSThread thread;
+        static State_t CurrentState;
+        static State_t OldState;
 
         static void runStateMachine(void *arg);
 

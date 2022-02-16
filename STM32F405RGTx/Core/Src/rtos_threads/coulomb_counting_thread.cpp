@@ -8,6 +8,9 @@
 #define NOMINAL_CAP     21600
 #define INIT_SOC        100
 
+RTOSThread CoulombCountingThread::thread;
+float CoulombCountingThread::prev_current;
+
 void CoulombCountingThread::initialize() {
     thread = RTOSThread(
         "coulomb_counting_thread",

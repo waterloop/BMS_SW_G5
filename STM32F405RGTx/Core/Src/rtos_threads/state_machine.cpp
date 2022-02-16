@@ -38,9 +38,12 @@ const char *StateNames[] = {
     "Charged",
     "Balancing"
 };
-// test
-State_t CurrentState = Initialize;
-State_t OldState = Sleep;
+
+RTOSThread StateMachineThread::thread;
+
+State_t StateMachineThread::CurrentState;
+State_t StateMachineThread::OldState;
+StateMachine *StateMachineThread::SM;
 
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
@@ -421,7 +424,7 @@ State_t StateMachineThread::NoFaultEvent(void) {
     return NoFault;
 }
 
-void StateMachineThread::startStateMachine(void *argument) {
+void StateMachineThread::initialize() {
     thread = RTOSThread(
         "state_machine_thread",
         1024*3,
