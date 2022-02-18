@@ -729,22 +729,23 @@ void Error_Handler(void)
   /* Other states are not reached, which can be ignored */
 
   /* Report a fault on CAN */
-  __report_CAN();
+  report_CAN();
 
   /* Report a fault on UART */
   printf("Error handling initiated.");
 
-  /* Disengage contactor */
-  TURN_OFF_CONTACTOR_PIN();
+  /* Disengage contactors */
+  TURN_OFF_CONT1_PIN();
+  TURN_OFF_CONT2_PIN();
 
   /* Disengage precharge relay */
   TURN_OFF_PRECHARGE_PIN();
 
   /* Disable all cells via cell mask */
-  __cell_disable();
+  cell_disable();
 
   /* Hard fault state transition */
-  __hard_fault_state_trans();
+  hard_fault_state_trans();
 
   /* Enter infinite loop to preserve the system state */
   while (1)
