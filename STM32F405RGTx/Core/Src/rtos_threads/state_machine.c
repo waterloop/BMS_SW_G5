@@ -15,6 +15,7 @@
 #include "main.h"
 #include "bms_entry.h"
 #include "can.h"
+#include "bsp.h"
 
 /*
 Don’t check for undercurrent
@@ -237,7 +238,7 @@ State_t IdleEvent(void) {
     if (!has_precharged) {
         TURN_OFF_PRECHARGE_PIN();
     }
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -302,7 +303,7 @@ State_t RunEvent(void) {
     //     return normal_check;
     // }
 
-    TURN_ON_CONTACTOR_PIN();
+    TURN_ON_CONT1_PIN();
     TURN_OFF_PRECHARGE_PIN();
 
     // Send ACK on CAN when ready to run
@@ -329,7 +330,7 @@ State_t StopEvent(void) {
     // Set LED colour to yellow
     SetLEDColour(50.0, 50.0, 0.0);
 
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Send ACK on CAN when stop complete
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
@@ -395,7 +396,7 @@ State_t NormalDangerFaultEvent(void) {
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -420,7 +421,7 @@ State_t SevereDangerFaultEvent(void) {
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) { 

@@ -23,4 +23,7 @@ typedef struct {
 } BMS;
 
 int bms_entry();
+void report_CAN();
+void cell_disable();
+void hard_fault_state_trans();
 
