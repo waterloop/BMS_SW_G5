@@ -24,8 +24,6 @@ uint8_t __io_getchar() {
 BMS global_bms_data;
 Ltc6813 ltc6813;
 
-osThreadId_t measurements_thread;
-
 void BMS::_lv_test_init() {
     mc_cap_voltage = 46;
     contactor_voltage = 46;
@@ -58,9 +56,8 @@ int bms_entry() {
     global_bms_data._lv_test_init();
 
     printf("starting RTOS threads...\r\n");
-    measurements_thread = osThreadNew(
-        measurements_thread_fn, NULL, &measurements_thread_attrs);
-
+    
+    MeasurementsThread::initialize();
     CoulombCountingThread::initialize();
     StateMachineThread::initialize();
 
