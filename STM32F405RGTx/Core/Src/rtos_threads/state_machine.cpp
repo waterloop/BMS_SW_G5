@@ -205,7 +205,7 @@ State_t StateMachineThread::IdleEvent(void) {
     // }
 
     // Resumes measurement if the previous state was Sleep
-    // osThreadResume(measurements_thread); 
+    // MeasurementsThread::resumeMeasurements(); 
    
     if (!has_precharged) {
         TURN_OFF_PRECHARGE_PIN();
@@ -328,7 +328,7 @@ State_t StateMachineThread::SleepEvent(void) {
     SetLEDColour(0.0, 0.0, 50.0);
 
     // Pauses measurements
-    osThreadSuspend(measurements_thread); 
+    MeasurementsThread::stopMeasurements();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {

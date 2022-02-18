@@ -8,14 +8,15 @@
 #include "ltc6813.h"
 #include "threads.hpp"
 
-#define ADC_NUM_CONVERSIONS         6U
-#define ADC_DECIMATION_COEFF        256U
 #define CURRENT_SENSE_RESISTANCE    1E-3
 #define ADC_TO_VOLTAGE(x) ( x*(3.3/(1 << 12)) )
 #define INA240_UNBIAS(v) ( (v - (3.3/2))*(1/50) )
 #define VOLTAGE_TO_CURRENT(v) (INA240_UNBIAS(v)/CURRENT_SENSE_RESISTANCE)
 #define UN_VOLTAGE_DIVIDE(v) ( (21*v) )
 #define INA180_VOLTAGE_TO_CURRENT(v) ( v * (2/3) )
+
+RTOSThread MeasurementsThread::thread;
+u_int16_t MeasurementsThread::ADC_buffer[];
 
 void MeasurementsThread::initialize() {
     thread = RTOSThread(
@@ -26,15 +27,13 @@ void MeasurementsThread::initialize() {
     );
 }
 
-uint16_t MeasurementsThread::*ADC_buffer[ADC_NUM_CONVERSIONS*ADC_DECIMATION_COEFF];
-
 void MeasurementsThread::HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     HAL_StatusTypeDef status = HAL_ADC_Stop_DMA(hadc);
     if (status != HAL_OK) {
         printf("Error: HAL_ADC_Stop_DMA failed with status code %d\r\n", status);
         Error_Handler();
     }
-    osThreadFlagsSet(measurements_thread, 0x00000001U);        // set flag to signal that ADC conversion has completed
+    osThreadFlagsSet(thread.getThreadId(), 0x00000001U);        // set flag to signal that ADC conversion has completed
 }
 
 void MeasurementsThread::processData() {
@@ -94,4 +93,12 @@ void MeasurementsThread::runMeasurements(void* args) {
 
         osDelay(MEASUREMENT_PERIODICITY*1E3);
     }
+}
+
+void MeasurementsThread::stopMeasurements() {
+    osThreadSuspend(thread.getThreadId());
+}
+
+void MeasurementsThread::resumeMeasurements() {
+    osThreadResume(thread.getThreadId());
 }
