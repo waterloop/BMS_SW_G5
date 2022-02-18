@@ -24,6 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bms_entry.hpp"
+#include "bsp.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -696,10 +698,38 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+  
+  /* Disable all interrupt requests */
   __disable_irq();
+
+  /* Slave device does not require disabling. SLEEP state activated automatically */
+  /* In STADNDY, REFUP, MEASURE states, SLEEP state reached after t_sleep time */
+  /* Other states are not reached, which can be ignored */
+
+  /* Report a fault on CAN */
+  report_CAN();
+
+  /* Report a fault on UART */
+  printf("Error handling initiated.");
+
+  /* Disengage contactors */
+  TURN_OFF_CONT1_PIN();
+  TURN_OFF_CONT2_PIN();
+
+  /* Disengage precharge relay */
+  TURN_OFF_PRECHARGE_PIN();
+
+  /* Disable all cells via cell mask */
+  cell_disable();
+
+  /* Hard fault state transition */
+  hard_fault_state_trans();
+
+  /* Enter infinite loop to preserve the system state */
   while (1)
   {
   }
+
   /* USER CODE END Error_Handler_Debug */
 }
 

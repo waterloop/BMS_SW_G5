@@ -14,6 +14,7 @@
 #include "main.h"
 #include "bms_entry.hpp"
 #include "can.h"
+#include "bsp.h"
 
 // typedef enum { false = 0, true = !false } bool;
 
@@ -50,6 +51,10 @@ void SetLEDColour(float R, float G, float B) {
     set_led_intensity(RED, R);
     set_led_intensity(GREEN, G);
     set_led_intensity(BLUE, B);
+}
+
+void StateMachineThread::setState(State_t target_state) {
+    CurrentState = target_state;
 }
 
 // CAN heartbeat subroutine
@@ -210,7 +215,7 @@ State_t StateMachineThread::IdleEvent(void) {
     if (!has_precharged) {
         TURN_OFF_PRECHARGE_PIN();
     }
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -275,7 +280,7 @@ State_t StateMachineThread::RunEvent(void) {
     //     return normal_check;
     // }
 
-    TURN_ON_CONTACTOR_PIN();
+    TURN_ON_CONT1_PIN();
     TURN_OFF_PRECHARGE_PIN();
 
     // Send ACK on CAN when ready to run
@@ -302,7 +307,7 @@ State_t StateMachineThread::StopEvent(void) {
     // Set LED colour to yellow
     SetLEDColour(50.0, 50.0, 0.0);
 
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Send ACK on CAN when stop complete
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
@@ -368,7 +373,7 @@ State_t StateMachineThread::NormalDangerFaultEvent(void) {
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -393,7 +398,7 @@ State_t StateMachineThread::SevereDangerFaultEvent(void) {
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
-    TURN_OFF_CONTACTOR_PIN();
+    TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) { 

@@ -29,3 +29,6 @@ class BMS {
 int bms_entry();
 
 extern BMS global_bms_data;
+void report_CAN();
+void cell_disable();
+void hard_fault_state_trans();
