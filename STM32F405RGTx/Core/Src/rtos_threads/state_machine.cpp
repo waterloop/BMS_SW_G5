@@ -5,32 +5,18 @@
  *      Author: Tiffany Wang, Ivan Mudarth
 */
 
-
 #include <stdio.h>
 #include <string.h>
-#include "state_machine.h"
+#include "state_machine.hpp"
 #include "timer_utils.h"
-#include "threads.h"
+#include "threads.hpp"
 #include "cmsis_os.h"
 #include "main.h"
-#include "bms_entry.h"
+#include "bms_entry.hpp"
 #include "can.h"
 #include "bsp.h"
 
-/*
-Don’t check for undercurrent
-Check for overvoltage 
-Don't return battery overvoltage when n cells are overvoltage
-    return cell overvoltage
-return cell temp faults
-*/
-const osThreadAttr_t state_machine_thread_attrs = {
-    .name = "state_machine_thread",
-    .priority = (osPriority_t)osPriorityNormal,
-    .stack_size = 1024*3
-};
-
-typedef enum { false = 0, true = !false } bool;
+// typedef enum { false = 0, true = !false } bool;
 
 uint8_t idle_state_id;
 uint8_t run_state_id;
@@ -53,25 +39,12 @@ const char *StateNames[] = {
     "Charged",
     "Balancing"
 };
-// test
-State_t CurrentState = Initialize;
-State_t OldState = Sleep;
 
-StateMachine SM[13] = {
-    {Initialize, InitializeEvent},
-    {InitializeFault, InitializeFaultEvent},
-    {Idle, IdleEvent},
-    {Precharging, PrechargingEvent},
-    {Run, RunEvent},
-    {Stop, StopEvent},
-    {Sleep, SleepEvent},
-    {NormalDangerFault, NormalDangerFaultEvent},
-    {SevereDangerFault, SevereDangerFaultEvent},
-    {NoFault, NoFaultEvent},
-    {Charging, ChargingEvent},
-    {Charged, ChargedEvent},
-    {Balancing, BalancingEvent}
-};
+RTOSThread StateMachineThread::thread;
+
+State_t StateMachineThread::CurrentState;
+State_t StateMachineThread::OldState;
+StateMachine *StateMachineThread::SM;
 
 // Set LED colour based on channel duty cycles for RGB channels
 void SetLEDColour(float R, float G, float B) {
@@ -80,8 +53,12 @@ void SetLEDColour(float R, float G, float B) {
     set_led_intensity(BLUE, B);
 }
 
+void StateMachineThread::setState(State_t target_state) {
+    CurrentState = target_state;
+}
+
 // CAN heartbeat subroutine
-void SendCANHeartbeat(void) {
+void StateMachineThread::sendCANHeartbeat(void) {
     float avg_cell_temp = 0;
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
         avg_cell_temp += global_bms_data.battery.cells[i].temp;
@@ -110,7 +87,7 @@ void SendCANHeartbeat(void) {
 }
 
 // Returns normal fault state or no fault based on current, voltage, and temperature measurements
-State_t NormalFaultChecking(void) {
+State_t StateMachineThread::normalFaultChecking(void) {
     if (global_bms_data.battery.current > MAX_PACK_CURRENT_NORMAL) {
         bms_error_code = BATTERY_OVERCURRENT_ERR;
         return NormalDangerFault;
@@ -164,7 +141,7 @@ State_t NormalFaultChecking(void) {
 }
 
 // Returns severe fault state or no fault based on current, voltage, and temperature measurements
-State_t SevereFaultChecking(void) {
+State_t StateMachineThread::severeFaultChecking(void) {
     if (global_bms_data.battery.current > MAX_PACK_CURRENT_SEVERE) {
         bms_error_code = BATTERY_OVERCURRENT_ERR;
         return SevereDangerFault;
@@ -215,11 +192,11 @@ State_t SevereFaultChecking(void) {
     return NoFault;
 }
 
-State_t InitializeEvent(void) {
+State_t StateMachineThread::InitializeEvent(void) {
     return Idle;
 }
 
-State_t IdleEvent(void) {
+State_t StateMachineThread::IdleEvent(void) {
     // Set LED colour to green
     SetLEDColour(0.0, 50.0, 0.0);
     
@@ -233,7 +210,7 @@ State_t IdleEvent(void) {
     // }
 
     // Resumes measurement if the previous state was Sleep
-    // osThreadResume(measurements_thread); 
+    // MeasurementsThread::resumeMeasurements(); 
    
     if (!has_precharged) {
         TURN_OFF_PRECHARGE_PIN();
@@ -255,7 +232,7 @@ State_t IdleEvent(void) {
     return Idle;
 }
 
-State_t PrechargingEvent(void) {
+State_t StateMachineThread::PrechargingEvent(void) {
     // Set LED colour to white
     SetLEDColour(50.0, 50.0, 50.0);
 
@@ -285,7 +262,7 @@ State_t PrechargingEvent(void) {
     return Idle;
 }
 
-State_t RunEvent(void) {
+State_t StateMachineThread::RunEvent(void) {
     // Set LED colour to purple
     /*
     TODO: This isn't actually purple, it's kinda blue
@@ -326,7 +303,7 @@ State_t RunEvent(void) {
     return Run;
 }
 
-State_t StopEvent(void) {
+State_t StateMachineThread::StopEvent(void) {
     // Set LED colour to yellow
     SetLEDColour(50.0, 50.0, 0.0);
 
@@ -351,12 +328,12 @@ State_t StopEvent(void) {
     return Stop;
 }
 
-State_t SleepEvent(void) {
+State_t StateMachineThread::SleepEvent(void) {
     // Set LED colour to blue
     SetLEDColour(0.0, 0.0, 50.0);
 
     // Pauses measurements
-    osThreadSuspend(measurements_thread); 
+    MeasurementsThread::stopMeasurements();
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -372,7 +349,7 @@ State_t SleepEvent(void) {
 }
 
 
-State_t InitializeFaultEvent(void) {
+State_t StateMachineThread::InitializeFaultEvent(void) {
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
         CANFrame rx_frame = CANBus_get_frame();
@@ -386,7 +363,7 @@ State_t InitializeFaultEvent(void) {
     return InitializeFault;
 }
 
-State_t NormalDangerFaultEvent(void) {
+State_t StateMachineThread::NormalDangerFaultEvent(void) {
     // Set LED colour to light orange
     SetLEDColour(50.00, 32.3, 0.0);
 
@@ -411,7 +388,7 @@ State_t NormalDangerFaultEvent(void) {
     return NormalDangerFault;
 }
 
-State_t SevereDangerFaultEvent(void) {
+State_t StateMachineThread::SevereDangerFaultEvent(void) {
     // Set LED colour to red
     SetLEDColour(50.00, 0.0, 0.0);
 
@@ -436,28 +413,55 @@ State_t SevereDangerFaultEvent(void) {
     return SevereDangerFault;
 }
 
-State_t BalancingEvent(void) {
+State_t StateMachineThread::BalancingEvent(void) {
     return Balancing;
 }
 
-State_t ChargingEvent(void) {
+State_t StateMachineThread::ChargingEvent(void) {
     return Charging;
 }
 
-State_t ChargedEvent(void) {
+State_t StateMachineThread::ChargedEvent(void) {
     return Charged;
 }
 
-State_t NoFaultEvent(void) {
+State_t StateMachineThread::NoFaultEvent(void) {
     return NoFault;
 }
 
-void StartStateMachine(void *argument) {
-  for(;;)
+void StateMachineThread::initialize() {
+    thread = RTOSThread(
+        "state_machine_thread",
+        1024*3,
+        osPriorityNormal,
+        runStateMachine
+    );
+
+    StateMachine stateMachine[13] = {
+        {Initialize, InitializeEvent},
+        {InitializeFault, InitializeFaultEvent},
+        {Idle, IdleEvent},
+        {Precharging, PrechargingEvent},
+        {Run, RunEvent},
+        {Stop, StopEvent},
+        {Sleep, SleepEvent},
+        {NormalDangerFault, NormalDangerFaultEvent},
+        {SevereDangerFault, SevereDangerFaultEvent},
+        {NoFault, NoFaultEvent},
+        {Charging, ChargingEvent},
+        {Charged, ChargedEvent},
+        {Balancing, BalancingEvent}
+    };
+
+    SM = stateMachine;
+}
+
+void StateMachineThread::runStateMachine(void *argument) {
+  while(1)
   {
 	OldState = CurrentState;
-	CurrentState = (*SM[CurrentState].Event)();
-    SendCANHeartbeat();
+	CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
+    sendCANHeartbeat();
 	osDelay(200);
   }
 }

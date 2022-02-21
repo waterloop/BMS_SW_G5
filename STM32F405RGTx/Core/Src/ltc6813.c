@@ -4,8 +4,8 @@
 
 #include "lut.h"
 #include "ltc6813.h"
-#include "timer_utils.h"
 #include "cmsis_os.h"
+#include "timer_utils.h"
 
 /*
 IMPORTANT TIMING PARAMETERS:

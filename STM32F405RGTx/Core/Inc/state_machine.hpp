@@ -1,15 +1,16 @@
 /*
- * state_machine.h
+ * state_machine.hpp
  *
  *    Created on: Jul. 11, 2021
  *            Author: tiffanywang
  */
 
-#ifndef _STATE_MACHINE_H_
-#define _STATE_MACHINE_H_
+#pragma once
 
 #include "can.h"
 #include "cmsis_os.h"
+#include "can.h"
+#include "util.hpp"
 
 //////////////////////////////////////////////////////////////
 // PACK PARAMETERS
@@ -70,32 +71,42 @@ typedef struct {
     pfEvent Event;
 } StateMachine;
 
-State_t InitializeEvent(void);
-State_t InitializeFaultEvent(void);
-State_t IdleEvent(void);
-State_t PrechargingEvent(void);
-State_t RunEvent(void);
-State_t StopEvent(void);
-State_t SleepEvent(void);
-State_t NormalDangerFaultEvent(void);
-State_t SevereDangerFaultEvent(void);
-State_t NoFaultEvent(void);
-State_t ChargingEvent(void);
-State_t ChargedEvent(void);
-State_t BalancingEvent(void);
+class StateMachineThread {
+    public:
+        static void initialize();
 
-extern State_t CurrentState;
+        static void startMeasurements(void *argument);
+        static void stopMeasurements(void *argument);
 
-/**
-    * @brief    Function implementing the StartStateMachine thread.
-    * @param    argument: Not used
-    * @retval None
-    */
-/* USER CODE END Header_StartStateMachine */
-void StartStateMachine(void *argument);
+        static void setState(State_t state);
 
-void StartMeasurements(void *argument);
+        static StateMachine* SM;
+
+    private:
+        static RTOSThread thread;
+        static State_t CurrentState;
+        static State_t OldState;
+
+        static void runStateMachine(void *arg);
+
+        static void sendCANHeartbeat(void);
+
+        static State_t severeFaultChecking();
+        static State_t normalFaultChecking();
+
+        static State_t InitializeEvent(void);
+        static State_t InitializeFaultEvent(void);
+        static State_t IdleEvent(void);
+        static State_t PrechargingEvent(void);
+        static State_t RunEvent(void);
+        static State_t StopEvent(void);
+        static State_t SleepEvent(void);
+        static State_t NormalDangerFaultEvent(void);
+        static State_t SevereDangerFaultEvent(void);
+        static State_t NoFaultEvent(void);
+        static State_t ChargingEvent(void);
+        static State_t ChargedEvent(void);
+        static State_t BalancingEvent(void);
+};
 
 
-
-#endif /* _STATE_MACHINE_H_ */

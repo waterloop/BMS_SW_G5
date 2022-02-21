@@ -4,11 +4,11 @@
 #include "main.h"
 #include "can.h"
 #include "timer_utils.h"
-#include "threads.h"
-#include "state_machine.h"
-#include "bms_entry.h"
+#include "threads.hpp"
+#include "state_machine.hpp"
+#include "bms_entry.hpp"
 
-//#include "bms_tests.h"
+//#include "bms_tests.hpp"
 
 // redirect stdin and stdout to UART1
 void __io_putchar(uint8_t ch) {
@@ -24,36 +24,32 @@ uint8_t __io_getchar() {
 BMS global_bms_data;
 Ltc6813 ltc6813;
 
-osThreadId_t measurements_thread;
-osThreadId_t coulomb_counting_thread;
-osThreadId_t state_machine_thread;
-
-void _lv_test_init_global_bms_obj() {
-    global_bms_data.mc_cap_voltage = 46;
-    global_bms_data.contactor_voltage = 46;
-    global_bms_data.buck_temp = 25;
-    global_bms_data.battery.voltage = 46;
-    global_bms_data.battery.current = 15;
-    global_bms_data.battery.soc = 100;
+void BMS::_lv_test_init() {
+    mc_cap_voltage = 46;
+    contactor_voltage = 46;
+    buck_temp = 25;
+    battery.voltage = 46;
+    battery.current = 15;
+    battery.soc = 100;
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
-        global_bms_data.battery.cells[i].voltage = 3.3;
-        global_bms_data.battery.cells[i].temp = 25;
+        battery.cells[i].voltage = 3.3;
+        battery.cells[i].temp = 25;
     }
 }
 
-void report_CAN() {
+void _report_CAN() {
     CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT);
     CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, LOW_LAYER_EXCEPTION);
 }
 
-void cell_disable() {
+void _cell_disable() {
     uint32_t cell_mask = 0b0;
     Ltc6813_discharge_ctrl(&ltc6813, cell_mask);
 }
 
-void hard_fault_state_trans() {
-    CurrentState = SevereDangerFault;
+void _hard_fault_state_trans() {
+    StateMachineThread::setState(SevereDangerFault);
 }
 
 int bms_entry() {
@@ -72,17 +68,13 @@ int bms_entry() {
     printf("initializing RTOS kernel...\r\n");
     osKernelInitialize();
 
-    _lv_test_init_global_bms_obj();
+    global_bms_data._lv_test_init();
 
     printf("starting RTOS threads...\r\n");
-    measurements_thread = osThreadNew(
-        measurements_thread_fn, NULL, &measurements_thread_attrs);
-
-    coulomb_counting_thread = osThreadNew(
-        coulomb_counting_thread_fn, NULL, &coulomb_counting_thread_attrs);
-
-    state_machine_thread = osThreadNew(
-        StartStateMachine, NULL, &state_machine_thread_attrs);
+    
+    MeasurementsThread::initialize();
+    CoulombCountingThread::initialize();
+    StateMachineThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register

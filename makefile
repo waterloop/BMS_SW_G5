@@ -38,11 +38,12 @@ BUILD_DIR = build
 ######################################
 # C sources
 # USER_INCLUDES := -I ./inc
-USER_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.c")
+CORE_C_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.c")
+CORE_CPP_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Core/Src -name "*.cpp")
 
 HAL_SOURCES := $(shell find ./$(DEVICE_DIRNAME)/Drivers/STM32F4xx_HAL_Driver -name "*.c")
 
-C_SOURCES =  \
+RTOS_SOURCES =  \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/list.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/queue.c \
@@ -51,13 +52,12 @@ $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c \
 $(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
-$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
+$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
 
-C_SOURCES += $(HAL_SOURCES)
-C_SOURCES += $(USER_SOURCES)
+C_SOURCES = $(CORE_C_SOURCES) $(HAL_SOURCES) $(RTOS_SOURCES)
+CPP_SOURCES = $(CORE_CPP_SOURCES)
 
 # ASM sources
-# ASM_SOURCES = $(DEVICE_DIRNAME)/Startup/startup_stm32f401xe.s
 ASM_SOURCES = $(DEVICE_DIRNAME)/Core/Startup/startup_stm32f405rgtx.s
 
 
@@ -72,11 +72,13 @@ CC = $(GCC_PATH)/$(PREFIX)gcc
 AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
 CP = $(GCC_PATH)/$(PREFIX)objcopy
 SZ = $(GCC_PATH)/$(PREFIX)size
+CPP_CC = $(GCC_PATH)/$(PREFIX)g++ -std=c++11
 else
 CC = $(PREFIX)gcc
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
 SZ = $(PREFIX)size
+CPP_CC = $(PREFIX)g++ -std=c++11
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
@@ -120,7 +122,8 @@ C_INCLUDES =  \
 -I ./$(DEVICE_DIRNAME)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 -I ./$(DEVICE_DIRNAME)/Drivers/CMSIS/Include \
--I ./WLoopCAN/include
+-I ./WLoopCAN/include \
+-I ./WLoopUtil/include
 
 C_INCLUDES += $(USER_INCLUDES)
 
@@ -142,7 +145,6 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-# LDSCRIPT = $(DEVICE_DIRNAME)/STM32F401RETX_FLASH.ld
 LDSCRIPT = $(DEVICE_DIRNAME)/STM32F405RGTX_FLASH.ld
 
 # libraries
@@ -160,6 +162,11 @@ all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
+
+# list of CPP program objects
+OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
+vpath %.cpp $(sort $(dir $(CPP_SOURCES)))
+
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
@@ -168,12 +175,16 @@ $(BUILD_DIR)/%.o: %.c makefile | $(BUILD_DIR)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 	@echo ""
 
+$(BUILD_DIR)/%.o: %.cpp makefile | $(BUILD_DIR) 
+	$(CPP_CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
+	@echo ""
+
 $(BUILD_DIR)/%.o: %.s makefile | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 	@echo ""
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) makefile
-	$(CC) $(OBJECTS) ./WLoopCAN/bin/wloop_can.a $(LDFLAGS) -o $@
+	$(CPP_CC) $(OBJECTS) ./WLoopCAN/bin/wloop_can.a ./WLoopUtil/bin/wloop_util.a $(LDFLAGS) -o $@
 	@echo ""
 	$(SZ) $@
 	@echo ""
