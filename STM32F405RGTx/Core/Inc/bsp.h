@@ -15,7 +15,7 @@
 
 // Debug pin macros
 #define TURN_ON_DEBUG_PIN() (DEBUG_GPIO_Port |= Debug_Pin)
-#define TURN_OFF_DEBUG_PIN() (DEBUG_GPIO_Port &= ~(Debug_Ping))
+#define TURN_OFF_DEBUG_PIN() (DEBUG_GPIO_Port &= ~(Debug_Pin))
 
 // Button pin macros
 #define GET_BUTTON_PIN() (HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin))
