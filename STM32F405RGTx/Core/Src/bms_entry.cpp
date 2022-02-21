@@ -37,18 +37,18 @@ void BMS::_lv_test_init() {
     }
 }
 
-void report_CAN() {
+void _report_CAN() {
     CANFrame tx_frame = CANFrame_init(BMS_FAULT_REPORT);
     CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, LOW_LAYER_EXCEPTION);
 }
 
-void cell_disable() {
+void _cell_disable() {
     uint32_t cell_mask = 0b0;
     Ltc6813_discharge_ctrl(&ltc6813, cell_mask);
 }
 
-void hard_fault_state_trans() {
+void _hard_fault_state_trans() {
     StateMachineThread::setState(SevereDangerFault);
 }
 

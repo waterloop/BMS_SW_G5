@@ -23,12 +23,14 @@ class BMS {
         float contactor_voltage;
         float bms_current;
         Battery battery;
+
+        // Helper function for tests w/o HV battery
         void _lv_test_init();
 };
 
 int bms_entry();
 
 extern BMS global_bms_data;
-void report_CAN();
-void cell_disable();
-void hard_fault_state_trans();
+void _report_CAN();
+void _cell_disable();
+void _hard_fault_state_trans();

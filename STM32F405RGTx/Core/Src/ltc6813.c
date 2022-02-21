@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#include "lut.hpp"
+#include "lut.h"
 #include "ltc6813.h"
 #include "cmsis_os.h"
 #include "timer_utils.h"

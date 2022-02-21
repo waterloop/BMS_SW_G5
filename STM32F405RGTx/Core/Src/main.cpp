@@ -707,7 +707,7 @@ void Error_Handler(void)
   /* Other states are not reached, which can be ignored */
 
   /* Report a fault on CAN */
-  report_CAN();
+  _report_CAN();
 
   /* Report a fault on UART */
   printf("Error handling initiated.");
@@ -720,10 +720,10 @@ void Error_Handler(void)
   TURN_OFF_PRECHARGE_PIN();
 
   /* Disable all cells via cell mask */
-  cell_disable();
+  _cell_disable();
 
   /* Hard fault state transition */
-  hard_fault_state_trans();
+  _hard_fault_state_trans();
 
   /* Enter infinite loop to preserve the system state */
   while (1)

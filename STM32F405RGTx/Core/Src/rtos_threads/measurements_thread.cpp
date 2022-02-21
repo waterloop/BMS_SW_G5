@@ -4,7 +4,7 @@
 #include "measurements_thread.hpp"
 #include "bms_entry.hpp"
 #include "cmsis_os.h"
-#include "lut.hpp"
+#include "lut.h"
 #include "ltc6813.h"
 #include "threads.hpp"
 
@@ -18,6 +18,15 @@
 RTOSThread MeasurementsThread::thread;
 u_int16_t MeasurementsThread::ADC_buffer[];
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+    HAL_StatusTypeDef status = HAL_ADC_Stop_DMA(hadc);
+    if (status != HAL_OK) {
+        printf("Error: HAL_ADC_Stop_DMA failed with status code %d\r\n", status);
+        Error_Handler();
+    }
+    osThreadFlagsSet(MeasurementsThread::getThreadId(), 0x00000001U);        // set flag to signal that ADC conversion has completed
+}
+
 void MeasurementsThread::initialize() {
     thread = RTOSThread(
         "measurements_thread",
@@ -25,15 +34,6 @@ void MeasurementsThread::initialize() {
         osPriorityAboveNormal,
         runMeasurements
     );
-}
-
-void MeasurementsThread::HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-    HAL_StatusTypeDef status = HAL_ADC_Stop_DMA(hadc);
-    if (status != HAL_OK) {
-        printf("Error: HAL_ADC_Stop_DMA failed with status code %d\r\n", status);
-        Error_Handler();
-    }
-    osThreadFlagsSet(thread.getThreadId(), 0x00000001U);        // set flag to signal that ADC conversion has completed
 }
 
 void MeasurementsThread::processData() {
@@ -96,9 +96,13 @@ void MeasurementsThread::runMeasurements(void* args) {
 }
 
 void MeasurementsThread::stopMeasurements() {
-    osThreadSuspend(thread.getThreadId());
+    osThreadSuspend(getThreadId());
 }
 
 void MeasurementsThread::resumeMeasurements() {
-    osThreadResume(thread.getThreadId());
+    osThreadResume(getThreadId());
+}
+
+osThreadId_t MeasurementsThread::getThreadId() {
+    return thread.getThreadId();
 }
