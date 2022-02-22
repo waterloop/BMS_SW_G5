@@ -18,6 +18,8 @@ TARGET = main
 DEVICE_DIRNAME = STM32F405RGTx
 # DEVICE_DIRNAME = STM32F401RETx
 
+BOARD = master_bms
+
 ######################################
 # building variables
 ######################################
@@ -199,8 +201,8 @@ $(BUILD_DIR):
 	mkdir $@
 
 libs:
-	cd WLoopCAN && make master_bms
-	cd WLoopUtil && make master_bms
+	cd WLoopCAN && make $(BOARD)
+	cd WLoopUtil && make $(BOARD)
 
 #######################################
 # clean up
