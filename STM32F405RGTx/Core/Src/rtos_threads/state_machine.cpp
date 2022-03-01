@@ -15,6 +15,7 @@
 #include "bms_entry.hpp"
 #include "can.h"
 #include "bsp.h"
+#include "can_thread.hpp"
 
 // typedef enum { false = 0, true = !false } bool;
 
@@ -65,6 +66,7 @@ void StateMachineThread::sendCANHeartbeat(void) {
     }
     avg_cell_temp /= NUM_CELLS;
 
+    
     CANFrame tx_frame0 = CANFrame_init(BATTERY_PACK_CURRENT.id);
     CANFrame_set_field(&tx_frame0, BATTERY_PACK_CURRENT, FLOAT_TO_UINT(global_bms_data.battery.current));
     CANFrame_set_field(&tx_frame0, CELL_TEMPERATURE, FLOAT_TO_UINT(avg_cell_temp));
@@ -217,10 +219,10 @@ State_t StateMachineThread::IdleEvent(void) {
     }
     TURN_OFF_CONT1_PIN();
 
-    // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) {
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+
         idle_state_id = state_id;
         if (state_id == ARMED) {
             return Precharging;
@@ -290,9 +292,10 @@ State_t StateMachineThread::RunEvent(void) {
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) {
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+        
         run_state_id = state_id;
         if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
             return Stop;
@@ -316,9 +319,10 @@ State_t StateMachineThread::StopEvent(void) {
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) {
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+
         if ( state_id == RESTING) {
             return Idle;
         } else {
@@ -336,9 +340,10 @@ State_t StateMachineThread::SleepEvent(void) {
     MeasurementsThread::stopMeasurements();
 
     // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) {
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+
         if ( state_id == RESTING) {
             return Idle;
         } else {
@@ -351,9 +356,10 @@ State_t StateMachineThread::SleepEvent(void) {
 
 State_t StateMachineThread::InitializeFaultEvent(void) {
     // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) {
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+
         if ( state_id == RESTING ) {
             return Idle;
         } else {
@@ -376,9 +382,10 @@ State_t StateMachineThread::NormalDangerFaultEvent(void) {
     TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) {
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+
         if ( state_id == RESTING ) {
             return Idle;
         } else {
@@ -401,9 +408,10 @@ State_t StateMachineThread::SevereDangerFaultEvent(void) {
     TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
-    if (!Queue_empty(&RX_QUEUE)) { 
-        CANFrame rx_frame = CANBus_get_frame();
-        uint8_t state_id = CANFrame_get_field(&rx_frame, STATE_ID);
+    if (CANThread::stateIdChangeFlag >= 0) {
+        uint8_t state_id = CANThread::stateIdChangeFlag;
+        CANThread::stateIdChangeFlag = -1;
+
         if ( state_id == RESTING ) {
             return Idle;
         } else {
