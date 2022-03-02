@@ -18,6 +18,8 @@ void CoulombCountingThread::initialize() {
         osPriorityBelowNormal,
         runCoulombCounting
     );
+
+    prev_current = 0;
 }
 
 float CoulombCountingThread::getCharge() {
