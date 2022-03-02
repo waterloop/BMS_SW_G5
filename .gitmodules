@@ -1,7 +1,8 @@
 [submodule "WLoopCAN"]
 	path = WLoopCAN
 	url = https://github.com/waterloop/WLoopCAN.git
+	branch = new-messages-ivan
 [submodule "WLoopUtil"]
 	path = WLoopUtil
 	url = https://github.com/waterloop/WLoopUtil.git
-	branch = develop
+	branch = rtos_wrappers

@@ -219,9 +219,8 @@ State_t StateMachineThread::IdleEvent(void) {
     }
     TURN_OFF_CONT1_PIN();
 
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
 
         idle_state_id = state_id;
         if (state_id == ARMED) {
@@ -292,10 +291,9 @@ State_t StateMachineThread::RunEvent(void) {
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
-        
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
+
         run_state_id = state_id;
         if ( state_id == BRAKING || state_id == EMERGENCY_BRAKE) {
             return Stop;
@@ -319,9 +317,8 @@ State_t StateMachineThread::StopEvent(void) {
     if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
 
         if ( state_id == RESTING) {
             return Idle;
@@ -340,9 +337,8 @@ State_t StateMachineThread::SleepEvent(void) {
     MeasurementsThread::stopMeasurements();
 
     // Receive CAN frame
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
 
         if ( state_id == RESTING) {
             return Idle;
@@ -356,9 +352,8 @@ State_t StateMachineThread::SleepEvent(void) {
 
 State_t StateMachineThread::InitializeFaultEvent(void) {
     // Receive CAN frame
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
 
         if ( state_id == RESTING ) {
             return Idle;
@@ -382,9 +377,8 @@ State_t StateMachineThread::NormalDangerFaultEvent(void) {
     TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
 
         if ( state_id == RESTING ) {
             return Idle;
@@ -408,9 +402,8 @@ State_t StateMachineThread::SevereDangerFaultEvent(void) {
     TURN_OFF_CONT1_PIN();
 
     // Receive CAN frame
-    if (CANThread::stateIdChangeFlag >= 0) {
-        uint8_t state_id = CANThread::stateIdChangeFlag;
-        CANThread::stateIdChangeFlag = -1;
+    if (CANThread::hasStateReq()) {
+        uint8_t state_id = CANThread::getStateChange();
 
         if ( state_id == RESTING ) {
             return Idle;
