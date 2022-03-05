@@ -459,6 +459,13 @@ void StateMachineThread::initialize() {
 void StateMachineThread::runStateMachine(void *argument) {
   while(1)
   {
+    // Fault checking
+    State_t severe_check = SevereFaultChecking();
+    State_t normal_check = NormalFaultChecking();
+    if (severe_check != NoFault || normal_check != NoFault) {
+        sendCANHeartbeat();
+        return ; // is this the correct behaviour?
+    }
 	OldState = CurrentState;
 	CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
     sendCANHeartbeat();
