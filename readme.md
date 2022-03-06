@@ -21,3 +21,15 @@ make master_bms
 cd ..
 make
 ```
+
+# Updating `compile-commands.json`
+
+Use `bear`:
+
+```bash
+# install bear...
+sudo apt install bear
+
+bear make
+```
+
