@@ -22,6 +22,12 @@ cd ..
 make
 ```
 
+# Intellisense
+
+Supports the clangd language server: https://clangd.llvm.org
+
+For VSCode see [here](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd).
+
 # Updating `compile-commands.json`
 
 Use `bear`:
