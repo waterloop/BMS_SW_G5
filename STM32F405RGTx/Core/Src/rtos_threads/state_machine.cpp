@@ -454,13 +454,70 @@ void StateMachineThread::initialize() {
     };
 
     SM = stateMachine;
+    CurrentState = Initialize;
 }
 
 void StateMachineThread::runStateMachine(void *argument) {
   while(1)
   {
 	OldState = CurrentState;
-	CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
+    switch (CurrentState) {
+        case Initialize:
+            CurrentState = InitializeEvent();
+            break;
+
+        case InitializeFault:
+            CurrentState = InitializeFaultEvent();
+            break;
+
+        case Idle:
+            CurrentState = IdleEvent();
+            break;
+
+        case Precharging:
+            CurrentState = PrechargingEvent();
+            break;
+
+        case Run:
+            CurrentState = RunEvent();
+            break;
+
+        case Stop:
+            CurrentState = StopEvent();
+            break;
+
+        case Sleep:
+            CurrentState = SleepEvent();
+            break;
+
+        case NormalDangerFault:
+            CurrentState = NormalDangerFaultEvent();
+            break;
+
+        case SevereDangerFault:
+            CurrentState = SevereDangerFaultEvent();
+            break;
+
+        case NoFault:
+            CurrentState = NoFaultEvent();
+            break;
+
+        case Charging:
+            CurrentState = ChargingEvent();
+            break;
+
+        case Charged:
+            CurrentState = ChargedEvent();
+            break;
+
+        case Balancing:
+            CurrentState = BalancingEvent();
+            break;
+
+        default:
+            Error_Handler();
+    }
+	// CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
     sendCANHeartbeat();
 	osDelay(200);
   }

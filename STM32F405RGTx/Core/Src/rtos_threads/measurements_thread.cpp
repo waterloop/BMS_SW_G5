@@ -30,7 +30,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 void MeasurementsThread::initialize() {
     thread = RTOSThread(
         "measurements_thread",
-        1024,
+        1024*10,
         osPriorityAboveNormal,
         runMeasurements
     );

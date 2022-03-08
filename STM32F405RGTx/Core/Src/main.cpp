@@ -710,7 +710,7 @@ void Error_Handler(void)
   _report_CAN();
 
   /* Report a fault on UART */
-  printf("Error handling initiated.");
+  printf("Error handling initiated.\r\n");
 
   /* Disengage contactors */
   TURN_OFF_CONT1_PIN();
