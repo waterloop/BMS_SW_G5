@@ -6,7 +6,7 @@ class BistThread {
     public:
         static void initialize();
 
-    private:
+    protected:
         static RTOSThread thread_;
         static void runBist(void* args);
 
@@ -16,6 +16,9 @@ class BistThread {
             len     -> length of buffer, this value will be changed to
                        the length of the user inputted string on return
         */
-        static void _sinput(char* prompt, char* buff, uint32_t* len);
-}
+        static void _sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len);
+        static void _print(uint8_t* str);
+
+        static void _get_measurements();
+};
 

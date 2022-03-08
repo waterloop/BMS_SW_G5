@@ -433,7 +433,7 @@ void StateMachineThread::initialize() {
     thread = RTOSThread(
         "state_machine_thread",
         1024*3,
-        osPriorityNormal,
+        osPriorityBelowNormal,
         runStateMachine
     );
 
@@ -518,7 +518,7 @@ void StateMachineThread::runStateMachine(void *argument) {
             Error_Handler();
     }
 	// CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
-    sendCANHeartbeat();
+    // sendCANHeartbeat();
 	osDelay(200);
   }
 }

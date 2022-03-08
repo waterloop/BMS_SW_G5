@@ -217,6 +217,7 @@ analyze:
 
 flash:
 	st-flash write $(BUILD_DIR)/main.bin 0x08000000 
+	st-flash reset
 
 #######################################
 # dependencies

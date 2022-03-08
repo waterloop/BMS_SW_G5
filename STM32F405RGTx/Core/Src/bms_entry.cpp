@@ -50,9 +50,9 @@ int bms_entry() {
     if (CANBus_subscribe(STATE_CHANGE_REQ) != HAL_OK) { Error_Handler(); }
 
     // uncomment for debugging, turns on loopback and turns off autoretransmission
-    // hcan1.Instance->MCR = 0x60;
-    // hcan1.Instance->MCR |= (1 << 4);
-    // hcan1.Instance->BTR |= (1 << 30);
+    hcan1.Instance->MCR = 0x60;
+    hcan1.Instance->MCR |= (1 << 4);
+    hcan1.Instance->BTR |= (1 << 30);
 
     printf("initializing objects...\r\n");
     ltc6813 = Ltc6813_init(hspi1, GPIOC, 4); //changed from base A to C for CS2
@@ -66,7 +66,8 @@ int bms_entry() {
     
     MeasurementsThread::initialize();
     CoulombCountingThread::initialize();
-    StateMachineThread::initialize();
+    // StateMachineThread::initialize();
+    BistThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register
