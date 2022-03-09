@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "main.h"
 #include "measurements_thread.hpp"
 #include "bms_entry.hpp"
 #include "cmsis_os.h"
 #include "lut.h"
-#include "ltc6813.h"
 #include "threads.hpp"
 
 #define CURRENT_SENSE_RESISTANCE    1E-3
@@ -78,15 +76,7 @@ void MeasurementsThread::runMeasurements(void* args) {
     startADCandDMA();
 
     while (1) {
-		Ltc6813_wakeup_sleep(&ltc6813);
-        Ltc6813_wakeup_idle(&ltc6813);
-        if (Ltc6813_read_adc(&ltc6813, NORMAL_ADC)) {
-            for (uint8_t i = 0; i < NUM_CELLS; i++) {
-                global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
-            }
-        }
-
-        // wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
+		// wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
         osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
         processData();
         startADCandDMA();

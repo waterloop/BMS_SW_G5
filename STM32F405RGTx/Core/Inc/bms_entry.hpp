@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ltc6813.h"
+
 #define NUM_CELLS   14
 
 class Cell {
@@ -31,6 +33,8 @@ class BMS {
 int bms_entry();
 
 extern BMS global_bms_data;
+extern Ltc6813 ltc6813;
+
 void _report_CAN();
 void _cell_disable();
 void _hard_fault_state_trans();

@@ -1,5 +1,6 @@
 #pragma once
 #include "util.hpp"
+#include "main.h"
 
 #define ADC_NUM_CONVERSIONS         6U
 #define ADC_DECIMATION_COEFF        256U
