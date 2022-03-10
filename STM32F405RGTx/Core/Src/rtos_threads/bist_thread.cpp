@@ -23,9 +23,9 @@ void BistThread::runBist(void* args) {
     while (1) {
         BistThread::_sinput((uint8_t*)"> ", buff, &len);
 
-        if (strcmp((const char*)buff, (const char*)"get_measurements") == 0) { BistThread::_get_measurements(); }
+        if (strcmp((const char*)buff, (const char*)"p_measurements") == 0) { BistThread::_p_measurements(); }
 
-        else if (strcmp((const char*)buff, (const char*)"") == 0) { continue; }
+        else if (strcmp((const char*)buff, (const char*)"") == 0) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
 
         len = 20;
@@ -41,8 +41,6 @@ void BistThread::_print(uint8_t* str) {
 
 void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
     BistThread::_print(prompt);
-//    uint8_t asdf[4] = {'a', 's', 'd', 'f'};
-//    HAL_UART_Transmit(&huart1, asdf, 4, 0xffff);
     uint32_t curr_len = 0;
 
     while (curr_len < (*len)) {
@@ -52,7 +50,7 @@ void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
         HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &tmp, 1, 1);
 
         if (status == HAL_TIMEOUT) {
-            continue;
+            // do nothing...
         }
         else if (status == HAL_OK) {
             HAL_UART_Transmit(&huart1, &tmp, 1, 1);
@@ -71,17 +69,21 @@ void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
         else if (status == HAL_ERROR) {
             Error_Handler();
         }
+
+        // humans cannot type faster than 50ms per character...
+        osDelay(50);
     }
     buff[curr_len++] = '\0';
     *len = curr_len;
 }
 
-void BistThread::_get_measurements() {
+void BistThread::_p_measurements() {
     // not done yet...
     printf("bms.buck_temp = %d deg C\r\n", (int)global_bms_data.buck_temp);
     printf("bms.mc_cap_voltage = %dmV\r\n", (int)(global_bms_data.mc_cap_voltage*1000));
     printf("bms.contactor_voltage = %dmV\r\n", (int)(global_bms_data.contactor_voltage*1000));
     printf("bms.bms_current = %dmA\r\n", (int)(global_bms_data.bms_current));
-    printf("bms.battery.voltage = %d\r\nmV", (int)(global_bms_data.battery.voltage*1000));
+    printf("bms.battery.voltage = %dmV\r\n", (int)(global_bms_data.battery.voltage*1000));
+    printf("bms.batter.current = %dmA\r\n", (int)(global_bms_data.battery.current*1000));
 }
 

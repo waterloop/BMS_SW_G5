@@ -42,6 +42,7 @@ void _hard_fault_state_trans() {
 }
 
 int bms_entry() {
+    printf("\r\n");
     printf("starting timers...\r\n");
     start_timers();
 
@@ -53,6 +54,10 @@ int bms_entry() {
     hcan1.Instance->MCR = 0x60;
     hcan1.Instance->MCR |= (1 << 4);
     hcan1.Instance->BTR |= (1 << 30);
+
+    // uncomment for debugging, initializes GPIO for timing GPIO pin
+    GPIOA->MODER &= ~(0b11 << (15*2));
+    GPIOA->MODER |= (0b01 << (15*2));
 
     printf("initializing objects...\r\n");
     ltc6813 = Ltc6813_init(hspi1, GPIOC, 4); //changed from base A to C for CS2
@@ -66,8 +71,9 @@ int bms_entry() {
     
     MeasurementsThread::initialize();
     CoulombCountingThread::initialize();
-    // StateMachineThread::initialize();
+    StateMachineThread::initialize();
     BistThread::initialize();
+    DebugLEDThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register

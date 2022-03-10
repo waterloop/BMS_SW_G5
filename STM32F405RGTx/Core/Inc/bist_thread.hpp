@@ -19,6 +19,7 @@ class BistThread {
         static void _sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len);
         static void _print(uint8_t* str);
 
-        static void _get_measurements();
+        // print measurements
+        static void _p_measurements();
 };
 
