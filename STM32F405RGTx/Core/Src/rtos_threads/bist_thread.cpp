@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include "main.h"
 #include "threads.hpp"
 #include "bms_entry.hpp"
+#include "timer_utils.h"
 #include "bist_thread.hpp"
 
 RTOSThread BistThread::thread_;
@@ -21,11 +23,14 @@ void BistThread::runBist(void* args) {
     uint8_t buff[20];
     uint32_t len = 20;
     while (1) {
-        BistThread::_sinput((uint8_t*)"> ", buff, &len);
+        BistThread::_sinput("> ", buff, &len);
 
         // print measurements
         if (BistThread::_strcmp(buff, "p_measurements"))    { BistThread::_p_measurements(); }
         else if (BistThread::_strcmp(buff, "pm"))           { BistThread::_p_measurements(); }
+
+        // rgb
+        else if (BistThread::_strcmp(buff, "rgb"))          { BistThread::_rgb(); }
 
         else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
@@ -42,8 +47,8 @@ void BistThread::_print(uint8_t* str) {
 }
 
 
-void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
-    BistThread::_print(prompt);
+void BistThread::_sinput(const char* prompt, uint8_t* buff, uint32_t* len) {
+    BistThread::_print((uint8_t*)prompt);
     uint32_t curr_len = 0;
 
     while (curr_len < (*len - 1)) {
@@ -94,5 +99,28 @@ void BistThread::_p_measurements() {
     printf("bms.battery.voltage = %dmV\r\n", (int)(global_bms_data.battery.voltage*1000));
     printf("bms.battery.current = %dmA\r\n", (int)(global_bms_data.battery.current*1000));
     printf("bms.battery.soc = %d%%\r\n", (int)(global_bms_data.battery.soc));
+}
+void BistThread::_rgb() {
+    set_led_intensity(RED, 0);
+    set_led_intensity(GREEN, 0);
+    set_led_intensity(BLUE, 0);
+
+    uint8_t buff[5];
+    uint32_t len = 5;
+
+    BistThread::_sinput("R: ", buff, &len);
+    float red = atof((const char*)buff);
+    set_led_intensity(RED, red);
+    len = 5;
+
+    BistThread::_sinput("G: ", buff, &len);
+    float green = atof((const char*)buff);
+    set_led_intensity(GREEN, green);
+    len = 5;
+
+    BistThread::_sinput("B: ", buff, &len);
+    float blue = atof((const char*)buff);
+    set_led_intensity(BLUE, blue);
+
 }
 

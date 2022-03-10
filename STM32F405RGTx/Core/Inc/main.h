@@ -58,6 +58,8 @@ extern Ltc6813 ltc6813;
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -92,10 +94,10 @@ void Error_Handler(void);
 #define EXT_LED_GPIO_Port GPIOB
 #define BUTTON_Pin GPIO_PIN_11
 #define BUTTON_GPIO_Port GPIOB
-#define G_Pin GPIO_PIN_8
-#define G_GPIO_Port GPIOA
-#define B_Pin GPIO_PIN_9
+#define B_Pin GPIO_PIN_8
 #define B_GPIO_Port GPIOA
+#define G_Pin GPIO_PIN_9
+#define G_GPIO_Port GPIOA
 #define R_Pin GPIO_PIN_10
 #define R_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13

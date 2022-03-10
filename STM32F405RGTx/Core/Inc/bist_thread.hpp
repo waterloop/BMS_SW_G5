@@ -16,7 +16,7 @@ class BistThread {
             len     -> length of buffer, this value will be changed to
                        the length of the user inputted string on return
         */
-        static void _sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len);
+        static void _sinput(const char* prompt, uint8_t* buff, uint32_t* len);
         static void _print(uint8_t* str);
 
         // wrapper for standard library strcmp so we can pass a uint8_t
@@ -24,5 +24,8 @@ class BistThread {
 
         // print measurements
         static void _p_measurements();
+
+        // change RGB LED color
+        static void _rgb();
 };
 
