@@ -8,6 +8,13 @@
 #include "timer_utils.h"
 #include "bist_thread.hpp"
 
+static const char* _banner = " _       __      __            __                      \r\n" \
+                             "| |     / /___ _/ /____  _____/ /___  ____  ____       \r\n" \
+                             "| | /| / / __ `/ __/ _ \\/ ___/ / __ \\/ __ \\/ __ \\  \r\n" \
+                             "| |/ |/ / /_/ / /_/  __/ /  / / /_/ / /_/ / /_/ /      \r\n" \
+                             "|__/|__/\\__,_/\\__/\\___/_/  /_/\\____/\\____/ .___/  \r\n" \
+                             "                                        /_/            \r\n";
+
 RTOSThread BistThread::thread_;
 
 void BistThread::initialize() {
@@ -20,6 +27,10 @@ void BistThread::initialize() {
 }
 
 void BistThread::runBist(void* args) {
+    printf("%s", _banner);
+    printf("Master BMS BIST Console\r\n");
+    printf("Type 'help' for a list of available commands...\r\n\r\n");
+
     uint8_t buff[20];
     uint32_t len = 20;
     while (1) {
@@ -31,6 +42,9 @@ void BistThread::runBist(void* args) {
 
         // rgb
         else if (BistThread::_strcmp(buff, "rgb"))          { BistThread::_rgb(); }
+
+        // help
+        else if (BistThread::_strcmp(buff, "help"))         { BistThread::_help(); }
 
         else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
@@ -88,6 +102,11 @@ void BistThread::_sinput(const char* prompt, uint8_t* buff, uint32_t* len) {
 
 uint8_t BistThread::_strcmp(uint8_t* a, const char* b) {
     return !strcmp((const char*)a, b);
+}
+
+void BistThread::_help() {
+    BistThread::_print((uint8_t*)"p_measurements [pm]   --> print BMS measurements to the screen\r\n");
+    BistThread::_print((uint8_t*)"rgb                   --> change the color of the RGB LED\r\n");
 }
 
 void BistThread::_p_measurements() {
