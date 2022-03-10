@@ -27,7 +27,7 @@ void BistThread::runBist(void* args) {
         if (BistThread::_strcmp(buff, "p_measurements"))    { BistThread::_p_measurements(); }
         else if (BistThread::_strcmp(buff, "pm"))           { BistThread::_p_measurements(); }
 
-        else if (strcmp((const char*)buff, (const char*)"") == 0) { /* do nothing... */ }
+        else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
 
         len = 20;
@@ -41,6 +41,7 @@ void BistThread::_print(uint8_t* str) {
     HAL_UART_Transmit(&huart1, str, len, 1);
 }
 
+
 void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
     BistThread::_print(prompt);
     uint32_t curr_len = 0;
@@ -49,13 +50,13 @@ void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
         uint8_t tmp;
 
         // try to receive 1 character with a timeout value of 1ms
-        HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &tmp, 1, 1);
+        HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, &tmp, 1, 0);
 
         if (status == HAL_TIMEOUT) {
             // do nothing...
         }
         else if (status == HAL_OK) {
-            HAL_UART_Transmit(&huart1, &tmp, 1, 1);
+            HAL_UART_Transmit(&huart1, &tmp, 1, 0);
             if (tmp == '\n') {
                 break;
             }
