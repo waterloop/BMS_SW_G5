@@ -16,8 +16,28 @@ COL_SIZE = 8
 LUT_NAME = "ADC_TO_TEMP_LUT"
 LUT_SIZE = 1 << 12
 def LUT_FUNC(x):
-    return 153 + -0.376*x + 7.36E-04*(x**2) + -8.71E-07*(x**3) + \
-    6.09E-10*(x**4) + -2.55E-13*(x**5) + 6.26E-17*(x**6) + -8.29E-21*(x**7) + 4.55E-25*(x**8)
+    polyfit_coeffs = np.array(
+        [ 1.26667113e+02, -4.94221074e-02,  1.09519117e-05, -1.27781356e-09,
+          8.44104863e-14, -3.36893986e-18,  8.44233082e-23, -1.34846038e-27,
+          1.36025164e-32, -8.27619691e-38,  2.64031523e-43, -1.98711870e-49,
+         -9.74006422e-55,  9.63875219e-61,  5.32852253e-66, -8.41079089e-72])
+
+    def T(R):
+        ret = 0
+        for i, c in enumerate(polyfit_coeffs):
+            ret += c*(R**i)
+        return ret
+
+    Vdd = 3.3
+    Vo = x*(3.3/((1 << 12) - 1))
+
+    try:
+        R_thermistor = (1000*Vo)/(Vdd - Vo)
+    except ZeroDivisionError:
+        return 696969
+
+    return T(R_thermistor)
+
 
 def main():
     lut = [LUT_FUNC(x) for x in range(LUT_SIZE)]

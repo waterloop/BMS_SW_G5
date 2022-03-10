@@ -7,6 +7,6 @@ load
 
 b main
 b bms_entry
-b BistThread::runBist
-# b MeasurementsThread::runMeasurements
+# b BistThread::runBist
+b MeasurementsThread::runMeasurements
 # b StateMachineThread::runStateMachine

@@ -23,7 +23,9 @@ void BistThread::runBist(void* args) {
     while (1) {
         BistThread::_sinput((uint8_t*)"> ", buff, &len);
 
-        if (strcmp((const char*)buff, (const char*)"p_measurements") == 0) { BistThread::_p_measurements(); }
+        // print measurements
+        if (BistThread::_strcmp(buff, "p_measurements"))    { BistThread::_p_measurements(); }
+        else if (BistThread::_strcmp(buff, "pm"))           { BistThread::_p_measurements(); }
 
         else if (strcmp((const char*)buff, (const char*)"") == 0) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
@@ -43,7 +45,7 @@ void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
     BistThread::_print(prompt);
     uint32_t curr_len = 0;
 
-    while (curr_len < (*len)) {
+    while (curr_len < (*len - 1)) {
         uint8_t tmp;
 
         // try to receive 1 character with a timeout value of 1ms
@@ -71,10 +73,15 @@ void BistThread::_sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len) {
         }
 
         // humans cannot type faster than 50ms per character...
+        // if you can, then too bad!!!
         osDelay(50);
     }
     buff[curr_len++] = '\0';
     *len = curr_len;
+}
+
+uint8_t BistThread::_strcmp(uint8_t* a, const char* b) {
+    return !strcmp((const char*)a, b);
 }
 
 void BistThread::_p_measurements() {
@@ -82,8 +89,9 @@ void BistThread::_p_measurements() {
     printf("bms.buck_temp = %d deg C\r\n", (int)global_bms_data.buck_temp);
     printf("bms.mc_cap_voltage = %dmV\r\n", (int)(global_bms_data.mc_cap_voltage*1000));
     printf("bms.contactor_voltage = %dmV\r\n", (int)(global_bms_data.contactor_voltage*1000));
-    printf("bms.bms_current = %dmA\r\n", (int)(global_bms_data.bms_current));
+    printf("bms.bms_current = %dmA\r\n", (int)(global_bms_data.bms_current*1000));
     printf("bms.battery.voltage = %dmV\r\n", (int)(global_bms_data.battery.voltage*1000));
-    printf("bms.batter.current = %dmA\r\n", (int)(global_bms_data.battery.current*1000));
+    printf("bms.battery.current = %dmA\r\n", (int)(global_bms_data.battery.current*1000));
+    printf("bms.battery.soc = %d%%\r\n", (int)(global_bms_data.battery.soc));
 }
 

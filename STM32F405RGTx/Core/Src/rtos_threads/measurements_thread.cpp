@@ -9,11 +9,13 @@
 #include "threads.hpp"
 
 #define CURRENT_SENSE_RESISTANCE    1E-3
-#define ADC_TO_VOLTAGE(x) ( x*(3.3/(1 << 12)) )
-#define INA240_UNBIAS(v) ( (v - (3.3/2))*(1/50) )
-#define VOLTAGE_TO_CURRENT(v) (INA240_UNBIAS(v)/CURRENT_SENSE_RESISTANCE)
-#define UN_VOLTAGE_DIVIDE(v) ( (21*v) )
-#define INA180_VOLTAGE_TO_CURRENT(v) ( v * (2/3) )
+#define BUCK_SENSE_RESISTANCE       15E-3
+#define ADC_TO_VOLTAGE(x) ( (x)*(3.3/((1 << 12) - 1)) )
+#define INA240_UNBIAS(v) ( ((v) - (3.3/2))*(1/50) )
+#define VOLTAGE_TO_CURRENT(v) (INA240_UNBIAS((v))/CURRENT_SENSE_RESISTANCE)
+#define UN_VOLTAGE_DIVIDE(v) ( (21*(v)) )
+#define INA180_UNDO_GAIN(v) ((v)/100)
+#define INA180_VOLTAGE_TO_CURRENT(v) ( INA180_UNDO_GAIN((v))/BUCK_SENSE_RESISTANCE )
 
 RTOSThread MeasurementsThread::thread;
 u_int16_t MeasurementsThread::ADC_buffer[];
@@ -47,16 +49,22 @@ void MeasurementsThread::processData() {
         switch (i) {
             case 0:
                 global_bms_data.buck_temp = ADC_TO_TEMP_LUT[val];
+                break;
             case 1:
                 global_bms_data.battery.current = VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
+                break;
             case 2:
                 global_bms_data.battery.voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+                break;
             case 3:
                 global_bms_data.mc_cap_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+                break;
             case 4:
                 global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
+                break;
             case 5:
             	global_bms_data.bms_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
+                break;
         }
     }
 }    

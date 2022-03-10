@@ -76,8 +76,8 @@ void Error_Handler(void);
 #define ADC1_CONTACTOR_GPIO_Port GPIOC
 #define ADC1_THERMISTOR_Pin GPIO_PIN_1
 #define ADC1_THERMISTOR_GPIO_Port GPIOA
-#define ADC1_IN2_Pin GPIO_PIN_2
-#define ADC1_IN2_GPIO_Port GPIOA
+#define ADC1_BMS_CURRENT_Pin GPIO_PIN_2
+#define ADC1_BMS_CURRENT_GPIO_Port GPIOA
 #define CONT2_Pin GPIO_PIN_3
 #define CONT2_GPIO_Port GPIOA
 #define CS1_Pin GPIO_PIN_4

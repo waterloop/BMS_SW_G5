@@ -19,6 +19,9 @@ class BistThread {
         static void _sinput(uint8_t* prompt, uint8_t* buff, uint32_t* len);
         static void _print(uint8_t* str);
 
+        // wrapper for standard library strcmp so we can pass a uint8_t
+        static uint8_t _strcmp(uint8_t* a, const char* b);
+
         // print measurements
         static void _p_measurements();
 };
