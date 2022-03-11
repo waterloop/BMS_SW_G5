@@ -10,17 +10,6 @@
 
 //#include "bms_tests.hpp"
 
-// redirect stdin and stdout to UART1
-void __io_putchar(uint8_t ch) {
-    HAL_UART_Transmit(&huart1, &ch, 1, 0xffff);
-}
-uint8_t __io_getchar() {
-    uint8_t ch;
-    HAL_UART_Receive(&huart1, &ch, 1, 0xffff);
-    HAL_UART_Transmit(&huart1, &ch, 1, 0xffff);
-    return ch;
-}
-
 BMS global_bms_data;
 Ltc6813 ltc6813;
 
@@ -53,6 +42,7 @@ void _hard_fault_state_trans() {
 }
 
 int bms_entry() {
+    printf("\r\n");
     printf("starting timers...\r\n");
     start_timers();
 
@@ -60,7 +50,14 @@ int bms_entry() {
     if (CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
     if (CANBus_subscribe(STATE_CHANGE_REQ) != HAL_OK) { Error_Handler(); }
 
-    hcan1.Instance->MCR = 0x60;
+    // uncomment for debugging, turns on loopback and turns off autoretransmission
+    // hcan1.Instance->MCR = 0x60;
+    // hcan1.Instance->MCR |= (1 << 4);
+    // hcan1.Instance->BTR |= (1 << 30);
+
+    // uncomment for debugging, initializes GPIO for timing GPIO pin
+    // GPIOA->MODER &= ~(0b11 << (15*2));
+    // GPIOA->MODER |= (0b01 << (15*2));
 
     printf("initializing objects...\r\n");
     ltc6813 = Ltc6813_init(hspi1, GPIOC, 4); //changed from base A to C for CS2
@@ -75,6 +72,8 @@ int bms_entry() {
     MeasurementsThread::initialize();
     CoulombCountingThread::initialize();
     StateMachineThread::initialize();
+    BistThread::initialize();
+    DebugLEDThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register

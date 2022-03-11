@@ -30,12 +30,34 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/times.h>
+#include "main.h"
 
 
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
 extern int __io_getchar(void) __attribute__((weak));
 
+int __io_putchar(int ch) {
+	HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, 1);
+	return 0;
+}
+int __io_getchar(void) {
+	uint8_t ch;
+	HAL_UART_Receive(&huart1, &ch, 1, 1);
+	HAL_UART_Transmit(&huart1, &ch, 1, 1);
+	return ch;
+}
+
+// redirect stdin and stdout to UART1
+// void __io_putchar(uint8_t ch) {
+//     HAL_UART_Transmit(&huart1, &ch, 1, 0xffff);
+// }
+// uint8_t __io_getchar() {
+//     uint8_t ch;
+//     HAL_UART_Receive(&huart1, &ch, 1, 0xffff);
+//     HAL_UART_Transmit(&huart1, &ch, 1, 0xffff);
+//     return ch;
+// }
 
 char *__env[1] = { 0 };
 char **environ = __env;

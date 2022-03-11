@@ -15,7 +15,7 @@ void CoulombCountingThread::initialize() {
     thread = RTOSThread(
         "coulomb_counting_thread",
         1024,
-        osPriorityBelowNormal,
+        osPriorityNormal,
         runCoulombCounting
     );
 }
@@ -49,6 +49,6 @@ void CoulombCountingThread::runCoulombCounting(void* args) {
             global_bms_data.battery.soc = 100;
             totalChargeConsumed = 0;
         }
-        osDelay(100);
+        osDelay(150);
     }
 }
