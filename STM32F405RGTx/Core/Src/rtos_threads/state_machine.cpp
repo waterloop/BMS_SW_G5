@@ -518,7 +518,7 @@ void StateMachineThread::runStateMachine(void *argument) {
             Error_Handler();
     }
 	// CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
-    // sendCANHeartbeat();
+    sendCANHeartbeat();
 	osDelay(200);
   }
 }
