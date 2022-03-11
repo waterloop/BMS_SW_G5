@@ -23,3 +23,4 @@ class MeasurementsThread {
         
         static void startADCandDMA();
 };
+
