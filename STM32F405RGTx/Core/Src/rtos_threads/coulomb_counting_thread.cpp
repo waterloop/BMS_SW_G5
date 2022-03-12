@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "coulomb_counting_thread.hpp"
