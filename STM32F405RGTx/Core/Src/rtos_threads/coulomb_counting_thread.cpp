@@ -5,6 +5,7 @@
 #include "bms_entry.hpp"
 #include "threads.hpp"
 
+#define MEASUREMENT_PERIODICITY_SECONDS MEASUREMENT_PERIODICITY * 1E-3
 #define NOMINAL_CAP     21600
 #define INIT_SOC        100
 
@@ -23,7 +24,7 @@ void CoulombCountingThread::initialize() {
 float CoulombCountingThread::getCharge() {
     // integrate wrt time to get charge
     float curr_current = global_bms_data.battery.current;
-    float trapArea = 0.5 * MEASUREMENT_PERIODICITY * (prev_current + curr_current);
+    float trapArea = 0.5 * MEASUREMENT_PERIODICITY_SECONDS * (prev_current + curr_current);
     prev_current = curr_current;
     
     return trapArea;
@@ -49,6 +50,6 @@ void CoulombCountingThread::runCoulombCounting(void* args) {
             global_bms_data.battery.soc = 100;
             totalChargeConsumed = 0;
         }
-        osDelay(150);
+        osDelay(COULOMB_COUNTING_PERIODICITY);
     }
 }

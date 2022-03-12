@@ -16,7 +16,7 @@ void DebugLEDThread::initialize() {
 void DebugLEDThread::runDebugLEDThread(void* args) {
     while (1) {
         DEBUG_GPIO_Port->ODR ^= DEBUG_Pin;
-        osDelay(1000);
+        osDelay(DEBUG_LED_PERIODICITY);
     }
 }
 

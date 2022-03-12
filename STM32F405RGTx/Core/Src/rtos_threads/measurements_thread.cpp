@@ -89,7 +89,7 @@ void MeasurementsThread::runMeasurements(void* args) {
         processData();
         startADCandDMA();
 
-        osDelay(MEASUREMENT_PERIODICITY*1E3);
+        osDelay(MEASUREMENT_PERIODICITY);
     }
 }
 

@@ -8,6 +8,10 @@
 #include "bist_thread.hpp"
 #include "debug_led_thread.hpp"
 
-// In seconds
-#define MEASUREMENT_PERIODICITY     100E-3
-#define LTC_MEASUREMENT_PERIODICITY 500E-3
+// In milliseconds
+#define MEASUREMENT_PERIODICITY         100
+#define LTC_MEASUREMENT_PERIODICITY     500
+#define BIST_PERIODICITY                50
+#define COULOMB_COUNTING_PERIODICITY    150
+#define DEBUG_LED_PERIODICITY           1000
+#define STATE_MACHINE_PERIODICITY       200

@@ -24,6 +24,6 @@ void Ltc6813Thread::runDriver(void* args) {
                 global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
             }
         }
-        osDelay(LTC_MEASUREMENT_PERIODICITY*1E3);
+        osDelay(LTC_MEASUREMENT_PERIODICITY);
     }
 }

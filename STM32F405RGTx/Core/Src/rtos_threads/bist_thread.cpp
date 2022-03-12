@@ -94,7 +94,7 @@ void BistThread::_sinput(const char* prompt, uint8_t* buff, uint32_t* len) {
 
         // humans cannot type faster than 50ms per character...
         // if you can, then too bad!!!
-        osDelay(50);
+        osDelay(BIST_PERIODICITY);
     }
     buff[curr_len++] = '\0';
     *len = curr_len;
