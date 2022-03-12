@@ -34,4 +34,5 @@ extern BMS global_bms_data;
 void _report_CAN();
 void _cell_disable();
 void _hard_fault_state_trans();
+void _set_fault_checking(bool val);
 

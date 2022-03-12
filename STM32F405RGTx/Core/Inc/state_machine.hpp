@@ -79,6 +79,7 @@ class StateMachineThread {
         static void stopMeasurements(void *argument);
 
         static void setState(State_t state);
+        static void setFaultChecking(bool val);
 
         static StateMachine* SM;
 

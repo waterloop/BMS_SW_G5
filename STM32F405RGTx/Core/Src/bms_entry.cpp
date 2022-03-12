@@ -41,6 +41,10 @@ void _hard_fault_state_trans() {
     StateMachineThread::setState(SevereDangerFault);
 }
 
+void _set_fault_checking(bool val) {
+    StateMachineThread::setFaultChecking(val);
+}
+
 int bms_entry() {
     printf("\r\n");
     printf("starting timers...\r\n");

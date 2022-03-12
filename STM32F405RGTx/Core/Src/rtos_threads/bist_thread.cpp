@@ -46,6 +46,9 @@ void BistThread::runBist(void* args) {
         // help
         else if (BistThread::_strcmp(buff, "help"))         { BistThread::_help(); }
 
+        // toggle fault checking
+        else if (BistThread::_strcmp(buff, "toggle_fc"))         { BistThread::_toggle_fc(); }
+
         else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
 
@@ -107,6 +110,7 @@ uint8_t BistThread::_strcmp(uint8_t* a, const char* b) {
 void BistThread::_help() {
     BistThread::_print((uint8_t*)"p_measurements [pm]   --> print BMS measurements to the screen\r\n");
     BistThread::_print((uint8_t*)"rgb                   --> change the color of the RGB LED\r\n");
+    BistThread::_print((uint8_t*)"toggle_fc             --> toggle fault checking in state machine\r\n");
 }
 
 void BistThread::_p_measurements() {
@@ -141,5 +145,22 @@ void BistThread::_rgb() {
     float blue = atof((const char*)buff);
     set_led_intensity(BLUE, blue);
 
+}
+
+void BistThread::_toggle_fc() {
+    uint8_t buff[3];
+    uint32_t len = 3;
+
+    while (true) {
+        BistThread::_sinput("on or off?: ", buff, &len);
+        if (BistThread::_strcmp(buff, "on")) { 
+            _set_fault_checking(true);
+            break;
+        } else if (BistThread::_strcmp(buff, "off")) {
+            _set_fault_checking(false);
+            break;
+        } 
+    }
+    
 }
 

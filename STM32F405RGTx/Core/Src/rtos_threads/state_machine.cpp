@@ -22,6 +22,7 @@ uint8_t idle_state_id;
 uint8_t run_state_id;
 uint8_t bms_error_code;
 bool has_precharged = false;
+bool enable_fault_check = false;
 
 /* This is created to display the state name in serial terminal. */
 const char *StateNames[] = {
@@ -55,6 +56,10 @@ void SetLEDColour(float R, float G, float B) {
 
 void StateMachineThread::setState(State_t target_state) {
     CurrentState = target_state;
+}
+
+void StateMachineThread::setFaultChecking(bool val) {
+    enable_fault_check = val;
 }
 
 // CAN heartbeat subroutine
@@ -460,6 +465,16 @@ void StateMachineThread::initialize() {
 void StateMachineThread::runStateMachine(void *argument) {
   while(1)
   {
+    if (enable_fault_check) {
+        State_t severe_check = severeFaultChecking();
+        State_t normal_check = normalFaultChecking();
+        if (severe_check != NoFault) {
+            CurrentState = severe_check;
+        } else if (normal_check != NoFault) {
+            CurrentState = normal_check;
+        }
+    }
+
 	OldState = CurrentState;
     switch (CurrentState) {
         case Initialize:
