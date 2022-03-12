@@ -57,6 +57,8 @@ extern UART_HandleTypeDef huart1;
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -75,8 +77,8 @@ void Error_Handler(void);
 #define ADC1_CONTACTOR_GPIO_Port GPIOC
 #define ADC1_THERMISTOR_Pin GPIO_PIN_1
 #define ADC1_THERMISTOR_GPIO_Port GPIOA
-#define ADC1_IN2_Pin GPIO_PIN_2
-#define ADC1_IN2_GPIO_Port GPIOA
+#define ADC1_BMS_CURRENT_Pin GPIO_PIN_2
+#define ADC1_BMS_CURRENT_GPIO_Port GPIOA
 #define CONT2_Pin GPIO_PIN_3
 #define CONT2_GPIO_Port GPIOA
 #define CS1_Pin GPIO_PIN_4
@@ -91,10 +93,10 @@ void Error_Handler(void);
 #define EXT_LED_GPIO_Port GPIOB
 #define BUTTON_Pin GPIO_PIN_11
 #define BUTTON_GPIO_Port GPIOB
-#define G_Pin GPIO_PIN_8
-#define G_GPIO_Port GPIOA
-#define B_Pin GPIO_PIN_9
+#define B_Pin GPIO_PIN_8
 #define B_GPIO_Port GPIOA
+#define G_Pin GPIO_PIN_9
+#define G_GPIO_Port GPIOA
 #define R_Pin GPIO_PIN_10
 #define R_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13

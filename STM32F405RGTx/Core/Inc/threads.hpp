@@ -5,6 +5,8 @@
 #include "measurements_thread.hpp"
 #include "state_machine.hpp"
 #include "ltc6813_thread.hpp"
+#include "bist_thread.hpp"
+#include "debug_led_thread.hpp"
 
 // In seconds
 #define MEASUREMENT_PERIODICITY     100E-3
