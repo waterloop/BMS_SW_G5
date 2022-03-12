@@ -49,6 +49,9 @@ void BistThread::runBist(void* args) {
         // toggle fault checking
         else if (BistThread::_strcmp(buff, "toggle_fc"))         { BistThread::_toggle_fc(); }
 
+        // clear
+        else if (BistThread::_strcmp(buff, "clear"))         { BistThread::_clear(); }
+
         else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
 
@@ -111,6 +114,7 @@ void BistThread::_help() {
     BistThread::_print((uint8_t*)"p_measurements [pm]   --> print BMS measurements to the screen\r\n");
     BistThread::_print((uint8_t*)"rgb                   --> change the color of the RGB LED\r\n");
     BistThread::_print((uint8_t*)"toggle_fc             --> toggle fault checking in state machine\r\n");
+    BistThread::_print((uint8_t*)"clear                 --> clears the command interface\r\n");
 }
 
 void BistThread::_p_measurements() {
@@ -161,6 +165,8 @@ void BistThread::_toggle_fc() {
             break;
         } 
     }
-    
 }
 
+void BistThread::_clear() {
+    printf('\033[2J');
+}
