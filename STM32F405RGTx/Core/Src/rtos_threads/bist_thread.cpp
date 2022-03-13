@@ -153,8 +153,8 @@ void BistThread::_rgb() {
 }
 
 void BistThread::_toggle_fc() {
-    uint8_t buff[3];
-    uint32_t len = 3;
+    uint8_t buff[10];
+    uint32_t len = 10;
 
     while (true) {
         BistThread::_sinput("on or off?: ", buff, &len);
