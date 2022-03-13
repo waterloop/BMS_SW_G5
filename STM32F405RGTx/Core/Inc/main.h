@@ -50,7 +50,6 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
 
-extern Ltc6813 ltc6813;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

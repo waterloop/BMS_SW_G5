@@ -519,7 +519,7 @@ void StateMachineThread::runStateMachine(void *argument) {
     }
 	// CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
     sendCANHeartbeat();
-	osDelay(200);
+	osDelay(STATE_MACHINE_PERIODICITY);
   }
 }
 

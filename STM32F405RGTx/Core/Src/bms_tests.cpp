@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "timer_utils.h"
 #include "ltc6813.h"
+#include "bms_entry.hpp"
 
 void blinky_loop() {
     // test code, blinks an LED on PC3
