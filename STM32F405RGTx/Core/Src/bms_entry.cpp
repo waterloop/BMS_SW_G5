@@ -47,7 +47,7 @@ int bms_entry() {
     start_timers();
 
     printf("initializing CAN bus...\r\n");
-    if (CANBus_init(&hcan1) != HAL_OK) { Error_Handler(); }
+    if (CANBus_init(&hcan1, &htim7) != HAL_OK) { Error_Handler(); }
     if (CANBus_subscribe(STATE_CHANGE_REQ) != HAL_OK) { Error_Handler(); }
 
     // uncomment for debugging, turns on loopback and turns off autoretransmission
