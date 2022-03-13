@@ -6,6 +6,7 @@
 #include "threads.hpp"
 #include "bms_entry.hpp"
 #include "timer_utils.h"
+#include "state_machine.hpp"
 #include "bist_thread.hpp"
 
 static const char* _banner = " _       __      __            __                      \r\n" \
@@ -45,6 +46,12 @@ void BistThread::runBist(void* args) {
 
         // help
         else if (BistThread::_strcmp(buff, "help"))         { BistThread::_help(); }
+
+        // toggle fault checking
+        else if (BistThread::_strcmp(buff, "toggle_fc"))         { BistThread::_toggle_fc(); }
+
+        // clear
+        else if (BistThread::_strcmp(buff, "clear"))         { BistThread::_clear(); }
 
         else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
         else { printf("invalid command...\r\n"); }
@@ -107,6 +114,8 @@ uint8_t BistThread::_strcmp(uint8_t* a, const char* b) {
 void BistThread::_help() {
     BistThread::_print((uint8_t*)"p_measurements [pm]   --> print BMS measurements to the screen\r\n");
     BistThread::_print((uint8_t*)"rgb                   --> change the color of the RGB LED\r\n");
+    BistThread::_print((uint8_t*)"toggle_fc             --> toggle fault checking in state machine\r\n");
+    BistThread::_print((uint8_t*)"clear                 --> clears the command interface\r\n");
 }
 
 void BistThread::_p_measurements() {
@@ -143,3 +152,22 @@ void BistThread::_rgb() {
 
 }
 
+void BistThread::_toggle_fc() {
+    uint8_t buff[10];
+    uint32_t len = 10;
+
+    while (true) {
+        BistThread::_sinput("on or off?: ", buff, &len);
+        if (BistThread::_strcmp(buff, "on")) { 
+            StateMachineThread::setFaultChecking(1);
+            break;
+        } else if (BistThread::_strcmp(buff, "off")) {
+            StateMachineThread::setFaultChecking(0);
+            break;
+        } 
+    }
+}
+
+void BistThread::_clear() {
+    printf("\033[2J");
+}

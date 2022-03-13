@@ -29,5 +29,11 @@ class BistThread {
 
         // change RGB LED color
         static void _rgb();
+
+        // toggle fault checking in state machine
+        static void _toggle_fc();
+
+        // clears the command interface
+        static void _clear();
 };
 
