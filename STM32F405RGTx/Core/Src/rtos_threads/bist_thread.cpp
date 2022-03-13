@@ -6,6 +6,7 @@
 #include "threads.hpp"
 #include "bms_entry.hpp"
 #include "timer_utils.h"
+#include "state_machine.hpp"
 #include "bist_thread.hpp"
 
 static const char* _banner = " _       __      __            __                      \r\n" \
@@ -158,15 +159,15 @@ void BistThread::_toggle_fc() {
     while (true) {
         BistThread::_sinput("on or off?: ", buff, &len);
         if (BistThread::_strcmp(buff, "on")) { 
-            _set_fault_checking(true);
+            StateMachineThread::setFaultChecking(1);
             break;
         } else if (BistThread::_strcmp(buff, "off")) {
-            _set_fault_checking(false);
+            StateMachineThread::setFaultChecking(0);
             break;
         } 
     }
 }
 
 void BistThread::_clear() {
-    printf('\033[2J');
+    printf("\033[2J");
 }
