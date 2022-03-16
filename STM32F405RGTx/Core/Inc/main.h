@@ -48,6 +48,7 @@ extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim7;
 extern UART_HandleTypeDef huart1;
 
 /* USER CODE END EC */

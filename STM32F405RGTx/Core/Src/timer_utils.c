@@ -21,6 +21,7 @@ void start_timers() {
     HAL_TIM_Base_Start(&htim1);
     HAL_TIM_Base_Start(&htim2);
     // HAL_TIM_Base_Start(&htim3);
+    HAL_TIM_Base_Start_IT(&htim7);
 
     set_led_intensity(RED, 0);
     set_led_intensity(GREEN, 0);
