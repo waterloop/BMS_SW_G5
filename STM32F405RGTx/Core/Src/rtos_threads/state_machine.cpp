@@ -1,7 +1,7 @@
 /*
  * state_machine.c
  *
- *  Created on: Jul. 11, 2021
+*  Created on: Jul. 11, 2021
  *      Author: Tiffany Wang, Ivan Mudarth
 */
 
@@ -16,43 +16,16 @@
 #include "can.h"
 #include "bsp.h"
 
-// typedef enum { false = 0, true = !false } bool;
-
-uint8_t idle_state_id;
-uint8_t run_state_id;
-uint8_t bms_error_code;
-bool has_precharged = false;
-bool enable_fault_check = false;
-
-/* This is created to display the state name in serial terminal. */
-const char *StateNames[] = {
-    "Initialize",
-    "Idle",
-    "Precharging",
-    "Run",
-    "Stop",
-    "Sleep",
-    "InitializeFault",
-    "NormalDangerFault",
-    "SevereDangerFault",
-    "NoFault",
-    "Charging",
-    "Charged",
-    "Balancing"
-};
-
 RTOSThread StateMachineThread::thread;
 
 State_t StateMachineThread::CurrentState;
 State_t StateMachineThread::OldState;
-StateMachine *StateMachineThread::SM;
 
-// Set LED colour based on channel duty cycles for RGB channels
-void SetLEDColour(float R, float G, float B) {
-    set_led_intensity(RED, R);
-    set_led_intensity(GREEN, G);
-    set_led_intensity(BLUE, B);
-}
+uint8_t StateMachineThread::idle_state_id;
+uint8_t StateMachineThread::run_state_id;
+uint8_t StateMachineThread::bms_error_code;
+bool StateMachineThread::has_precharged;
+bool StateMachineThread::enable_fault_check;
 
 void StateMachineThread::setState(State_t target_state) {
     CurrentState = target_state;
@@ -60,35 +33,6 @@ void StateMachineThread::setState(State_t target_state) {
 
 void StateMachineThread::setFaultChecking(bool val) {
     enable_fault_check = val;
-}
-
-// CAN heartbeat subroutine
-void StateMachineThread::sendCANHeartbeat(void) {
-    float avg_cell_temp = 0;
-    for (uint8_t i = 0; i < NUM_CELLS; i++) {
-        avg_cell_temp += global_bms_data.battery.cells[i].temp;
-    }
-    avg_cell_temp /= NUM_CELLS;
-
-    CANFrame tx_frame0 = CANFrame_init(BATTERY_PACK_CURRENT.id);
-    CANFrame_set_field(&tx_frame0, BATTERY_PACK_CURRENT, FLOAT_TO_UINT(global_bms_data.battery.current));
-    CANFrame_set_field(&tx_frame0, CELL_TEMPERATURE, FLOAT_TO_UINT(avg_cell_temp));
-
-    CANFrame tx_frame1 = CANFrame_init(BATTERY_PACK_VOLTAGE.id);
-    CANFrame_set_field(&tx_frame1, BATTERY_PACK_VOLTAGE, FLOAT_TO_UINT(global_bms_data.battery.voltage));
-    CANFrame_set_field(&tx_frame1, STATE_OF_CHARGE, FLOAT_TO_UINT(global_bms_data.battery.soc));
-
-    CANFrame tx_frame2 = CANFrame_init(BUCK_TEMPERATURE.id);
-    CANFrame_set_field(&tx_frame2, BUCK_TEMPERATURE, FLOAT_TO_UINT(global_bms_data.buck_temp));
-    // CANFrame_set_field(&tx_frame2, BMS_CURRENT, FLOAT_TO_UINT(0));
-
-    CANFrame tx_frame3 = CANFrame_init(MC_CAP_VOLTAGE.id);
-    CANFrame_set_field(&tx_frame3, MC_CAP_VOLTAGE, FLOAT_TO_UINT(global_bms_data.mc_cap_voltage));
-
-    if (CANBus_put_frame(&tx_frame0) != HAL_OK) { Error_Handler(); }
-    if (CANBus_put_frame(&tx_frame1) != HAL_OK) { Error_Handler(); }
-    if (CANBus_put_frame(&tx_frame2) != HAL_OK) { Error_Handler(); }
-    if (CANBus_put_frame(&tx_frame3) != HAL_OK) { Error_Handler(); }
 }
 
 // Returns normal fault state or no fault based on current, voltage, and temperature measurements
@@ -203,7 +147,7 @@ State_t StateMachineThread::InitializeEvent(void) {
 
 State_t StateMachineThread::IdleEvent(void) {
     // Set LED colour to green
-    SetLEDColour(0.0, 50.0, 0.0);
+    LEDThread::setLED(0.0, 50.0, 0.0, false);
     
     // Fault checking
     // State_t severe_check = SevereFaultChecking();
@@ -239,7 +183,7 @@ State_t StateMachineThread::IdleEvent(void) {
 
 State_t StateMachineThread::PrechargingEvent(void) {
     // Set LED colour to white
-    SetLEDColour(50.0, 50.0, 50.0);
+    LEDThread::setLED(50.0, 50.0, 50.0, false);
 
     // Fault checking
     // State_t severe_check = SevereFaultChecking();
@@ -262,7 +206,7 @@ State_t StateMachineThread::PrechargingEvent(void) {
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
     CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
     CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     return Idle;
 }
@@ -274,7 +218,7 @@ State_t StateMachineThread::RunEvent(void) {
 
         Assigned to - Ivan
     */
-    SetLEDColour(41.57, 5.1, 67.84);
+    LEDThread::setLED(41.57, 5.1, 67.84, false);
 
     // Fault checking
     // State_t severe_check = SevereFaultChecking();
@@ -292,7 +236,7 @@ State_t StateMachineThread::RunEvent(void) {
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
     CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
     CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -310,7 +254,7 @@ State_t StateMachineThread::RunEvent(void) {
 
 State_t StateMachineThread::StopEvent(void) {
     // Set LED colour to yellow
-    SetLEDColour(50.0, 50.0, 0.0);
+    LEDThread::setLED(50.0, 50.0, 0.0, false);
 
     TURN_OFF_CONT1_PIN();
 
@@ -318,7 +262,7 @@ State_t StateMachineThread::StopEvent(void) {
     CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
     CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, run_state_id);
     CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -335,7 +279,7 @@ State_t StateMachineThread::StopEvent(void) {
 
 State_t StateMachineThread::SleepEvent(void) {
     // Set LED colour to blue
-    SetLEDColour(0.0, 0.0, 50.0);
+    LEDThread::setLED(0.0, 0.0, 50.0, false);
 
     // Pauses measurements
     MeasurementsThread::stopMeasurements();
@@ -370,13 +314,13 @@ State_t StateMachineThread::InitializeFaultEvent(void) {
 
 State_t StateMachineThread::NormalDangerFaultEvent(void) {
     // Set LED colour to light orange
-    SetLEDColour(50.00, 32.3, 0.0);
+    LEDThread::setLED(50.00, 32.3, 0.0, false);
 
     // Report fault on CAN
     CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
     CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, DANGER);
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
-    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONT1_PIN();
 
@@ -395,13 +339,13 @@ State_t StateMachineThread::NormalDangerFaultEvent(void) {
 
 State_t StateMachineThread::SevereDangerFaultEvent(void) {
     // Set LED colour to red
-    SetLEDColour(50.00, 0.0, 0.0);
+    LEDThread::setLED(50.00, 0.0, 0.0, true);
 
     // Report fault on CAN
     CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
     CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
-    if (CANBus_put_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONT1_PIN();
 
@@ -438,28 +382,13 @@ void StateMachineThread::initialize() {
     thread = RTOSThread(
         "state_machine_thread",
         1024*3,
-        osPriorityBelowNormal,
+        STATE_MACHINE_THREAD_PRIORITY,
         runStateMachine
     );
 
-    StateMachine stateMachine[13] = {
-        {Initialize, InitializeEvent},
-        {InitializeFault, InitializeFaultEvent},
-        {Idle, IdleEvent},
-        {Precharging, PrechargingEvent},
-        {Run, RunEvent},
-        {Stop, StopEvent},
-        {Sleep, SleepEvent},
-        {NormalDangerFault, NormalDangerFaultEvent},
-        {SevereDangerFault, SevereDangerFaultEvent},
-        {NoFault, NoFaultEvent},
-        {Charging, ChargingEvent},
-        {Charged, ChargedEvent},
-        {Balancing, BalancingEvent}
-    };
-
-    SM = stateMachine;
     CurrentState = Initialize;
+    has_precharged = false;
+    enable_fault_check = true;
 }
 
 void StateMachineThread::runStateMachine(void *argument) {
@@ -532,9 +461,8 @@ void StateMachineThread::runStateMachine(void *argument) {
         default:
             Error_Handler();
     }
-	// CurrentState = (*StateMachineThread::SM[CurrentState].Event)();
-    sendCANHeartbeat();
-	osDelay(STATE_MACHINE_PERIODICITY);
+
+	osDelay(STATE_MACHINE_THREAD_PERIODICITY);
   }
 }
 

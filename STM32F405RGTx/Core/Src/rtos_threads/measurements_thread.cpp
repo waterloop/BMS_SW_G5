@@ -24,14 +24,15 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
         printf("Error: HAL_ADC_Stop_DMA failed with status code %d\r\n", status);
         Error_Handler();
     }
-    osThreadFlagsSet(MeasurementsThread::getThreadId(), 0x00000001U);        // set flag to signal that ADC conversion has completed
+    // set flag to signal that ADC conversion has completed
+    osThreadFlagsSet(MeasurementsThread::getThreadId(), 0x1U);
 }
 
 void MeasurementsThread::initialize() {
     thread = RTOSThread(
         "measurements_thread",
         1024*5,
-        osPriorityAboveNormal,
+        MEASUREMENTS_THREAD_PRIORITY,
         runMeasurements
     );
 }
@@ -61,7 +62,7 @@ void MeasurementsThread::processData() {
                 global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
                 break;
             case 5:
-            	global_bms_data.bms_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
+                global_bms_data.bms_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
                 break;
         }
     }
@@ -84,12 +85,21 @@ void MeasurementsThread::runMeasurements(void* args) {
     startADCandDMA();
 
     while (1) {
-		// wait for signal from HAL_ADC_ConvCpltCallback and give execution over to other threads
-        osThreadFlagsWait(0x00000001U, osFlagsWaitAll, 0U);        // 0U for no timeout
-        processData();
-        startADCandDMA();
+        // see if the DMA buffer has been filled
+        uint32_t status = osThreadFlagsWait(0x1U, osFlagsWaitAll, 0U);     // 0U for no timeout
 
-        osDelay(MEASUREMENT_PERIODICITY);
+        // if the DMA buffer has been filled, process the data...
+        if ( (status != osFlagsErrorTimeout) && (status != osFlagsErrorResource) ) {
+            processData();
+
+            // set flag to signal to coulomb counting that a new current sample is available...
+            osThreadFlagsSet(CoulombCountingThread::getThreadId(), 0x1U);
+
+            // take another measurement
+            startADCandDMA();
+        }
+
+        osDelay(MEASUREMENTS_THREAD_PERIODICITY);
     }
 }
 

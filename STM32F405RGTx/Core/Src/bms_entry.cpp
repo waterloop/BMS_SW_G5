@@ -74,7 +74,7 @@ int bms_entry() {
     StateMachineThread::initialize();
     Ltc6813Thread::initialize();
     BistThread::initialize();
-    DebugLEDThread::initialize();
+    LEDThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register

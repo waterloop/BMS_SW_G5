@@ -22,7 +22,7 @@ void BistThread::initialize() {
     BistThread::thread_ = RTOSThread(
             "bist_thread",
             1024,
-            osPriorityLow,
+            BIST_THREAD_PRIORITY,
             BistThread::runBist
     );
 }
@@ -101,7 +101,7 @@ void BistThread::_sinput(const char* prompt, uint8_t* buff, uint32_t* len) {
 
         // humans cannot type faster than 50ms per character...
         // if you can, then too bad!!!
-        osDelay(BIST_PERIODICITY);
+        osDelay(BIST_THREAD_PERIODICITY);
     }
     buff[curr_len++] = '\0';
     *len = curr_len;
