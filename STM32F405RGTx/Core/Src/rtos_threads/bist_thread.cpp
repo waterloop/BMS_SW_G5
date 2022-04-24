@@ -17,46 +17,70 @@ static const char* _banner = " _       __      __            __                 
                              "                                        /_/            \r\n";
 
 RTOSThread BistThread::thread_;
+void (*BistThread::callback)(void);
+
+// Button ISR
+// I'm not putting too much effort into making this ISR short, since we are inherantly
+// not in a time/safety sensitive environment if we are using the BIST...
+static uint32_t prev_time = 0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    if (GPIO_Pin == BUTTON_EXT11_Pin) {
+        uint32_t curr_time = HAL_GetTick();
+        if ( (HAL_GetTick() - prev_time) > BUTTON_DEBOUNCE_TIME ) {
+            BistThread::toggleBist();
+            prev_time = curr_time;
+        }
+    }
+}
+
 
 void BistThread::initialize() {
     BistThread::thread_ = RTOSThread(
-            "bist_thread",
-            1024,
-            BIST_THREAD_PRIORITY,
-            BistThread::runBist
+        "bist_thread",
+        1024,
+        BIST_THREAD_PRIORITY,
+        BistThread::runBist
     );
+    BistThread::callback = &BistThread::disabled_callback;
 }
 
+void BistThread::toggleBist() {
+    if (BistThread::callback == &BistThread::enabled_callback) {
+        BistThread::callback = &BistThread::disabled_callback;
+    }
+    else if (BistThread::callback == &BistThread::disabled_callback) {
+        printf("%s", _banner);
+        printf("Master BMS BIST Console\r\n");
+        printf("Type 'help' for a list of available commands...\r\n\r\n");
+        BistThread::callback = &BistThread::enabled_callback;
+    }
+}
+
+static uint8_t buff[20];
+static uint32_t len = 20;
+void BistThread::enabled_callback() {
+    BistThread::_sinput("> ", buff, &len);
+
+    if (BistThread::_strcmp(buff, "p_measurements"))    { BistThread::_p_measurements(); }
+    else if (BistThread::_strcmp(buff, "pm"))           { BistThread::_p_measurements(); }
+    else if (BistThread::_strcmp(buff, "rgb"))          { BistThread::_rgb(); }
+    else if (BistThread::_strcmp(buff, "help"))         { BistThread::_help(); }
+    else if (BistThread::_strcmp(buff, "toggle_fc"))    { BistThread::_toggle_fc(); }
+    else if (BistThread::_strcmp(buff, "clear"))        { BistThread::_clear(); }
+    else if (BistThread::_strcmp(buff, ""))             { /* do nothing... */ }
+
+    else { printf("invalid command...\r\n"); }
+
+    len = 20;
+}
+void BistThread::disabled_callback() { osThreadYield(); }
+
 void BistThread::runBist(void* args) {
-    printf("%s", _banner);
-    printf("Master BMS BIST Console\r\n");
-    printf("Type 'help' for a list of available commands...\r\n\r\n");
 
-    uint8_t buff[20];
-    uint32_t len = 20;
+
+    // this implementation of disabling the thread is kinda poo poo but it should also be fine...
     while (1) {
-        BistThread::_sinput("> ", buff, &len);
-
-        // print measurements
-        if (BistThread::_strcmp(buff, "p_measurements"))    { BistThread::_p_measurements(); }
-        else if (BistThread::_strcmp(buff, "pm"))           { BistThread::_p_measurements(); }
-
-        // rgb
-        else if (BistThread::_strcmp(buff, "rgb"))          { BistThread::_rgb(); }
-
-        // help
-        else if (BistThread::_strcmp(buff, "help"))         { BistThread::_help(); }
-
-        // toggle fault checking
-        else if (BistThread::_strcmp(buff, "toggle_fc"))         { BistThread::_toggle_fc(); }
-
-        // clear
-        else if (BistThread::_strcmp(buff, "clear"))         { BistThread::_clear(); }
-
-        else if (BistThread::_strcmp(buff, "")) { /* do nothing... */ }
-        else { printf("invalid command...\r\n"); }
-
-        len = 20;
+        BistThread::callback();
     }
 }
 

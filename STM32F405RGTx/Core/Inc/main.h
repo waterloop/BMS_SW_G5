@@ -92,8 +92,8 @@ void Error_Handler(void);
 #define PRECHARGE_GPIO_Port GPIOB
 #define EXT_LED_Pin GPIO_PIN_10
 #define EXT_LED_GPIO_Port GPIOB
-#define BUTTON_Pin GPIO_PIN_11
-#define BUTTON_GPIO_Port GPIOB
+#define BUTTON_EXT11_Pin GPIO_PIN_11
+#define BUTTON_EXT11_GPIO_Port GPIOB
 #define B_Pin GPIO_PIN_8
 #define B_GPIO_Port GPIOA
 #define G_Pin GPIO_PIN_9

@@ -34,7 +34,7 @@ void CANThread::initialize() {
 
     g_state_change_req_queue = osMessageQueueNew(10, sizeof(StateID), NULL);
 
-    printf("initializing CAN peripheral...\r\n");
+    printf("initializing CAN bus...\r\n");
     if (CANBus_init(&hcan1, &htim7) != HAL_OK) { Error_Handler(); }
     if (CANBus_subscribe(STATE_CHANGE_REQ) != HAL_OK) { Error_Handler(); }
     if (CANBus_subscribe_mask(BUS_TEST_REQ_BASE, BUS_TEST_MSK) != HAL_OK) { Error_Handler(); }
