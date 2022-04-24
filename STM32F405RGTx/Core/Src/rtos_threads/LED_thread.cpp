@@ -18,6 +18,12 @@ void LEDThread::initialize() {
         LED_THREAD_PRIORITY,
         LEDThread::runLEDThread
     );
+    LEDThread::R = 0;
+    LEDThread::G = 0;
+    LEDThread::B = 0;
+    LEDThread::rgb_blink = 0;
+    LEDThread::rgb_on = 0;
+    LEDThread::cnt = 0;
 }
 
 void LEDThread::setLED(float R_, float G_, float B_, uint8_t blink_) {
