@@ -6,7 +6,6 @@
 #define BUS_TEST_REQ_TIMEOUT 10000
 
 extern osMutexId_t g_bus_mutex;
-extern osMessageQueueId_t g_state_change_req_queue;
 
 HAL_StatusTypeDef send_frame(CANFrame* frame);
 
