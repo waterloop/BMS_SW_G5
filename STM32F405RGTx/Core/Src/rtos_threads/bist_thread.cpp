@@ -24,7 +24,7 @@ void (*BistThread::callback)(void);
 // not in a time/safety sensitive environment if we are using the BIST...
 static uint32_t prev_time = 0;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    if (GPIO_Pin == BUTTON_EXT11_Pin) {
+    if (GPIO_Pin == BIST_Pin) {
         uint32_t curr_time = HAL_GetTick();
         if ( (HAL_GetTick() - prev_time) > BUTTON_DEBOUNCE_TIME ) {
             BistThread::toggleBist();

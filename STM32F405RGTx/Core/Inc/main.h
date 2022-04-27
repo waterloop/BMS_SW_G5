@@ -51,6 +51,7 @@ extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim7;
 extern UART_HandleTypeDef huart1;
 
+#define BIST_Pin BUTTON_EXT11_Pin
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
