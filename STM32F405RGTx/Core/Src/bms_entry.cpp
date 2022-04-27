@@ -46,10 +46,6 @@ int bms_entry() {
     printf("starting timers...\r\n");
     start_timers();
 
-    printf("initializing CAN bus...\r\n");
-    if (CANBus_init(&hcan1, &htim7) != HAL_OK) { Error_Handler(); }
-    if (CANBus_subscribe(STATE_CHANGE_REQ) != HAL_OK) { Error_Handler(); }
-
     // uncomment for debugging, turns on loopback and turns off autoretransmission
     // hcan1.Instance->MCR = 0x60;
     // hcan1.Instance->MCR |= (1 << 4);
@@ -73,8 +69,9 @@ int bms_entry() {
     CoulombCountingThread::initialize();
     StateMachineThread::initialize();
     Ltc6813Thread::initialize();
+    CANThread::initialize();
     BistThread::initialize();
-    DebugLEDThread::initialize();
+    LEDThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
     // ltc6813_comm_test();    // Test communication by reading cfg register

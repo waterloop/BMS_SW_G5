@@ -2,13 +2,21 @@
 
 #include "util.hpp"
 
+// milli-seconds
+#define BUTTON_DEBOUNCE_TIME        30
+
 class BistThread {
     public:
         static void initialize();
+        static void toggleBist();
 
     protected:
         static RTOSThread thread_;
         static void runBist(void* args);
+
+        static void (*callback)(void);
+        static void enabled_callback();
+        static void disabled_callback();
 
         /*
             prompt  -> string to prompt user for input

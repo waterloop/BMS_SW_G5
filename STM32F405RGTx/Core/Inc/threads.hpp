@@ -6,12 +6,35 @@
 #include "state_machine.hpp"
 #include "ltc6813_thread.hpp"
 #include "bist_thread.hpp"
-#include "debug_led_thread.hpp"
+#include "LED_thread.hpp"
+#include "CAN_thread.hpp"
 
-// In milliseconds
-#define MEASUREMENT_PERIODICITY         100
-#define LTC_MEASUREMENT_PERIODICITY     500
-#define BIST_PERIODICITY                50
-#define COULOMB_COUNTING_PERIODICITY    150
-#define DEBUG_LED_PERIODICITY           1000
-#define STATE_MACHINE_PERIODICITY       200
+// see ./docs/utilization.xlsx for schedulability calculations
+
+// Periodicities are in milli-seconds
+
+// tasks with HARD timing deadlines
+#define MEASUREMENTS_THREAD_PERIODICITY             3
+#define MEASUREMENTS_THREAD_PRIORITY                osPriorityRealtime7
+
+#define COULOMB_COUNTING_THREAD_PERIODICITY         4
+#define COULOMB_COUNTING_THREAD_PRIORITY            osPriorityRealtime6
+
+#define STATE_MACHINE_THREAD_PERIODICITY            7
+#define STATE_MACHINE_THREAD_PRIORITY               osPriorityRealtime5
+
+#define CAN_THREAD_PERIODICITY                      200
+#define CAN_THREAD_PRIORITY                         osPriorityRealtime4
+
+#define LTC6813_THREAD_PERIODICITY                  500
+#define LTC6813_THREAD_PRIORITY                     osPriorityRealtime3
+
+
+// tasks with SOFT timing deadlines
+#define BIST_THREAD_PERIODICITY                     50
+#define BIST_THREAD_PRIORITY                        osPriorityLow
+
+#define LED_THREAD_PERIODICITY                      250
+#define LED_THREAD_PRIORITY                         osPriorityIdle
+
+

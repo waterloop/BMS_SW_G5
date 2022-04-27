@@ -10,7 +10,7 @@ void Ltc6813Thread::initialize() {
     thread = RTOSThread(
         "ltc6813_thread",
         1024*2,
-        osPriorityBelowNormal,
+        LTC6813_THREAD_PRIORITY,
         runDriver
     );
 }
@@ -24,6 +24,6 @@ void Ltc6813Thread::runDriver(void* args) {
                 global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
             }
         }
-        osDelay(LTC_MEASUREMENT_PERIODICITY);
+        osDelay(LTC6813_THREAD_PERIODICITY);
     }
 }

@@ -14,39 +14,36 @@
 
 //////////////////////////////////////////////////////////////
 // PACK PARAMETERS
-#define PRECHARGE_VOLTAGE_THRESHOLD 40.0
+#define PRECHARGE_VOLTAGE_THRESHOLD     40.0
 
-#define MAX_PACK_CURRENT_SEVERE 50.0
-#define MAX_PACK_CURRENT_NORMAL 40.0
+#define MAX_PACK_CURRENT_SEVERE         50.0
+#define MAX_PACK_CURRENT_NORMAL         40.0
 
-#define MAX_PACK_VOLTAGE_SEVERE 50.0
-#define MIN_PACK_VOLTAGE_SEVERE 40.0
-#define MAX_PACK_VOLTAGE_NORMAL 47.0
-#define MIN_PACK_VOLTAGE_NORMAL 44.0
+#define MAX_PACK_VOLTAGE_SEVERE         50.0
+#define MIN_PACK_VOLTAGE_SEVERE         40.0
+#define MAX_PACK_VOLTAGE_NORMAL         47.0
+#define MIN_PACK_VOLTAGE_NORMAL         44.0
 
-#define MAX_BUCK_TEMP_SEVERE 100.0
-#define MAX_BUCK_TEMP_NORMAL 80.0
+#define MAX_BUCK_TEMP_SEVERE            100.0
+#define MAX_BUCK_TEMP_NORMAL            80.0
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
 // CELL PARAMETERS
-#define MAX_CELL_VOLTAGE_SEVERE 3.7
-#define MIN_CELL_VOLTAGE_SEVERE 1.6
-#define MAX_CELL_VOLTAGE_NORMAL 3.6
-#define MIN_CELL_VOLTAGE_NORMAL 2.6
+#define MAX_CELL_VOLTAGE_SEVERE         3.7
+#define MIN_CELL_VOLTAGE_SEVERE         1.6
+#define MAX_CELL_VOLTAGE_NORMAL         3.6
+#define MIN_CELL_VOLTAGE_NORMAL         2.6
 
-#define MAX_CELL_TEMP_SEVERE 60.0   // not final
+#define MAX_CELL_TEMP_SEVERE            60.0   // not final
 
-#define MIN_CELL_OVERVOLT_FAULTS 1
-#define MIN_CELL_UNDERVOLT_FAULTS 1
-#define MIN_CELL_TEMP_FAULTS 1
+#define MIN_CELL_OVERVOLT_FAULTS        1
+#define MIN_CELL_UNDERVOLT_FAULTS       1
+#define MIN_CELL_TEMP_FAULTS            1
 //////////////////////////////////////////////////////////////
 
 
 /* Definitions for stateMachineTask */
-
-// extern osThreadId_t stateMachineTaskHandle;
-// extern const osThreadAttr_t stateMachineTask_attributes;
 
 typedef enum {
     Initialize,
@@ -64,12 +61,6 @@ typedef enum {
     Balancing
 } State_t;
 
-typedef State_t (*pfEvent)(void);
-
-typedef struct {
-    State_t State;
-    pfEvent Event;
-} StateMachine;
 
 class StateMachineThread {
     public:
@@ -81,14 +72,20 @@ class StateMachineThread {
         static void setState(State_t state);
         static void setFaultChecking(bool val);
 
-        static StateMachine* SM;
 
     private:
         static RTOSThread thread;
+        static void runStateMachine(void *arg);
+
+    private:
         static State_t CurrentState;
         static State_t OldState;
 
-        static void runStateMachine(void *arg);
+        static uint8_t idle_state_id;
+        static uint8_t run_state_id;
+        static uint8_t bms_error_code;
+        static bool has_precharged;
+        static bool enable_fault_check;
 
         static void sendCANHeartbeat(void);
 
