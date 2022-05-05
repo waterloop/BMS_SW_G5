@@ -170,11 +170,11 @@ void DebugMon_Handler(void)
 void CAN1_RX0_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
-
+  // TIMING_GPIO_Port->ODR |= TIMING_Pin;
   /* USER CODE END CAN1_RX0_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan1);
   /* USER CODE BEGIN CAN1_RX0_IRQn 1 */
-
+  // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
   /* USER CODE END CAN1_RX0_IRQn 1 */
 }
 
@@ -184,12 +184,12 @@ void CAN1_RX0_IRQHandler(void)
 void TIM1_BRK_TIM9_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 0 */
-
+  // TIMING_GPIO_Port->ODR |= TIMING_Pin;
   /* USER CODE END TIM1_BRK_TIM9_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
   HAL_TIM_IRQHandler(&htim9);
   /* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 1 */
-
+  // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
   /* USER CODE END TIM1_BRK_TIM9_IRQn 1 */
 }
 
@@ -199,11 +199,11 @@ void TIM1_BRK_TIM9_IRQHandler(void)
 void TIM7_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_IRQn 0 */
-
+  // TIMING_GPIO_Port->ODR |= TIMING_Pin;
   /* USER CODE END TIM7_IRQn 0 */
   HAL_TIM_IRQHandler(&htim7);
   /* USER CODE BEGIN TIM7_IRQn 1 */
-
+  // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
   /* USER CODE END TIM7_IRQn 1 */
 }
 
@@ -213,11 +213,11 @@ void TIM7_IRQHandler(void)
 void DMA2_Stream0_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
-
+  // TIMING_GPIO_Port->ODR |= TIMING_Pin;
   /* USER CODE END DMA2_Stream0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc1);
   /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
-
+  // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
   /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 

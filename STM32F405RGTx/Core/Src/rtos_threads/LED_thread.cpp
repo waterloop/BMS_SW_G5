@@ -14,7 +14,7 @@ uint32_t LEDThread::cnt;
 void LEDThread::initialize() {
     LEDThread::thread_ = RTOSThread(
         "debug_led_thread",
-        200,
+        1024*3,
         LED_THREAD_PRIORITY,
         LEDThread::runLEDThread
     );

@@ -85,6 +85,8 @@ void MeasurementsThread::runMeasurements(void* args) {
     startADCandDMA();
 
     while (1) {
+        // TIMING_GPIO_Port->ODR |= TIMING_Pin;
+
         // see if the DMA buffer has been filled
         uint32_t status = osThreadFlagsWait(0x1U, osFlagsWaitAll, 0U);     // 0U for no timeout
 
@@ -99,6 +101,7 @@ void MeasurementsThread::runMeasurements(void* args) {
             startADCandDMA();
         }
 
+        // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
         osDelay(MEASUREMENTS_THREAD_PERIODICITY);
     }
 }
