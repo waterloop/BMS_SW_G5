@@ -293,7 +293,7 @@ State_t StateMachineThread::NormalDangerFaultEvent(void) {
     CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
     CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, DANGER);
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    // if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONT1_PIN();
 

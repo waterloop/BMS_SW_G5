@@ -19,7 +19,7 @@ HAL_StatusTypeDef send_frame(CANFrame* frame) {
 void CANThread::initialize() {
     CANThread::thread_ = RTOSThread(
         "CAN_thread",
-        1024*5,
+        1024,
         CAN_THREAD_PRIORITY,
         CANThread::runCANThread
     );
@@ -72,12 +72,12 @@ void CANThread::send_heartbeat() {
 
 void CANThread::runCANThread(void* arg) {
     while (1) {
-        TIMING_GPIO_Port->ODR |= TIMING_Pin;
+        // TIMING_GPIO_Port->ODR |= TIMING_Pin;
 
         CANThread::send_heartbeat();
-        if (RELAY_HEARTBEAT_ERROR_FLAG) { StateMachineThread::setState(NormalDangerFault); }
+        //if (RELAY_HEARTBEAT_ERROR_FLAG) { StateMachineThread::setState(NormalDangerFault); }
 
-        TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
+        // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
         osDelay(CAN_THREAD_PERIODICITY);
     }
 }

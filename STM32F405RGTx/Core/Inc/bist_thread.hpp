@@ -3,7 +3,7 @@
 #include "util.hpp"
 
 // milli-seconds
-#define BUTTON_DEBOUNCE_TIME        30
+#define BUTTON_DEBOUNCE_TIME        500
 
 class BistThread {
     public:

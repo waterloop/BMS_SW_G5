@@ -70,7 +70,7 @@ int bms_entry() {
     StateMachineThread::initialize();
     // Ltc6813Thread::initialize();
     CANThread::initialize();
-    // BistThread::initialize();
+    BistThread::initialize();
     LEDThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler
