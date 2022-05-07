@@ -206,6 +206,14 @@ void _Ltc6813_decode_adc(Ltc6813* self) {
     self->cell_voltages[16] = c17v*100E-6;
     self->cell_voltages[17] = c18v*100E-6;
 }
+void _Ltc6813_decode_temp(Ltc6813* self) {
+    // unimplemented yet, need to wait for someone to give me
+    // the part number of the thermistors on the pack...
+
+    // will use a regression polynomial for this instead of a LUT tho...
+    // the computation speed for this can be slower than the measurements
+    // thread thermistor, since the periodicity is much lower
+}
 
 void Ltc6813_cs_low(Ltc6813* self) { HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 0); }
 void Ltc6813_cs_high(Ltc6813* self) { HAL_GPIO_WritePin(self->_cs_gpio_port, (1u << self->_cs_pin_num), 1); }
@@ -294,6 +302,18 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
         case RDCVF:
             reg_buf = &(self->cvf_bfr);
             break;
+        case RDAUXA:
+            reg_buf = &(self->auxa_bfr);
+            break;
+        case RDAUXB:
+            reg_buf = &(self->auxb_bfr);
+            break;
+        case RDAUXC:
+            reg_buf = &(self->auxc_bfr);
+            break;
+        case RDAUXD:
+            reg_buf = &(self->auxd_bfr);
+            break;
         default:
             reg_buf = NULL;
             break;
@@ -318,7 +338,7 @@ uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd) {
     return pec_success;
 
 }
-void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
+uint8_t Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
     Buffer* reg_buff;
     if (reg_cmd == WRCFGA) {
         reg_buff = &self->cfga_bfr;
@@ -336,17 +356,19 @@ void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd) {
     Ltc6813_send_cmd(self, reg_cmd);
 
     _Ltc6813_acquire_mutex(self);
-    HAL_SPI_Transmit(&self->_spi_interface, reg_buff->data, reg_buff->len, self->timeout);
+    HAL_StatusTypeDef status = HAL_SPI_Transmit(&self->_spi_interface, reg_buff->data, reg_buff->len, self->timeout);
     _Ltc6813_release_mutex(self);
 
     Ltc6813_cs_high(self);
     reg_buff->len = 6;
+
+    return (status == HAL_OK);
 }
 
 uint8_t Ltc6813_read_cfga(Ltc6813* self) { return Ltc6813_read_reg(self, RDCFGA); }
 uint8_t Ltc6813_read_cfgb(Ltc6813* self) { return Ltc6813_read_reg(self, RDCFGB); }
-void Ltc6813_write_cfga(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGA); }
-void Ltc6813_write_cfgb(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGB); }
+uint8_t Ltc6813_write_cfga(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGA); }
+uint8_t Ltc6813_write_cfgb(Ltc6813* self) { return Ltc6813_write_reg(self, WRCFGB); }
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
     Ltc6813_cs_low(self);
@@ -355,7 +377,6 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
     // Wait for references to power up. Should be 4.4 ms, but can only delay integer ticks (1ms/tick)
     osDelay(5);
-
 
     uint32_t delay = FILTERED_ADC_DELAY;
     switch (mode) {
@@ -386,6 +407,24 @@ uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode) {
 
     return success;
 }
+uint8_t Ltc6813_read_temp(Ltc6813* self) {
+    // tell the chip to read all the GPIO ADCs
+    Ltc6813_cs_low(self);
+    Ltc6813_send_cmd(self, ADAX);
+    Ltc6813_cs_high(self);
+
+    // 5ms for references to power up, and 4ms for the conversion
+    osDelay(5 + 4);
+
+    uint8_t success = 1;
+
+    success &= Ltc6813_read_reg(self, RDAUXA);
+    success &= Ltc6813_read_reg(self, RDAUXB);
+    success &= Ltc6813_read_reg(self, RDAUXC);
+    success &= Ltc6813_read_reg(self, RDAUXD);
+
+    return success;
+}
 
 uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask) {
     // CFGAR4 contains DCC[8:1]
@@ -413,15 +452,9 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask) {
     // write back to the device
     uint8_t status = 1U;
 
-    /*
-    TODO:
-        - eventually, all of the write functions should have return codes,
-          maybe return a HAL_StatusTypeDef
-    */
-
-    Ltc6813_write_cfga(self);
-    Ltc6813_write_cfga(self);
-    Ltc6813_write_cfgb(self);
+    status &= Ltc6813_write_cfga(self);
+    status &= Ltc6813_write_cfga(self);
+    status &= Ltc6813_write_cfgb(self);
 
     return status;
 }

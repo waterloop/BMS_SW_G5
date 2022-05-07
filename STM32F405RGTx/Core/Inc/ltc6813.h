@@ -54,7 +54,13 @@ typedef struct {
     Buffer cve_bfr;;
     Buffer cvf_bfr;
 
+    Buffer auxa_bfr;
+    Buffer auxb_bfr;
+    Buffer auxc_bfr;
+    Buffer auxd_bfr;
+
     float cell_voltages[18U];    // the LTC6813 allows for up to 18 cells
+    float thermistor_temps[7];   // 7 thermistors on the board
 
     uint32_t timeout;
 } Ltc6813;
@@ -65,7 +71,9 @@ Ltc6813 Ltc6813_init(SPI_HandleTypeDef spi, GPIO_TypeDef* cs_gpio_port, uint8_t 
 
 void _Ltc6813_acquire_mutex(Ltc6813* self);
 void _Ltc6813_release_mutex(Ltc6813* self);
+
 void _Ltc6813_decode_adc(Ltc6813* self);
+void _Ltc6813_decode_temp(Ltc6813* self);
 
 void Ltc6813_cs_low(Ltc6813* self);
 void Ltc6813_cs_high(Ltc6813* self);
@@ -81,14 +89,15 @@ void Ltc6813_read_spi(Ltc6813* self, Buffer* buffer);
 void Ltc6813_send_cmd(Ltc6813* self, uint16_t cmd);
 
 uint8_t Ltc6813_read_reg(Ltc6813* self, uint8_t reg_cmd);
-void Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd);
+uint8_t Ltc6813_write_reg(Ltc6813* self, uint8_t reg_cmd);
 
 uint8_t Ltc6813_read_cfga(Ltc6813* self);
 uint8_t Ltc6813_read_cfgb(Ltc6813* self);
-void Ltc6813_write_cfga(Ltc6813* self);
-void Ltc6813_write_cfgb(Ltc6813* self);
+uint8_t Ltc6813_write_cfga(Ltc6813* self);
+uint8_t Ltc6813_write_cfgb(Ltc6813* self);
 
 uint8_t Ltc6813_read_adc(Ltc6813* self, uint16_t mode);
+uint8_t Ltc6813_read_temp(Ltc6813* self);
 
 /*
 cell_mask is a mask of 32 bits where the i-th bit represents whether or not a cell should be discharged
@@ -104,7 +113,6 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ltc6813 Command Code Defines
 #ifndef __LTC6813_COMMAND_CODES
-
 #define WRCFGA      0b00000000001u
 #define WRCFGB      0b00000100100u
 
@@ -120,11 +128,17 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 
 #define PLADC       0b11100010100u
 
+// we're using ADAX in normal mode, reading ALL of the GPIO ADCs
+#define ADAX        0b10101100000u
+
+#define RDAUXA      0b00000001100u
+#define RDAUXB      0b00000001110u
+#define RDAUXC      0b00000001101u
+#define RDAUXD      0b00000001111u
 #endif
 
 
 #ifndef __LTC6813_ADC_MODES
-
 #define FAST_ADC            0b01011100000u
 #define FAST_ADC_DELAY      2
 
@@ -133,7 +147,6 @@ uint8_t Ltc6813_discharge_ctrl(Ltc6813* self, uint32_t cell_mask);
 
 #define FILTERED_ADC        0b01111100000u
 #define FILTERED_ADC_DELAY  202
-
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
