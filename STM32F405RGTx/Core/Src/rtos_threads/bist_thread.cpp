@@ -76,8 +76,6 @@ void BistThread::enabled_callback() {
 void BistThread::disabled_callback() { osThreadYield(); }
 
 void BistThread::runBist(void* args) {
-
-
     // this implementation of disabling the thread is kinda poo poo but it should also be fine...
     while (1) {
         BistThread::callback();
@@ -193,5 +191,5 @@ void BistThread::_toggle_fc() {
 }
 
 void BistThread::_clear() {
-    printf("\033[2J");
+    printf("\033[2J\r\n");
 }

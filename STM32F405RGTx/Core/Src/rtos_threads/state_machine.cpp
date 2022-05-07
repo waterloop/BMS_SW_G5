@@ -148,15 +148,6 @@ State_t StateMachineThread::InitializeEvent(void) {
 State_t StateMachineThread::IdleEvent(void) {
     // Set LED colour to green
     LEDThread::setLED(0.0, 50.0, 0.0, false);
-    
-    // Fault checking
-    // State_t severe_check = SevereFaultChecking();
-    // State_t normal_check = NormalFaultChecking();
-    // if (severe_check != NoFault) {
-    //     return severe_check;
-    // } else if (normal_check != NoFault) {
-    //     return normal_check;
-    // }
 
     // Resumes measurement if the previous state was Sleep
     // MeasurementsThread::resumeMeasurements(); 
@@ -185,15 +176,6 @@ State_t StateMachineThread::PrechargingEvent(void) {
     // Set LED colour to white
     LEDThread::setLED(50.0, 50.0, 50.0, false);
 
-    // Fault checking
-    // State_t severe_check = SevereFaultChecking();
-    // State_t normal_check = NormalFaultChecking();
-    // if (severe_check != NoFault) {
-    //     return severe_check;
-    // } else if (normal_check != NoFault) {
-    //     return normal_check;
-    // }
-
     TURN_ON_PRECHARGE_PIN();
 
     // Ensure capacitors are charged
@@ -219,15 +201,6 @@ State_t StateMachineThread::RunEvent(void) {
         Assigned to - Ivan
     */
     LEDThread::setLED(41.57, 5.1, 67.84, false);
-
-    // Fault checking
-    // State_t severe_check = SevereFaultChecking();
-    // State_t normal_check = NormalFaultChecking();
-    // if (severe_check != NoFault) {
-    //     return severe_check;
-    // } else if (normal_check != NoFault) {
-    //     return normal_check;
-    // }
 
     TURN_ON_CONT1_PIN();
     TURN_OFF_PRECHARGE_PIN();
@@ -314,13 +287,13 @@ State_t StateMachineThread::InitializeFaultEvent(void) {
 
 State_t StateMachineThread::NormalDangerFaultEvent(void) {
     // Set LED colour to light orange
-    LEDThread::setLED(50.00, 32.3, 0.0, false);
+    LEDThread::setLED(50.00, 0.0, 0.0, false);
 
     // Report fault on CAN
     CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
     CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, DANGER);
     CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    // if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
 
     TURN_OFF_CONT1_PIN();
 
@@ -394,6 +367,7 @@ void StateMachineThread::initialize() {
 void StateMachineThread::runStateMachine(void *argument) {
   while(1)
   {
+    // TIMING_GPIO_Port->ODR |= TIMING_Pin;
     if (enable_fault_check) {
         State_t severe_check = severeFaultChecking();
         State_t normal_check = normalFaultChecking();
@@ -462,6 +436,7 @@ void StateMachineThread::runStateMachine(void *argument) {
             Error_Handler();
     }
 
+    // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
 	osDelay(STATE_MACHINE_THREAD_PERIODICITY);
   }
 }

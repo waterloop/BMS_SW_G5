@@ -72,9 +72,12 @@ void CANThread::send_heartbeat() {
 
 void CANThread::runCANThread(void* arg) {
     while (1) {
-        CANThread::send_heartbeat();
-        if (RELAY_HEARTBEAT_ERROR_FLAG) { StateMachineThread::setState(NormalDangerFault); }
+        // TIMING_GPIO_Port->ODR |= TIMING_Pin;
 
+        CANThread::send_heartbeat();
+        //if (RELAY_HEARTBEAT_ERROR_FLAG) { StateMachineThread::setState(NormalDangerFault); }
+
+        // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
         osDelay(CAN_THREAD_PERIODICITY);
     }
 }

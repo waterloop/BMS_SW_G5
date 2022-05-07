@@ -61,14 +61,14 @@ int bms_entry() {
     printf("initializing RTOS kernel...\r\n");
     osKernelInitialize();
 
-    global_bms_data._lv_test_init();
+    // global_bms_data._lv_test_init();
 
     printf("starting RTOS threads...\r\n");
     
     MeasurementsThread::initialize();
     CoulombCountingThread::initialize();
     StateMachineThread::initialize();
-    Ltc6813Thread::initialize();
+    // Ltc6813Thread::initialize();
     CANThread::initialize();
     BistThread::initialize();
     LEDThread::initialize();
