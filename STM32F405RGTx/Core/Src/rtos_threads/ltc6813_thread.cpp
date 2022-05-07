@@ -16,14 +16,33 @@ void Ltc6813Thread::initialize() {
 }
 
 void Ltc6813Thread::runDriver(void* args) {
+    // wait for the RTOS and HW timers to stabalize...
+    osDelay(5);
+
+    // only need to wake from sleep once, since the periodicity of
+    // this thread is less than the sleep timeout time...
+    Ltc6813_wakeup_sleep(&ltc6813);
+
     while (1) {
-        Ltc6813_wakeup_sleep(&ltc6813);
+        // TIMING_GPIO_Port->ODR |= TIMING_Pin;
+
         Ltc6813_wakeup_idle(&ltc6813);
+
         if (Ltc6813_read_adc(&ltc6813, NORMAL_ADC)) {
             for (uint8_t i = 0; i < NUM_CELLS; i++) {
                 global_bms_data.battery.cells[i].voltage = ltc6813.cell_voltages[i];
             }
         }
+
+        if (Ltc6813_read_temp(&ltc6813)) {
+            for (uint8_t i = 0; i < NUM_CELLS; i += 2) {
+                // each thermistor covers two cells
+                global_bms_data.battery.cells[i].temp = ltc6813.thermistor_temps[i];
+                global_bms_data.battery.cells[i + 1].temp = ltc6813.thermistor_temps[i];
+            }
+        }
+
+        // TIMING_GPIO_Port->ODR &= ~(TIMING_Pin);
         osDelay(LTC6813_THREAD_PERIODICITY);
     }
 }

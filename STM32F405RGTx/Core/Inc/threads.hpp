@@ -29,7 +29,7 @@
 #define CAN_THREAD_PERIODICITY                      200
 #define CAN_THREAD_PRIORITY                         osPriorityRealtime4
 
-#define LTC6813_THREAD_PERIODICITY                  500
+#define LTC6813_THREAD_PERIODICITY                  900
 #define LTC6813_THREAD_PRIORITY                     osPriorityRealtime3
 
 
