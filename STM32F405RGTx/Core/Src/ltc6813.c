@@ -206,7 +206,7 @@ void _Ltc6813_decode_adc(Ltc6813* self) {
     self->cell_voltages[16] = c17v*100E-6;
     self->cell_voltages[17] = c18v*100E-6;
 }
-void _Ltc6813_decode_adc() {
+void _Ltc6813_decode_temp(Ltc6813* self) {
     // unimplemented yet, need to wait for someone to give me
     // the part number of the thermistors on the pack...
 
