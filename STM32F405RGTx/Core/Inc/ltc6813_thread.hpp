@@ -2,7 +2,7 @@
 #include "util.hpp"
 
 // here as a placeholder
-#define BALANCING_THRESHOLD     0.5 // Volts
+#define BALANCING_THRESHOLD     0.2 // Volts
 
 class Ltc6813Thread {
     public:
