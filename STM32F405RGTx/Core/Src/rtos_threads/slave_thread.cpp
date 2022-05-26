@@ -5,12 +5,12 @@
 #include "circ_queue.h"
 
 RTOSThread SlaveThread::thread;
-static Queue _rx_queue;
+static CircQueue _rx_CircQueue;
 static uint8_t _rx_bytes[sizeof(SlavePkt)];
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     SlavePkt* p_pkt = (SlavePkt*)_rx_bytes;
-    Queue_put(&_rx_queue, p_pkt);
+    CircQueue_put(&_rx_CircQueue, p_pkt);
 
     HAL_UART_Receive_IT(&huart1, _rx_bytes, sizeof(SlavePkt));
 }
@@ -39,9 +39,9 @@ void SlaveThread::runThread(void* args) {
         // Send a request to the slave for data packets
         HAL_UART_Transmit(&huart1, (uint8_t*)&rqst_pkt, sizeof(SlavePkt), 100);
 
-        while (!Queue_empty(&_rx_queue)) {
+        while (!CircQueue_empty(&_rx_CircQueue)) {
             // Parse a received message
-            Queue_get(&_rx_queue, &pkt);
+            CircQueue_get(&_rx_CircQueue, &pkt);
             if (pkt.addr <= 12) {
                 // We are dealing with one of the 12 (2 batt * 6 cell/batt) LiPo cells
                 global_bms_data.battery.cells[pkt.addr].voltage = UINT_TO_FLOAT(*((uint32_t*)pkt.payload));

@@ -2,40 +2,40 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "slave_hack.h"
+#include "slave_thread.hpp"
 
-#define RX_BUFF_SIZE    16
+#define CIRC_RX_BUFF_SIZE    16
 
 /*
-Implementation of a circular queue
+Implementation of a circular CircQueue
 */
 
 typedef enum {
-    QUEUE_GET_EMPTY = 0,
-    QUEUE_GET_OK = 1,
-    QUEUE_PUT_OK = 2,
-    QUEUE_PUT_WRAPAROUND = 3,
-    QUEUE_ERROR = 0
-} QueueStatus;
+    CircQueue_GET_EMPTY = 0,
+    CircQueue_GET_OK = 1,
+    CircQueue_PUT_OK = 2,
+    CircQueue_PUT_WRAPAROUND = 3,
+    CircQueue_ERROR = 0
+} CircQueueStatus;
 
 typedef struct {
     size_t len;
 
-    SlavePkt _arr[RX_BUFF_SIZE];
+    SlavePkt _arr[CIRC_RX_BUFF_SIZE];
     size_t _head;
     size_t _tail;
-} Queue;
+} CircQueue;
 
-#define _INC_HEAD(self) {                       \
-    if (self->_head == (RX_BUFF_SIZE - 1)) {    \
+#define CIRC_INC_HEAD(self) {                       \
+    if (self->_head == (CIRC_RX_BUFF_SIZE - 1)) {    \
         self->_head = 0;                        \
     }                                           \
     else {                                      \
         self->_head += 1;                       \
     }                                           \
 }
-#define _INC_TAIL(self) {                       \
-    if (self->_tail == (RX_BUFF_SIZE - 1)) {    \
+#define CIRC_INC_TAIL(self) {                       \
+    if (self->_tail == (CIRC_RX_BUFF_SIZE - 1)) {    \
         self->_tail = 0;                        \
     }                                           \
     else {                                      \
@@ -43,10 +43,10 @@ typedef struct {
     }                                           \
 }
 
-Queue Queue_init();
-uint8_t Queue_empty(Queue* self);
-QueueStatus Queue_put(Queue* self, SlavePkt* val);
-QueueStatus Queue_get(Queue* self, SlavePkt* val);
+CircQueue CircQueue_init();
+uint8_t CircQueue_empty(CircQueue* self);
+CircQueueStatus CircQueue_put(CircQueue* self, SlavePkt* val);
+CircQueueStatus CircQueue_get(CircQueue* self, SlavePkt* val);
 
-void Queue_print(Queue* self);
+void CircQueue_print(CircQueue* self);
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include "util.hpp"
 
@@ -26,7 +28,6 @@ class SlaveThread {
 
         static osThreadId_t getThreadId();
     private:
-        static uint8_t _rx_bytes[sizeof(SlavePkt)];
         static RTOSThread thread;
         static void runThread(void* args);
 };
