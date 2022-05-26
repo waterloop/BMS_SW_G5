@@ -7,6 +7,7 @@
 #include "ltc6813_thread.hpp"
 #include "bist_thread.hpp"
 #include "LED_thread.hpp"
+#include "slave_thread.hpp"
 #include "CAN_thread.hpp"
 
 // see ./docs/utilization.xlsx for schedulability calculations
@@ -31,6 +32,9 @@
 
 #define LTC6813_THREAD_PERIODICITY                  500
 #define LTC6813_THREAD_PRIORITY                     osPriorityRealtime3
+
+#define SLAVE_THREAD_PERIODICITY                  500
+#define SLAVE_THREAD_PRIORITY                     osPriorityRealtime3
 
 
 // tasks with SOFT timing deadlines
