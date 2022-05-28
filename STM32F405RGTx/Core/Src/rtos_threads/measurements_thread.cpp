@@ -62,7 +62,7 @@ void MeasurementsThread::processData() {
                 global_bms_data.contactor_voltage = UN_VOLTAGE_DIVIDE(ADC_TO_VOLTAGE(val));
                 break;
             case 5:
-                global_bms_data.bms_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val));
+                global_bms_data.bms_current = INA180_VOLTAGE_TO_CURRENT(ADC_TO_VOLTAGE(val))/2;
                 break;
         }
     }
