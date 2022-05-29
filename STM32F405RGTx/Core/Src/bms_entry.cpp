@@ -65,13 +65,13 @@ int bms_entry() {
 
     printf("starting RTOS threads...\r\n");
     
-    MeasurementsThread::initialize();
-    CoulombCountingThread::initialize();
-    StateMachineThread::initialize();
+    // MeasurementsThread::initialize();
+    // CoulombCountingThread::initialize();
+    // StateMachineThread::initialize();
     // Ltc6813Thread::initialize();
     SlaveThread::initialize();
-    CANThread::initialize();
-    BistThread::initialize();
+    // CANThread::initialize();
+    // BistThread::initialize();
     LEDThread::initialize();
 
     // RUNNING A BMS test --> Don't start scheduler

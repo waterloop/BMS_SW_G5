@@ -38,10 +38,10 @@ void SlaveThread::runThread(void* args) {
     while (1) {
         // Send a request to the slave for data packets
         HAL_UART_Transmit(&huart1, (uint8_t*)&rqst_pkt, sizeof(SlavePkt), 100);
+        
+        for (uint8_t i = 0; i < 14; i++) {
+            HAL_UART_Receive(&huart1, (uint8_t*)&pkt, sizeof(SlavePkt), HAL_MAX_DELAY);
 
-        while (!CircQueue_empty(&_rx_CircQueue)) {
-            // Parse a received message
-            CircQueue_get(&_rx_CircQueue, &pkt);
             if (pkt.addr <= 12) {
                 // We are dealing with one of the 12 (2 batt * 6 cell/batt) LiPo cells
                 global_bms_data.battery.cells[pkt.addr].voltage = UINT_TO_FLOAT(*((uint32_t*)pkt.payload));
@@ -50,7 +50,7 @@ void SlaveThread::runThread(void* args) {
                 global_bms_data.battery.cells[pkt.addr - 13].temp = UINT_TO_FLOAT(*((uint32_t*)pkt.payload));
             } else {} // Something went wrong, idk maybe do something?
         }
-
+        
         osDelay(SLAVE_THREAD_PERIODICITY);
     }
 }

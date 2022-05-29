@@ -34,7 +34,7 @@
 #define LTC6813_THREAD_PRIORITY                     osPriorityRealtime3
 
 #define SLAVE_THREAD_PERIODICITY                  500
-#define SLAVE_THREAD_PRIORITY                     osPriorityRealtime3
+#define SLAVE_THREAD_PRIORITY                     osPriorityRealtime1
 
 
 // tasks with SOFT timing deadlines
