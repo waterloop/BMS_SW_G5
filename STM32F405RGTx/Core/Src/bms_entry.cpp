@@ -69,6 +69,7 @@ int bms_entry() {
     CoulombCountingThread::initialize();
     StateMachineThread::initialize();
     // Ltc6813Thread::initialize();
+    SlaveThread::initialize();
     CANThread::initialize();
     BistThread::initialize();
     LEDThread::initialize();
