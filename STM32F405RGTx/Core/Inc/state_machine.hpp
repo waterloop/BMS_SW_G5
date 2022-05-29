@@ -14,7 +14,7 @@
 
 //////////////////////////////////////////////////////////////
 // PACK PARAMETERS
-#define PRECHARGE_VOLTAGE_THRESHOLD     40.0
+#define PRECHARGE_VOLTAGE_THRESHOLD     21.5
 
 #define MAX_PACK_CURRENT_SEVERE         50.0
 #define MAX_PACK_CURRENT_NORMAL         40.0
