@@ -65,11 +65,11 @@ int bms_entry() {
 
     printf("starting RTOS threads...\r\n");
     
-    // MeasurementsThread::initialize();
-    // CoulombCountingThread::initialize();
-    // StateMachineThread::initialize();
+    MeasurementsThread::initialize();
+    CoulombCountingThread::initialize();
+    StateMachineThread::initialize();
     // Ltc6813Thread::initialize();
-    SlaveThread::initialize();
+    // SlaveThread::initialize();
     // CANThread::initialize();
     // BistThread::initialize();
     LEDThread::initialize();

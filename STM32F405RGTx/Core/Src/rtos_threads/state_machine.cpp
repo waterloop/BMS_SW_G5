@@ -53,39 +53,6 @@ State_t StateMachineThread::normalFaultChecking(void) {
         bms_error_code = BUCK_TEMPERATURE_ERR;
         return NormalDangerFault;
     }
-
-    int overvolt_faults = 0;
-    int undervolt_faults = 0;
-    int temp_faults = 0;
-    for (int i = 0; i < NUM_CELLS; ++i) {
-        // Check if cell measurements should be flagged as a fault
-        float voltage = global_bms_data.battery.cells[i].voltage;
-        // float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_CELL_VOLTAGE_NORMAL) {
-            ++overvolt_faults;
-        }
-        else if (voltage < MIN_CELL_VOLTAGE_NORMAL) {
-            ++undervolt_faults;
-        }
-
-        // if (temperature > MAX_TEMP_NORMAL) {
-        //     ++temp_faults;
-        // } 
-
-        // Return faults if appropriate
-        if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS || undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS || temp_faults > MIN_CELL_TEMP_FAULTS) {
-            if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS) {
-                bms_error_code = CELL_OVERVOLTAGE_ERR; 
-            }
-            else if (undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS) {
-                bms_error_code = CELL_UNDERVOLTAGE_ERR; 
-            }
-            else {
-                bms_error_code = CELL_TEMPERATURE_ERR; 
-            }            
-            return NormalDangerFault;
-        }
-    }
     return NoFault;
 }
 
@@ -106,37 +73,6 @@ State_t StateMachineThread::severeFaultChecking(void) {
     if (global_bms_data.buck_temp > MAX_BUCK_TEMP_SEVERE) {
         bms_error_code = BUCK_TEMPERATURE_ERR;
         return NormalDangerFault;
-    }
-
-    int overvolt_faults = 0;
-    int undervolt_faults = 0;
-    int temp_faults = 0;
-    for (int i = 0; i < NUM_CELLS; ++i) {
-        // Check if cell measurements should be flagged as a fault
-        float voltage = global_bms_data.battery.cells[i].voltage;
-        // float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_CELL_VOLTAGE_SEVERE) {
-            ++overvolt_faults;
-        }
-        else if (voltage < MIN_CELL_VOLTAGE_SEVERE) {
-            ++undervolt_faults;
-        }
-        
-        // if (temperature > MAX_CELL_TEMP_SEVERE) {
-        //     ++temp_faults;
-        // } 
-
-        // Return faults if appropriate
-        if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS || undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS || temp_faults > MIN_CELL_TEMP_FAULTS) {
-            if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS) {
-                bms_error_code = CELL_OVERVOLTAGE_ERR; 
-            } else if (undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS) {
-                bms_error_code = CELL_UNDERVOLTAGE_ERR; 
-            } else {
-                bms_error_code = CELL_TEMPERATURE_ERR; 
-            }            
-            return SevereDangerFault;
-        }
     }
     return NoFault;
 }
@@ -365,6 +301,7 @@ void StateMachineThread::initialize() {
 }
 
 void StateMachineThread::runStateMachine(void *argument) {
+  osDelay(1000);
   while(1)
   {
     // TIMING_GPIO_Port->ODR |= TIMING_Pin;
