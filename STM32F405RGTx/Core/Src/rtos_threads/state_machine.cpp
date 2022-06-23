@@ -116,7 +116,7 @@ State_t StateMachineThread::PrechargingEvent(void) {
 
     // Ensure capacitors are charged
     while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
-        osDelay(1);
+        osDelay(2000);
     }
     has_precharged = true;
 
@@ -129,6 +129,7 @@ State_t StateMachineThread::PrechargingEvent(void) {
     return Idle;
 }
 
+static uint8_t fuck = 1;
 State_t StateMachineThread::RunEvent(void) {
     // Set LED colour to purple
     /*
@@ -138,14 +139,17 @@ State_t StateMachineThread::RunEvent(void) {
     */
     LEDThread::setLED(41.57, 5.1, 67.84, false);
 
-    TURN_ON_CONT1_PIN();
-    TURN_OFF_PRECHARGE_PIN();
+    if (fuck) {
+        fuck = 0;
+        TURN_ON_CONT1_PIN();
+        TURN_OFF_PRECHARGE_PIN();
 
-    // Send ACK on CAN when ready to run
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+        // Send ACK on CAN when ready to run
+        CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
+        if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -161,6 +165,7 @@ State_t StateMachineThread::RunEvent(void) {
     return Run;
 }
 
+static uint8_t fuck2 = 1;
 State_t StateMachineThread::StopEvent(void) {
     // Set LED colour to yellow
     LEDThread::setLED(50.0, 50.0, 0.0, false);
@@ -168,10 +173,13 @@ State_t StateMachineThread::StopEvent(void) {
     TURN_OFF_CONT1_PIN();
 
     // Send ACK on CAN when stop complete
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, run_state_id);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (fuck2) {
+        fuck2 = 0;
+        CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, run_state_id);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
+        if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -250,13 +258,16 @@ State_t StateMachineThread::SevereDangerFaultEvent(void) {
     // Set LED colour to red
     LEDThread::setLED(50.00, 0.0, 0.0, true);
 
-    // Report fault on CAN
-    CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
-    CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
-    CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
-
     TURN_OFF_CONT1_PIN();
+
+    // Report fault on CAN
+    if (fuck2) {
+        fuck2 = 0;
+        CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
+        CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
+        CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
+        if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) { 

@@ -22,7 +22,7 @@
 #define MAX_PACK_VOLTAGE_SEVERE         50.0
 #define MIN_PACK_VOLTAGE_SEVERE         40.0
 #define MAX_PACK_VOLTAGE_NORMAL         47.0
-#define MIN_PACK_VOLTAGE_NORMAL         44.0
+#define MIN_PACK_VOLTAGE_NORMAL         40.0
 
 #define MAX_BUCK_TEMP_SEVERE            100.0
 #define MAX_BUCK_TEMP_NORMAL            80.0

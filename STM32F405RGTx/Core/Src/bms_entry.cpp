@@ -70,7 +70,7 @@ int bms_entry() {
     StateMachineThread::initialize();
     // Ltc6813Thread::initialize();
     // SlaveThread::initialize();
-    // CANThread::initialize();
+    CANThread::initialize();
     // BistThread::initialize();
     LEDThread::initialize();
 
