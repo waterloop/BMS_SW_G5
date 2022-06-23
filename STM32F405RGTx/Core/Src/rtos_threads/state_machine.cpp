@@ -53,39 +53,6 @@ State_t StateMachineThread::normalFaultChecking(void) {
         bms_error_code = BUCK_TEMPERATURE_ERR;
         return NormalDangerFault;
     }
-
-    int overvolt_faults = 0;
-    int undervolt_faults = 0;
-    int temp_faults = 0;
-    for (int i = 0; i < NUM_CELLS; ++i) {
-        // Check if cell measurements should be flagged as a fault
-        float voltage = global_bms_data.battery.cells[i].voltage;
-        // float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_CELL_VOLTAGE_NORMAL) {
-            ++overvolt_faults;
-        }
-        else if (voltage < MIN_CELL_VOLTAGE_NORMAL) {
-            ++undervolt_faults;
-        }
-
-        // if (temperature > MAX_TEMP_NORMAL) {
-        //     ++temp_faults;
-        // } 
-
-        // Return faults if appropriate
-        if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS || undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS || temp_faults > MIN_CELL_TEMP_FAULTS) {
-            if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS) {
-                bms_error_code = CELL_OVERVOLTAGE_ERR; 
-            }
-            else if (undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS) {
-                bms_error_code = CELL_UNDERVOLTAGE_ERR; 
-            }
-            else {
-                bms_error_code = CELL_TEMPERATURE_ERR; 
-            }            
-            return NormalDangerFault;
-        }
-    }
     return NoFault;
 }
 
@@ -106,37 +73,6 @@ State_t StateMachineThread::severeFaultChecking(void) {
     if (global_bms_data.buck_temp > MAX_BUCK_TEMP_SEVERE) {
         bms_error_code = BUCK_TEMPERATURE_ERR;
         return NormalDangerFault;
-    }
-
-    int overvolt_faults = 0;
-    int undervolt_faults = 0;
-    int temp_faults = 0;
-    for (int i = 0; i < NUM_CELLS; ++i) {
-        // Check if cell measurements should be flagged as a fault
-        float voltage = global_bms_data.battery.cells[i].voltage;
-        // float temperature = global_bms_data.battery.cells[i].temp;
-        if (voltage > MAX_CELL_VOLTAGE_SEVERE) {
-            ++overvolt_faults;
-        }
-        else if (voltage < MIN_CELL_VOLTAGE_SEVERE) {
-            ++undervolt_faults;
-        }
-        
-        // if (temperature > MAX_CELL_TEMP_SEVERE) {
-        //     ++temp_faults;
-        // } 
-
-        // Return faults if appropriate
-        if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS || undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS || temp_faults > MIN_CELL_TEMP_FAULTS) {
-            if (overvolt_faults > MIN_CELL_OVERVOLT_FAULTS) {
-                bms_error_code = CELL_OVERVOLTAGE_ERR; 
-            } else if (undervolt_faults > MIN_CELL_UNDERVOLT_FAULTS) {
-                bms_error_code = CELL_UNDERVOLTAGE_ERR; 
-            } else {
-                bms_error_code = CELL_TEMPERATURE_ERR; 
-            }            
-            return SevereDangerFault;
-        }
     }
     return NoFault;
 }
@@ -180,7 +116,7 @@ State_t StateMachineThread::PrechargingEvent(void) {
 
     // Ensure capacitors are charged
     while (global_bms_data.mc_cap_voltage < PRECHARGE_VOLTAGE_THRESHOLD) {
-        osDelay(1);
+        osDelay(2000);
     }
     has_precharged = true;
 
@@ -193,6 +129,7 @@ State_t StateMachineThread::PrechargingEvent(void) {
     return Idle;
 }
 
+static uint8_t fuck = 1;
 State_t StateMachineThread::RunEvent(void) {
     // Set LED colour to purple
     /*
@@ -202,14 +139,17 @@ State_t StateMachineThread::RunEvent(void) {
     */
     LEDThread::setLED(41.57, 5.1, 67.84, false);
 
-    TURN_ON_CONT1_PIN();
-    TURN_OFF_PRECHARGE_PIN();
+    if (fuck) {
+        fuck = 0;
+        TURN_ON_CONT1_PIN();
+        TURN_OFF_PRECHARGE_PIN();
 
-    // Send ACK on CAN when ready to run
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+        // Send ACK on CAN when ready to run
+        CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, idle_state_id);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
+        if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -225,6 +165,7 @@ State_t StateMachineThread::RunEvent(void) {
     return Run;
 }
 
+static uint8_t fuck2 = 1;
 State_t StateMachineThread::StopEvent(void) {
     // Set LED colour to yellow
     LEDThread::setLED(50.0, 50.0, 0.0, false);
@@ -232,10 +173,13 @@ State_t StateMachineThread::StopEvent(void) {
     TURN_OFF_CONT1_PIN();
 
     // Send ACK on CAN when stop complete
-    CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, run_state_id);
-    CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    if (fuck2) {
+        fuck2 = 0;
+        CANFrame tx_frame = CANFrame_init(BMS_STATE_CHANGE_ACK_NACK);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK_ID, run_state_id);
+        CANFrame_set_field(&tx_frame, STATE_CHANGE_ACK, 0x00);
+        if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) {
@@ -314,13 +258,16 @@ State_t StateMachineThread::SevereDangerFaultEvent(void) {
     // Set LED colour to red
     LEDThread::setLED(50.00, 0.0, 0.0, true);
 
-    // Report fault on CAN
-    CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
-    CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
-    CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
-    if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
-
     TURN_OFF_CONT1_PIN();
+
+    // Report fault on CAN
+    if (fuck2) {
+        fuck2 = 0;
+        CANFrame tx_frame = CANFrame_init(BMS_SEVERITY_CODE.id);
+        CANFrame_set_field(&tx_frame, BMS_SEVERITY_CODE, SEVERE);
+        CANFrame_set_field(&tx_frame, BMS_ERROR_CODE, bms_error_code);
+        if (send_frame(&tx_frame) != HAL_OK) { Error_Handler(); }
+    }
 
     // Receive CAN frame
     if (!Queue_empty(&RX_QUEUE)) { 
@@ -365,6 +312,7 @@ void StateMachineThread::initialize() {
 }
 
 void StateMachineThread::runStateMachine(void *argument) {
+  osDelay(1000);
   while(1)
   {
     // TIMING_GPIO_Port->ODR |= TIMING_Pin;
