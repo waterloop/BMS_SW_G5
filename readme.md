@@ -39,4 +39,4 @@ sudo apt install bear
 bear make
 ```
 
-test
+testing
