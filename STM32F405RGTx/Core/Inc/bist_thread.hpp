@@ -32,6 +32,7 @@ class BistThread {
 
         // help
         static void _help();
+
         // print measurements
         static void _p_measurements();
 
@@ -43,5 +44,13 @@ class BistThread {
 
         // clears the command interface
         static void _clear();
-};
 
+        // changes bms state
+        static void _bms_state();
+
+        // help for state commands
+        static void _help_state();
+
+        // switches off the contactor
+        static void _toggle_cont();
+};
