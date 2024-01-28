@@ -8,6 +8,7 @@
 #include "timer_utils.h"
 #include "state_machine.hpp"
 #include "bist_thread.hpp"
+#include "bsp.h"
 
 static const char* _banner = " _       __      __            __                      \r\n" \
                              "| |     / /___ _/ /____  _____/ /___  ____  ____       \r\n" \
@@ -58,16 +59,20 @@ void BistThread::toggleBist() {
 
 static uint8_t buff[20];
 static uint32_t len = 20;
+static bool admin = false;
 void BistThread::enabled_callback() {
     BistThread::_sinput("> ", buff, &len);
 
-    if (BistThread::_strcmp(buff, "p_measurements"))    { BistThread::_p_measurements(); }
-    else if (BistThread::_strcmp(buff, "pm"))           { BistThread::_p_measurements(); }
-    else if (BistThread::_strcmp(buff, "rgb"))          { BistThread::_rgb(); }
-    else if (BistThread::_strcmp(buff, "help"))         { BistThread::_help(); }
-    else if (BistThread::_strcmp(buff, "toggle_fc"))    { BistThread::_toggle_fc(); }
-    else if (BistThread::_strcmp(buff, "clear"))        { BistThread::_clear(); }
-    else if (BistThread::_strcmp(buff, ""))             { /* do nothing... */ }
+    if (BistThread::_strcmp(buff, "p_measurements"))                   { BistThread::_p_measurements(); }
+    else if (BistThread::_strcmp(buff, "pm"))                          { BistThread::_p_measurements(); }
+    else if (BistThread::_strcmp(buff, "rgb"))                         { BistThread::_rgb(); }
+    else if (BistThread::_strcmp(buff, "help"))                        { BistThread::_help(); }
+    else if (BistThread::_strcmp(buff, "toggle_fc"))                   { BistThread::_toggle_fc(); }
+    else if (BistThread::_strcmp(buff, "clear"))                       { BistThread::_clear(); }
+    else if (BistThread::_strcmp(buff, "admin"))                       { admin = !admin; }
+    else if (BistThread::_strcmp(buff, "bms_state")&&admin==true)      { BistThread::_bms_state(); }
+    else if (BistThread::_strcmp(buff, "toggle_cont")&&admin==true)    { BistThread::_toggle_cont(); }
+    else if (BistThread::_strcmp(buff, ""))                            { /* do nothing... */ }
 
     else { printf("invalid command...\r\n"); }
 
@@ -138,6 +143,8 @@ void BistThread::_help() {
     BistThread::_print((uint8_t*)"rgb                   --> change the color of the RGB LED\r\n");
     BistThread::_print((uint8_t*)"toggle_fc             --> toggle fault checking in state machine\r\n");
     BistThread::_print((uint8_t*)"clear                 --> clears the command interface\r\n");
+    BistThread::_print((uint8_t*)"bms_state             --> change the BMS state in state machine\r\n");
+    BistThread::_print((uint8_t*)"toggle_cont           --> toggles the contactor to OFF\r\n");
 }
 
 void BistThread::_p_measurements() {
@@ -192,4 +199,42 @@ void BistThread::_toggle_fc() {
 
 void BistThread::_clear() {
     printf("\033[2J\r\n");
+}
+
+void BistThread::_bms_state(){
+	uint8_t buff[20];
+	uint32_t len = 20;
+
+	while (true) {
+		BistThread::_sinput("enter BMS state...", buff, &len);
+		if (BistThread::_strcmp(buff, "initialize"))                { StateMachineThread::setState(Initialize); }
+		else if (BistThread::_strcmp(buff, "initializeFault"))      { StateMachineThread::setState(InitializeFault); }
+		else if (BistThread::_strcmp(buff, "idle"))                 { StateMachineThread::setState(Idle); }
+		else if (BistThread::_strcmp(buff, "precharging"))          { StateMachineThread::setState(Precharging); }
+		else if (BistThread::_strcmp(buff, "run"))                  { StateMachineThread::setState(Run); }
+		else if (BistThread::_strcmp(buff, "stop"))                 { StateMachineThread::setState(Stop); }
+		else if (BistThread::_strcmp(buff, "sleep"))                { StateMachineThread::setState(Sleep); }
+		else if (BistThread::_strcmp(buff, "normalDangerFault"))    { StateMachineThread::setState(NormalDangerFault); }
+		else if (BistThread::_strcmp(buff, "severeDangerFault"))    { StateMachineThread::setState(SevereDangerFault); }
+		else if (BistThread::_strcmp(buff, "noFault"))              { StateMachineThread::setState(NoFault); }
+		else if (BistThread::_strcmp(buff, "charging"))             { StateMachineThread::setState(Charging); }
+		else if (BistThread::_strcmp(buff, "charged"))              { StateMachineThread::setState(Charged); }
+		else if (BistThread::_strcmp(buff, "balancing"))            { StateMachineThread::setState(Balancing); }
+		else if (BistThread::_strcmp(buff, ""))                     { /* do nothing... */ }
+		else if (BistThread::_strcmp(buff, "help"))                 { BistThread::_help_state(); }
+		else if (BistThread::_strcmp(buff, "exit"))                 { break; }
+
+		else { printf("invalid command...\r\n"); }
+	}
+}
+
+void BistThread::_help_state(){
+	BistThread::_print((uint8_t*)"BMS States: \r\n - initialize \r\n - initializeFault \r\n - idle \r\n");
+	BistThread::_print((uint8_t*)" - precharging \r\n - run \r\n - stop \r\n - sleep \r\n - normalDangerFault \r\n");
+	BistThread::_print((uint8_t*)" - severeDanger \r\n - Fault \r\n - noFault \r\n - charging \r\n - charged \r\n");
+	BistThread::_print((uint8_t*)" - balancing \r\n - *enter 'exit' to leave prompt\r\n");
+}
+
+void BistThread::_toggle_cont(){
+	TURN_OFF_CONT1_PIN();
 }
